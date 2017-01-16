@@ -1,0 +1,30 @@
+{
+  "name": "chartengine",
+  "version": "0.1.0",
+  "description": "desc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LykkeCity/ChartEngine.git"
+  },
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "pegilo",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jquery": "^2.0.39",
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-typescript": "^3.1.4",
+    "gulp-concat": "^2.6.1",
+    "gulp-uglify": "^2.0.0",    
+    "jquery": "^1.12.4",
+    "typescript": "^2.1.5",
+    "typing": "^0.1.9"
+  },
+  "dependencies": {
+    "jquery": "^1.12"
+  }
+}
