@@ -1,6 +1,10 @@
-﻿import { IRange } from "shared/Interfaces"
-import { IEvent } from "shared/Event"
-import { CanvasTextAlign, CanvasTextBaseLine, TimeInterval } from "core/Enums"
+﻿/**
+ * Core interfaces.
+ */
+
+import { CanvasTextAlign, CanvasTextBaseLine, TimeInterval } from 'core/Enums';
+import { IEvent } from 'shared/Event';
+import { IRange } from 'shared/Interfaces';
 
 export interface ILayout {
     readonly dateRange: IRange<Date>;

@@ -1,4 +1,8 @@
-﻿export enum CanvasTextAlign {
+﻿/**
+ * Core enumerations.
+ */
+
+export enum CanvasTextAlign {
     Left,
     Center,
     Right

@@ -1,14 +1,21 @@
-﻿import { TimeInterval } from "core/Enums"
-import { IRange, ISize, IEventHandler, IHashTable } from "shared/Interfaces"
-import { Candlestick, Point } from "core/Model"
-import { CanvasWrapper } from "core/CanvasWrapper"
-import { ILayout, IMouseHandler, IDataSource, IChartData, IAxis } from "core/Interfaces"
-import { TimeAxis, NumberAxis } from "core/TimeAxis"
-import { CandlestickChartRenderer } from "charts/renderers/CandlestickChartRenderer"
-import { LineChartRenderer } from "charts/renderers/LineChartRenderer"
-import { AxisRenderer } from "charts/renderers/AxisRenderer"
+﻿/**
+ * ChartBoard class.
+ * 
+ * @classdesc Facade for the chart library.
+ */
 
-import * as $ from "jquery"
+import { AxisRenderer } from 'charts/renderers/AxisRenderer';
+import { CandlestickChartRenderer } from 'charts/renderers/CandlestickChartRenderer';
+import { LineChartRenderer } from 'charts/renderers/LineChartRenderer';
+import { CanvasWrapper } from 'core/CanvasWrapper';
+import { TimeInterval } from 'core/Enums';
+import { IAxis, IDataSource, IMouseHandler } from 'core/Interfaces';
+import { Candlestick, Point } from 'core/Model';
+import { NumberAxis, TimeAxis } from 'core/TimeAxis';
+
+import { IEventHandler, IHashTable } from 'shared/Interfaces';
+
+import * as $ from 'jquery';
 
 enum RenderType {
     Candlestick,
@@ -23,20 +30,20 @@ class ChartArea {
 
     public get mainContext(): CanvasWrapper {
         return this._mainContext;
-    }    
+    }
 
     public get axisXContext(): CanvasWrapper {
         return this._axisXContext;
-    }    
+    }
 
     public get axisYContext(): CanvasWrapper {
         return this._axisYContext;
-    }    
+    }
 
     constructor(
-        private mainCanvas: HTMLCanvasElement,
-        private axisXCanvas: HTMLCanvasElement,
-        private axisYCanvas: HTMLCanvasElement){
+        mainCanvas: HTMLCanvasElement,
+        axisXCanvas: HTMLCanvasElement,
+        axisYCanvas: HTMLCanvasElement) {
 
         this._mainContext = this.getContext(mainCanvas, mainCanvas.width, mainCanvas.height);
         this._axisXContext = this.getContext(axisXCanvas, axisXCanvas.width, axisXCanvas.height);
@@ -44,9 +51,9 @@ class ChartArea {
     }
 
     private getContext(el: HTMLCanvasElement, w: number, h: number): CanvasWrapper {
-        let ctx = el.getContext("2d");
+        let ctx = el.getContext('2d');
         if (ctx == null) {
-            throw new Error("Context is null");
+            throw new Error('Context is null');
         }
         return new CanvasWrapper(ctx, w, h);
     }
@@ -86,11 +93,11 @@ class ChartStack {
             let data = chart.dataSource.getData(this.timeAxis.range);
             let yAxis = new NumberAxis(height, 1, { start: data.minOrdinateValue, end: data.maxOrdinateValue});
 
-            if(chart.renderType == RenderType.Candlestick) {
+            if(chart.renderType === RenderType.Candlestick) {
                 let candleRender = new CandlestickChartRenderer();
                 candleRender.render(this.area.mainContext, data, 0, 0, this.timeAxis, yAxis);
             }
-            else if(chart.renderType == RenderType.Line) {
+            else if(chart.renderType === RenderType.Line) {
                 LineChartRenderer.render(this.area.mainContext, data, 0, 0, this.timeAxis, yAxis);
             }
             else{
@@ -143,22 +150,22 @@ export class ChartBoard {
         //
         let self = this;
 
-        this.eventHandlers["mousewheel"] = function (event: any) { self.onMouseWheel(event); };
-        this.eventHandlers["mouseup"] = function (event: any) { self.onMouseUp(event); };
-        this.eventHandlers["mousedown"] = function (event: any) { self.onMouseDown(event); };
-        this.eventHandlers["mousemove"] = function (event: any) { self.onMouseMove(event); };
-        this.eventHandlers["mouseenter"] = function (event: any) { self.onMouseEnter(event); };
-        this.eventHandlers["mouseleave"] = function (event: any) { self.onMouseLeave(event); };
+        this.eventHandlers['mousewheel'] = function (event: any) { self.onMouseWheel(event); };
+        this.eventHandlers['mouseup'] = function (event: any) { self.onMouseUp(event); };
+        this.eventHandlers['mousedown'] = function (event: any) { self.onMouseDown(event); };
+        this.eventHandlers['mousemove'] = function (event: any) { self.onMouseMove(event); };
+        this.eventHandlers['mouseenter'] = function (event: any) { self.onMouseEnter(event); };
+        this.eventHandlers['mouseleave'] = function (event: any) { self.onMouseLeave(event); };
 
-        this.container.addEventListener("DOMMouseScroll", this.eventHandlers["mousewheel"], false);
-        this.container.addEventListener("mousewheel", this.eventHandlers["mousewheel"], false);
-        this.container.addEventListener("mouseup", this.eventHandlers["mouseup"], false);
-        this.container.addEventListener("mousedown", this.eventHandlers["mousedown"], false);
-        //this.container.addEventListener("mousemove", this.eventHandlers["mousemove"], false);
+        this.container.addEventListener('DOMMouseScroll', this.eventHandlers['mousewheel'], false);
+        this.container.addEventListener('mousewheel', this.eventHandlers['mousewheel'], false);
+        this.container.addEventListener('mouseup', this.eventHandlers['mouseup'], false);
+        this.container.addEventListener('mousedown', this.eventHandlers['mousedown'], false);
+        //this.container.addEventListener('mousemove', this.eventHandlers['mousemove'], false);
         // TODO: Check if jQuery needed:
-        $(this.container).mousemove(this.eventHandlers["mousemove"]);
-        this.container.addEventListener("mouseenter", this.eventHandlers["mouseenter"], false);
-        this.container.addEventListener("mouseleave", this.eventHandlers["mouseleave"], false);
+        $(this.container).mousemove(this.eventHandlers['mousemove']);
+        this.container.addEventListener('mouseenter', this.eventHandlers['mouseenter'], false);
+        this.container.addEventListener('mouseleave', this.eventHandlers['mouseleave'], false);
     }
 
     private appendArea(table: HTMLTableElement, w: number, h: number) : ChartArea {
@@ -225,7 +232,7 @@ export class ChartBoard {
 
         var direction = ((event.wheelDelta) ? event.wheelDelta / 120 : event.detail / -3) || 0;
         if (direction) {
-            console.debug("Mousewhell event: " + direction);
+            console.debug('Mousewhell event: ' + direction);
             this.timeAxis.scale(direction);
             // TODO: Use animation loop (?)
             this.render();

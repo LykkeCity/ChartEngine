@@ -1,9 +1,14 @@
-﻿import { IRange, ISize } from "shared/Interfaces"
-import { IAxis, IDataSource, IChartData, ICanvas } from "core/Interfaces"
-import { TimeInterval } from "core/Enums"
-import { Point } from "core/Model"
+﻿/**
+ * LineChartRenderer
+ * 
+ * @classdesc Renders specified data in a form of line chart.
+ */
 
-export class LineChartRenderer  {
+import { IAxis, ICanvas } from 'core/Interfaces';
+import { Point } from 'core/Model';
+import { ISize } from 'shared/Interfaces';
+
+export class LineChartRenderer {
 
     public static render(
         canvas: ICanvas,

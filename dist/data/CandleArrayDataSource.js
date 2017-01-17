@@ -1,3 +1,6 @@
+/**
+ * CandleArrayDataSource class.
+ */
 define(["require", "exports", "shared/Event"], function (require, exports, Event_1) {
     "use strict";
     var CandleArrayDataSource = (function () {

@@ -17,7 +17,9 @@
       "data/*": [ "charts/data/*" ]
     },
     //"typeRoots": [ "../scripts/typings/" ],
-    "traceResolution": true
+    "traceResolution": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true
   },
   "exclude": [
     "node_modules",

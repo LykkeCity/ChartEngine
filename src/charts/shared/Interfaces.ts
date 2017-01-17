@@ -1,4 +1,8 @@
-﻿export interface IRange<T> {
+﻿/**
+ * Commonly used interfaces, that can be used in other projects.
+ */
+
+export interface IRange<T> {
     readonly start: T;
     readonly end: T;
 }

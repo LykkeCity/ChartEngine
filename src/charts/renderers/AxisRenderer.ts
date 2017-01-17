@@ -1,6 +1,12 @@
-import { IRange } from "shared/Interfaces"
-import { TimeInterval } from "core/Enums"
-import { IAxis, ICanvas } from "core/Interfaces"
+/**
+ * AxisRenderer
+ * 
+ * @classdesc Contains methods for rendering axes.
+ */
+
+import { TimeInterval } from 'core/Enums';
+import { IAxis, ICanvas } from 'core/Interfaces';
+import { IRange } from 'shared/Interfaces';
 
 export class AxisRenderer {
 

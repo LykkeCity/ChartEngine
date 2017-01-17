@@ -1,3 +1,6 @@
+/**
+ * Typed events for TypeScript.
+ */
 define(["require", "exports"], function (require, exports) {
     "use strict";
     var Event = (function () {

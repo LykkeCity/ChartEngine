@@ -1,11 +1,15 @@
-import { IRange } from "shared/Interfaces"
-import { IDataSource, IChartData } from "core/Interfaces"
-import { Candlestick, Point } from "core/Model"
-import { IEvent, Event } from "shared/Event"
+/**
+ * SimpleIndicator class.
+ */
+
+import { IChartData, IDataSource } from 'core/Interfaces';
+import { Candlestick, Point } from 'core/Model';
+import { Event, IEvent } from 'shared/Event';
+import { IRange } from 'shared/Interfaces';
 
 export class SimpleIndicator implements IDataSource<Point>
 {
-    private dateChangedEvent = new Event<void>();   
+    private dateChangedEvent = new Event<void>();
 
     constructor(
         private dataSource: IDataSource<Candlestick>) {
@@ -17,9 +21,7 @@ export class SimpleIndicator implements IDataSource<Point>
     }
 
     public getData(range: IRange<Date>): IChartData<Point> {
-        
         let indicator: Point[] = [];
-
         let sourceData = this.dataSource.getData(range);
 
         for(let i = 3; i < sourceData.data.length; i++) {

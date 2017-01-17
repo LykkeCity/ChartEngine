@@ -1,6 +1,11 @@
-﻿import { TimeInterval } from "core/Enums"
-import { IRange } from "shared/Interfaces"
-import { IAxis } from "core/Interfaces"
+﻿/** 
+ * TimeAxis class
+ * 
+ * @classdesc Represents a chart's axis of numbers
+ */
+
+import { IAxis } from 'core/Interfaces';
+import { IRange } from 'shared/Interfaces';
 
 export class NumberAxis implements IAxis<number> {
 
@@ -9,7 +14,7 @@ export class NumberAxis implements IAxis<number> {
     private _interval: number;
 
     constructor(
-        width: number, 
+        width: number,
         interval: number,         // Defines maximum zoom
         initialRange: IRange<number>) {
         this._w = width;
@@ -33,14 +38,14 @@ export class NumberAxis implements IAxis<number> {
         let range = Math.abs(this.range.end - this.range.start);
         let min = Math.min(this.range.end, this.range.start);
         let d = this.width / (range);
-        return d * (value - min);        
+        return d * (value - min);
     }
 
-    move(direction: number): void{
+    move(direction: number): void {
     }
 
-    scale(direction: number): void{
-    }    
+    scale(direction: number): void {
+    }
 }
 
 export class TimeAxis implements IAxis<Date> {
@@ -50,7 +55,7 @@ export class TimeAxis implements IAxis<Date> {
     private _interval: number;
 
     constructor(
-        width: number, 
+        width: number,
         interval: number,         // Defines maximum zoom
         initialRange: IRange<Date>) {
         this._w = width;
@@ -70,7 +75,7 @@ export class TimeAxis implements IAxis<Date> {
         return this._w;
     }
 
-    toX(value: Date): number{
+    toX(value: Date): number {
 
         if (value < this.range.start || value > this.range.end) {
             throw new Error(`Date ${value} is out of range.`);
@@ -83,7 +88,7 @@ export class TimeAxis implements IAxis<Date> {
         return x;
     }
 
-    move(direction: number): void{
+    move(direction: number): void {
         //direction = Math.round(direction);
 
         if (direction == 0) {
@@ -93,14 +98,14 @@ export class TimeAxis implements IAxis<Date> {
         let curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
 
         let shiftInMs = direction * curRangeInMs / this.width;
-        
+
         this._range = {
             start: new Date(this.range.start.getTime() - shiftInMs),
             end: new Date(this.range.end.getTime() - shiftInMs)
         };
     }
 
-    scale(direction: number): void{
+    scale(direction: number): void {
         let curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
         let newRange = 0;
 
@@ -124,5 +129,5 @@ export class TimeAxis implements IAxis<Date> {
             start: new Date(this.range.end.getTime() - newRange),
             end: this.range.end
         };
-    }    
+    }
 }

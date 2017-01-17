@@ -1,4 +1,8 @@
-﻿export class Candlestick {
+﻿/**
+ * Model types.
+ */
+
+export class Candlestick {
     readonly date: Date;
     readonly c: number;
     readonly o: number;

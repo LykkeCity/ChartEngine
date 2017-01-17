@@ -1,5 +1,11 @@
-﻿import { CanvasTextAlign, CanvasTextBaseLine } from "core/Enums"
-import { ICanvas } from "core/Interfaces"
+﻿/**
+ * CanvasWrapper class.
+ * 
+ * @classdesc Incapsulates usage of canvas.
+ */
+
+import { CanvasTextAlign, CanvasTextBaseLine } from 'core/Enums';
+import { ICanvas } from 'core/Interfaces';
 
 export class CanvasWrapper implements ICanvas {
 
@@ -7,7 +13,6 @@ export class CanvasWrapper implements ICanvas {
 
     readonly w: number;
     readonly h: number;
-
     readonly dpr: number;
 
     constructor(context: CanvasRenderingContext2D, width: number, height: number) {
@@ -71,7 +76,7 @@ export class CanvasWrapper implements ICanvas {
     }
 
     setTextAlign(v: CanvasTextAlign) {
-        this.ctx.textAlign = CanvasTextBaseLine[v].toLowerCase()
+        this.ctx.textAlign = CanvasTextBaseLine[v].toLowerCase();
     }
 
     setTextBaseLine(v: CanvasTextBaseLine) {

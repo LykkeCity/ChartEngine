@@ -1,15 +1,18 @@
-﻿import { IRange } from "shared/Interfaces"
-import { IDataSource, IChartData } from "core/Interfaces"
-import { Candlestick } from "core/Model"
-import { IEvent, Event } from "shared/Event"
+﻿/**
+ * CandleArrayDataSource class.
+ */
+
+import { IChartData, IDataSource } from 'core/Interfaces';
+import { Candlestick } from 'core/Model';
+import { Event, IEvent } from 'shared/Event';
+import { IRange } from 'shared/Interfaces';
 
 export class CandleArrayDataSource implements IDataSource<Candlestick>
 {
-    private dateChangedEvent = new Event<void>();   
+    private dateChangedEvent = new Event<void>();
 
     constructor(
         private data: Candlestick[]) {
-
     }
 
     public get dateChanged(): IEvent<void> {
@@ -17,7 +20,7 @@ export class CandleArrayDataSource implements IDataSource<Candlestick>
     }
 
     public getData(range: IRange<Date>): IChartData<Candlestick> {
-        
+
         let lowestPrice = Number.MAX_VALUE;
         let highestPrice = Number.MIN_VALUE;
 

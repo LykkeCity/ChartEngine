@@ -1,3 +1,6 @@
+/**
+ * Model types.
+ */
 define(["require", "exports"], function (require, exports) {
     "use strict";
     var Candlestick = (function () {

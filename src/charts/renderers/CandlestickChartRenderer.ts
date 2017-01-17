@@ -1,12 +1,16 @@
-﻿import { IRange, ISize } from "shared/Interfaces"
-import { IAxis, IDataSource, IChartData, ICanvas } from "core/Interfaces"
-import { TimeInterval } from "core/Enums"
-import { Candlestick } from "core/Model"
+﻿/**
+ * CandlestickChartRenderer
+ * 
+ * @classdesc Renders specified data in a form of candlestick chart.
+ */
+
+import { IAxis, ICanvas } from 'core/Interfaces';
+import { Candlestick } from 'core/Model';
+import { ISize } from 'shared/Interfaces';
 
 export class CandlestickChartRenderer  {
 
-    public constructor() {
-    }
+    public constructor() { }
 
     public render(
         canvas: ICanvas,

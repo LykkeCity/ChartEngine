@@ -1,3 +1,8 @@
+/**
+ * AxisRenderer
+ *
+ * @classdesc Contains methods for rendering axes.
+ */
 define(["require", "exports"], function (require, exports) {
     "use strict";
     var AxisRenderer = (function () {

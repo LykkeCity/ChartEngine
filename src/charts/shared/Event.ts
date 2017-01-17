@@ -1,4 +1,8 @@
-﻿import { IEventHandler } from "shared/Interfaces";
+﻿/**
+ * Typed events for TypeScript.
+ */
+
+import { IEventHandler } from 'shared/Interfaces';
 
 export interface IEvent<T> {
     on(handler: IEventHandler<T>): void;

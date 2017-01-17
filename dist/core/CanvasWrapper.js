@@ -1,3 +1,8 @@
+/**
+ * CanvasWrapper class.
+ *
+ * @classdesc Incapsulates usage of canvas.
+ */
 define(["require", "exports", "core/Enums"], function (require, exports, Enums_1) {
     "use strict";
     var CanvasWrapper = (function () {
