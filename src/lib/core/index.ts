@@ -1,18 +1,10 @@
 /**
  * 
  */
-
-import { Chart } from './Chart';
-import { ChartArea } from './ChartArea';
-import { ChartBoard } from './ChartBoard';
-import { ChartStack } from './ChartStack';
-import { TimeInterval, Unit } from './Enums';
+import { VisualComponent } from './VisualComponent';
+import { VisualContext } from './VisualContext';
 
 export {
-    Chart,
-    ChartArea,
-    ChartBoard,
-    ChartStack,
-    TimeInterval,
-    Unit
+    VisualComponent,
+    VisualContext
 }

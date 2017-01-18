@@ -16,6 +16,9 @@ var SimpleIndicator = (function () {
         enumerable: true,
         configurable: true
     });
+    SimpleIndicator.prototype.getValuesRange = function (range) {
+        return this.dataSource.getValuesRange(range);
+    };
     SimpleIndicator.prototype.getData = function (range) {
         var indicator = [];
         var sourceData = this.dataSource.getData(range);
@@ -26,9 +29,7 @@ var SimpleIndicator = (function () {
             indicator.push({ date: sourceData.data[i].date, value: value });
         }
         return {
-            data: indicator,
-            minOrdinateValue: sourceData.minOrdinateValue,
-            maxOrdinateValue: sourceData.maxOrdinateValue
+            data: indicator
         };
     };
     SimpleIndicator.prototype.onDataSourceChanged = function (arg) {

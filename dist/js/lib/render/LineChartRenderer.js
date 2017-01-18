@@ -7,7 +7,7 @@
 var LineChartRenderer = (function () {
     function LineChartRenderer() {
     }
-    LineChartRenderer.render = function (canvas, data, offsetX, offsetY, timeAxis, yAxis) {
+    LineChartRenderer.prototype.render = function (canvas, data, offsetX, offsetY, timeAxis, yAxis) {
         console.debug("[LineChartRenderer] start rendering...");
         // Calculate size of frame
         var frameSize = {
@@ -20,7 +20,7 @@ var LineChartRenderer = (function () {
             this.renderPart(canvas, timeAxis, yAxis, data.data[i - 1], data.data[i], frameSize);
         }
     };
-    LineChartRenderer.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frameSize) {
+    LineChartRenderer.prototype.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frameSize) {
         // Startin drawing
         canvas.setStrokeStyle('#555555');
         canvas.beginPath();
@@ -31,7 +31,7 @@ var LineChartRenderer = (function () {
         canvas.stroke();
         canvas.closePath();
     };
-    LineChartRenderer.line = function (canvas, x1, y1, x2, y2) {
+    LineChartRenderer.prototype.line = function (canvas, x1, y1, x2, y2) {
         console.debug("line: {" + x1 + "," + y1 + "} - {" + x2 + "," + y2 + "}");
         canvas.moveTo(x1, y1);
         canvas.lineTo(x2, y2);

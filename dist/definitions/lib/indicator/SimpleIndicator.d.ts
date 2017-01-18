@@ -9,6 +9,7 @@ export declare class SimpleIndicator implements IDataSource<Point> {
     private dateChangedEvent;
     constructor(dataSource: IDataSource<Candlestick>);
     readonly dateChanged: IEvent<void>;
+    getValuesRange(range: IRange<Date>): IRange<number>;
     getData(range: IRange<Date>): IChartData<Point>;
     protected onDataSourceChanged(arg?: void): void;
 }

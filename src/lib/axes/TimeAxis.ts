@@ -4,22 +4,27 @@
  * @classdesc Represents a chart's axis of numbers
  */
 
+import { ICanvas } from '../canvas';
+import { VisualComponent, VisualContext } from '../core';
+import { IRenderLocator } from '../render';
 import { IRange } from '../shared';
 import { IAxis } from './IAxis';
 
-export class TimeAxis implements IAxis<Date> {
+export class TimeAxis extends VisualComponent implements IAxis<Date> {
 
     private _range: IRange<Date>;
     private _w: number;
     private _interval: number;
 
     constructor(
+        private canvas: ICanvas,
         width: number,
         interval: number,         // Defines maximum zoom
         initialRange: IRange<Date>) {
-        this._w = width;
-        this._interval = interval;
-        this._range = initialRange;
+            super();
+            this._w = width;
+            this._interval = interval;
+            this._range = initialRange;
     }
 
     public get range(): IRange<Date> {
@@ -88,5 +93,11 @@ export class TimeAxis implements IAxis<Date> {
             start: new Date(this.range.end.getTime() - newRange),
             end: this.range.end
         };
+    }
+
+    public render(context: VisualContext, renderLocator: IRenderLocator) {
+        const render = renderLocator.getAxesRender('date');
+
+        render.renderDateAxis(this, this.canvas);
     }
 }

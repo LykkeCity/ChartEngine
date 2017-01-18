@@ -9,10 +9,11 @@ import {
     ChartStack,
     TimeInterval,
     Unit
-} from './lib/core';
+} from './lib/component';
 
 import * as axes from './lib/axes';
 import * as canvas from './lib/canvas';
+import * as core from './lib/core';
 import * as data from './lib/data';
 import * as indicator from './lib/indicator';
 import * as interaction from './lib/interaction';
@@ -34,6 +35,7 @@ import * as shared from './lib/shared';
     // 
     axes: axes,
     canvas: canvas,
+    core: core,
     data: data,
     indicator: indicator,
     interaction: interaction,

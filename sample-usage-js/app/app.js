@@ -12,7 +12,7 @@ define(["require", "exports", "core/Chart", "data/CandleArrayDataSource"], funct
                 chart.render();
             }
         };
-        Main.
+
         return Main;
     }());
     exports.Main = Main;

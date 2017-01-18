@@ -11010,16 +11010,31 @@ return jQuery;
 
 },{}],2:[function(require,module,exports){
 "use strict";
-var NumberAxis = (function () {
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+/**
+ * NumberAxis class.
+ */
+var core_1 = require("../core");
+var NumberAxis = (function (_super) {
+    __extends(NumberAxis, _super);
     function NumberAxis(width, interval, // Defines maximum zoom
         initialRange) {
-        this._w = width;
-        this._interval = interval;
-        this._range = initialRange;
+        var _this = _super.call(this) || this;
+        _this._w = width;
+        _this._interval = interval;
+        _this._range = initialRange ? initialRange : { start: 0, end: 0 };
+        return _this;
     }
     Object.defineProperty(NumberAxis.prototype, "range", {
         get: function () {
             return this._range;
+        },
+        set: function (newRange) {
+            this._range = newRange;
         },
         enumerable: true,
         configurable: true
@@ -11045,27 +11060,39 @@ var NumberAxis = (function () {
         return d * (value - min);
     };
     NumberAxis.prototype.move = function (direction) {
-        direction = 0;
     };
     NumberAxis.prototype.scale = function (direction) {
-        direction = 0;
+    };
+    NumberAxis.prototype.render = function (context, renderLocator) {
+        // const render = renderLocator.getAxesRender('date');
+        // render.renderDateAxis(this, this.canvas);
     };
     return NumberAxis;
-}());
+}(core_1.VisualComponent));
 exports.NumberAxis = NumberAxis;
-},{}],3:[function(require,module,exports){
+},{"../core":16}],3:[function(require,module,exports){
 /**
 * TimeAxis class
 *
 * @classdesc Represents a chart's axis of numbers
 */
 "use strict";
-var TimeAxis = (function () {
-    function TimeAxis(width, interval, // Defines maximum zoom
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var core_1 = require("../core");
+var TimeAxis = (function (_super) {
+    __extends(TimeAxis, _super);
+    function TimeAxis(canvas, width, interval, // Defines maximum zoom
         initialRange) {
-        this._w = width;
-        this._interval = interval;
-        this._range = initialRange;
+        var _this = _super.call(this) || this;
+        _this.canvas = canvas;
+        _this._w = width;
+        _this._interval = interval;
+        _this._range = initialRange;
+        return _this;
     }
     Object.defineProperty(TimeAxis.prototype, "range", {
         get: function () {
@@ -11130,10 +11157,14 @@ var TimeAxis = (function () {
             end: this.range.end
         };
     };
+    TimeAxis.prototype.render = function (context, renderLocator) {
+        var render = renderLocator.getAxesRender('date');
+        render.renderDateAxis(this, this.canvas);
+    };
     return TimeAxis;
-}());
+}(core_1.VisualComponent));
 exports.TimeAxis = TimeAxis;
-},{}],4:[function(require,module,exports){
+},{"../core":16}],4:[function(require,module,exports){
 "use strict";
 var NumberAxis_1 = require("./NumberAxis");
 exports.NumberAxis = NumberAxis_1.NumberAxis;
@@ -11237,15 +11268,43 @@ exports.CanvasTextAlign = Enums_1.CanvasTextAlign;
 exports.CanvasTextBaseLine = Enums_1.CanvasTextBaseLine;
 },{"./CanvasWrapper":5,"./Enums":6}],8:[function(require,module,exports){
 "use strict";
-var Chart = (function () {
-    function Chart(dataSource, renderType) {
-        this.dataSource = dataSource;
-        this.renderType = renderType;
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var core_1 = require("../core");
+var render_1 = require("../render");
+var Chart = (function (_super) {
+    __extends(Chart, _super);
+    function Chart(offset, canvas, dataSource, timeAxis, yAxis, renderType) {
+        var _this = _super.call(this, offset) || this;
+        _this.canvas = canvas;
+        _this.dataSource = dataSource;
+        _this.timeAxis = timeAxis;
+        _this.yAxis = yAxis;
+        _this.renderType = renderType;
+        return _this;
     }
+    Chart.prototype.render = function (context, renderLocator) {
+        var renderType = '';
+        if (this.renderType === render_1.RenderType.Candlestick) {
+            renderType = 'candle';
+        }
+        else if (this.renderType === render_1.RenderType.Line) {
+            renderType = 'line';
+        }
+        else {
+            throw new Error("Unexpected render type " + this.renderType);
+        }
+        var render = renderLocator.getChartRender(renderType);
+        var data = this.dataSource.getData(this.timeAxis.range);
+        render.render(this.canvas, data, 0, 0, this.timeAxis, this.yAxis);
+    };
     return Chart;
-}());
+}(core_1.VisualComponent));
 exports.Chart = Chart;
-},{}],9:[function(require,module,exports){
+},{"../core":16,"../render":30}],9:[function(require,module,exports){
 "use strict";
 /**
  * ChartArea class.
@@ -11295,57 +11354,87 @@ exports.ChartArea = ChartArea;
  * @classdesc Facade for the chart library.
  */
 "use strict";
-var render_1 = require("../render");
-var Enums_1 = require("./Enums");
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var axes_1 = require("../axes");
+var canvas_1 = require("../canvas");
+var core_1 = require("../core");
+var render_1 = require("../render");
+var shared_1 = require("../shared");
 var ChartArea_1 = require("./ChartArea");
 var ChartStack_1 = require("./ChartStack");
+var Enums_1 = require("./Enums");
 var $ = require("jquery");
-var ChartBoard = (function () {
+var ChartBoard = (function (_super) {
+    __extends(ChartBoard, _super);
     function ChartBoard(container, w, h, dataSource) {
-        this.container = container;
-        this.w = w;
-        this.h = h;
-        this.dataSource = dataSource;
-        this.curInterval = Enums_1.TimeInterval.day;
-        this.areas = [];
-        this.chartStacks = [];
-        this.indicators = [];
-        this.eventHandlers = {};
-        this.mouseHandlers = [];
-        this.isMouseEntered = false;
-        this.isMouseDown = false;
-        this.x = null;
-        this.y = null;
-        this.table = document.createElement('table');
-        this.container.appendChild(this.table);
-        this.timeAxis = new axes_1.TimeAxis(w, Enums_1.TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
+        var _this = _super.call(this) || this;
+        _this.container = container;
+        _this.w = w;
+        _this.h = h;
+        _this.dataSource = dataSource;
+        _this.curInterval = Enums_1.TimeInterval.day;
+        _this.areas = [];
+        _this.chartStacks = [];
+        _this.indicators = [];
+        _this.eventHandlers = {};
+        _this.mouseHandlers = [];
+        _this.isMouseEntered = false;
+        _this.isMouseDown = false;
+        _this.mouseX = null;
+        _this.mouseY = null;
+        _this.table = document.createElement('table');
+        _this.container.appendChild(_this.table);
+        // Make place for the Time Axis
+        _this.timeAxisCanvas = _this.appendTimeCanvas(_this.table, w, 25);
+        _this.timeAxis = new axes_1.TimeAxis(_this.timeAxisCanvas, w, Enums_1.TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
+        _this.addChild(_this.timeAxis);
         // Create main chart area
         //
-        var mainArea = this.appendArea(this.table, w, h);
-        this.areas.push(mainArea);
-        var chartStack = new ChartStack_1.ChartStack(mainArea, this.timeAxis);
-        this.chartStacks.push(chartStack);
+        var mainArea = _this.appendArea(_this.table, w, h);
+        _this.areas.push(mainArea);
+        var chartStack = new ChartStack_1.ChartStack(mainArea, new shared_1.Point(0, 0), _this.timeAxis);
+        _this.chartStacks.push(chartStack);
+        _this.addChild(chartStack);
         chartStack.addChart(dataSource, render_1.RenderType.Candlestick);
         // Hook up event handlers
         //
-        var self = this;
-        this.eventHandlers['mousewheel'] = function (event) { self.onMouseWheel(event); };
-        this.eventHandlers['mouseup'] = function (event) { self.onMouseUp(event); };
-        this.eventHandlers['mousedown'] = function (event) { self.onMouseDown(event); };
-        this.eventHandlers['mousemove'] = function (event) { self.onMouseMove(event); };
-        this.eventHandlers['mouseenter'] = function (event) { self.onMouseEnter(event); };
-        this.eventHandlers['mouseleave'] = function (event) { self.onMouseLeave(event); };
-        this.container.addEventListener('DOMMouseScroll', this.eventHandlers['mousewheel'], false);
-        this.container.addEventListener('mousewheel', this.eventHandlers['mousewheel'], false);
-        this.container.addEventListener('mouseup', this.eventHandlers['mouseup'], false);
-        this.container.addEventListener('mousedown', this.eventHandlers['mousedown'], false);
+        var self = _this;
+        _this.eventHandlers['mousewheel'] = function (event) { self.onMouseWheel(event); };
+        _this.eventHandlers['mouseup'] = function (event) { self.onMouseUp(event); };
+        _this.eventHandlers['mousedown'] = function (event) { self.onMouseDown(event); };
+        _this.eventHandlers['mousemove'] = function (event) { self.onMouseMove(event); };
+        _this.eventHandlers['mouseenter'] = function (event) { self.onMouseEnter(event); };
+        _this.eventHandlers['mouseleave'] = function (event) { self.onMouseLeave(event); };
+        _this.container.addEventListener('DOMMouseScroll', _this.eventHandlers['mousewheel'], false);
+        _this.container.addEventListener('mousewheel', _this.eventHandlers['mousewheel'], false);
+        _this.container.addEventListener('mouseup', _this.eventHandlers['mouseup'], false);
+        _this.container.addEventListener('mousedown', _this.eventHandlers['mousedown'], false);
         //this.container.addEventListener('mousemove', this.eventHandlers['mousemove'], false);
         // TODO: Check if jQuery needed:
-        $(this.container).mousemove(this.eventHandlers['mousemove']);
-        this.container.addEventListener('mouseenter', this.eventHandlers['mouseenter'], false);
-        this.container.addEventListener('mouseleave', this.eventHandlers['mouseleave'], false);
+        $(_this.container).mousemove(_this.eventHandlers['mousemove']);
+        _this.container.addEventListener('mouseenter', _this.eventHandlers['mouseenter'], false);
+        _this.container.addEventListener('mouseleave', _this.eventHandlers['mouseleave'], false);
+        return _this;
     }
+    ChartBoard.prototype.appendTimeCanvas = function (table, w, h) {
+        var canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        var row = table.insertRow();
+        var cell1 = row.insertCell();
+        var cell2 = row.insertCell();
+        var cell3 = row.insertCell();
+        cell2.appendChild(canvas);
+        var ctx = canvas.getContext('2d');
+        if (ctx == null) {
+            throw new Error('Context is null');
+        }
+        return new canvas_1.CanvasWrapper(ctx, w, h);
+    };
     ChartBoard.prototype.appendArea = function (table, w, h) {
         var mainCanvas = document.createElement('canvas');
         mainCanvas.width = w;
@@ -11375,24 +11464,38 @@ var ChartBoard = (function () {
     };
     ChartBoard.prototype.addIndicator = function (indicatorDataSource) {
         this.indicators.push(indicatorDataSource);
+        var yOffset = this.areas.length * this.h;
         var newArea = this.appendArea(this.table, this.w, this.h);
         this.areas.push(newArea);
-        var chartStack = new ChartStack_1.ChartStack(newArea, this.timeAxis);
+        var chartStack = new ChartStack_1.ChartStack(newArea, new shared_1.Point(0, yOffset), this.timeAxis);
         chartStack.addChart(indicatorDataSource, render_1.RenderType.Line);
         this.chartStacks.push(chartStack);
     };
     ChartBoard.prototype.render = function () {
+        // Prepare rendering objects: locator and context.
+        var locator = render_1.RenderLocator.Instance;
+        var context = new core_1.VisualContext((this.mouseX && this.mouseY) ? new shared_1.Point(this.mouseX, this.mouseY) : undefined);
+        // Clear canvas
+        this.timeAxisCanvas.clear();
+        // Render all chart stacks
         for (var _i = 0, _a = this.chartStacks; _i < _a.length; _i++) {
             var chartStack = _a[_i];
-            chartStack.render();
+            chartStack.render(context, locator);
         }
+        // Render time axis as it does not belong to any chart
+        this.timeAxis.render(context, locator);
     };
+    // public render(renderLocator: IRenderLocator) {
+    // }
     ChartBoard.prototype.onDataChanged = function () {
     };
+    // TODO: Make mouse events handlers private
+    //
     ChartBoard.prototype.onMouseWheel = function (event) {
-        var ev = event;
-        if (false == !!event)
+        //let ev = event;
+        if (false == !!event) {
             event = window.event;
+        }
         var direction = ((event.wheelDelta) ? event.wheelDelta / 120 : event.detail / -3) || 0;
         if (direction) {
             console.debug('Mousewhell event: ' + direction);
@@ -11402,14 +11505,15 @@ var ChartBoard = (function () {
         }
     };
     ChartBoard.prototype.onMouseMove = function (event) {
-        if (this.isMouseDown && this.x && this.y) {
-            var diffX = event.pageX - this.x;
-            var diffY = event.pageY - this.y;
+        //super.onMouseMove(event);
+        if (this.isMouseDown && this.mouseX && this.mouseY) {
+            var diffX = event.pageX - this.mouseX;
+            var diffY = event.pageY - this.mouseY;
             if (this.timeAxis) {
                 this.timeAxis.move(diffX);
             }
         }
-        _a = [event.pageX, event.pageY], this.x = _a[0], this.y = _a[1];
+        _a = [event.pageX, event.pageY], this.mouseX = _a[0], this.mouseY = _a[1];
         if (this.isMouseEntered) {
             // TODO: Use animation loop (?)
             this.render();
@@ -11417,6 +11521,7 @@ var ChartBoard = (function () {
         var _a;
     };
     ChartBoard.prototype.onMouseEnter = function (event) {
+        //super.onMouseEnter(event);
         this.isMouseEntered = true;
         for (var _i = 0, _a = this.mouseHandlers; _i < _a.length; _i++) {
             var handler = _a[_i];
@@ -11424,6 +11529,7 @@ var ChartBoard = (function () {
         }
     };
     ChartBoard.prototype.onMouseLeave = function (event) {
+        //super.onMouseLeave(event);
         this.isMouseEntered = false;
         this.isMouseDown = false;
         for (var _i = 0, _a = this.mouseHandlers; _i < _a.length; _i++) {
@@ -11432,6 +11538,7 @@ var ChartBoard = (function () {
         }
     };
     ChartBoard.prototype.onMouseUp = function (event) {
+        //super.onMouseUp(event);
         this.isMouseDown = false;
         for (var _i = 0, _a = this.mouseHandlers; _i < _a.length; _i++) {
             var handler = _a[_i];
@@ -11439,6 +11546,7 @@ var ChartBoard = (function () {
         }
     };
     ChartBoard.prototype.onMouseDown = function (event) {
+        //super.onMouseDown(event);
         this.isMouseDown = true;
         for (var _i = 0, _a = this.mouseHandlers; _i < _a.length; _i++) {
             var handler = _a[_i];
@@ -11446,53 +11554,106 @@ var ChartBoard = (function () {
         }
     };
     return ChartBoard;
-}());
+}(core_1.VisualComponent));
 exports.ChartBoard = ChartBoard;
-},{"../axes":4,"../render":26,"./ChartArea":9,"./ChartStack":11,"./Enums":12,"jquery":1}],11:[function(require,module,exports){
+},{"../axes":4,"../canvas":7,"../core":16,"../render":30,"../shared":33,"./ChartArea":9,"./ChartStack":11,"./Enums":12,"jquery":1}],11:[function(require,module,exports){
 "use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 /**
  * ChartStack class.
  */
-var Chart_1 = require("./Chart");
 var axes_1 = require("../axes");
-var render_1 = require("../render");
-var ChartStack = (function () {
-    function ChartStack(area, timeAxis) {
-        this.area = area;
-        this.timeAxis = timeAxis;
-        this.charts = [];
+var core_1 = require("../core");
+var shared_1 = require("../shared");
+var Chart_1 = require("./Chart");
+var ChartStack = (function (_super) {
+    __extends(ChartStack, _super);
+    function ChartStack(area, offset, timeAxis) {
+        var _this = _super.call(this, offset) || this;
+        _this.area = area;
+        _this.timeAxis = timeAxis;
+        _this.charts = [];
+        // create initial Y axis
+        _this.yAxis = new axes_1.NumberAxis(_this.area.axisYContext.h, 1);
+        return _this;
     }
     ChartStack.prototype.addChart = function (dataSource, renderType) {
-        var newChart = new Chart_1.Chart(dataSource, renderType);
+        var newChart = new Chart_1.Chart(new shared_1.Point(this.offset.x, this.offset.y), this.area.mainContext, dataSource, this.timeAxis, this.yAxis, renderType);
         this.charts.push(newChart);
+        this.addChild(newChart);
     };
-    ChartStack.prototype.render = function () {
+    ChartStack.prototype.render = function (context, renderLocator) {
         this.area.mainContext.clear();
         this.area.axisXContext.clear();
         this.area.axisYContext.clear();
-        var height = this.area.axisYContext.h;
+        // 1. Update y axis before rendering charts
+        //
+        // TODO: Make DataSource.DefaultYRange or take last known data:
+        var yRange = { start: Number.MAX_VALUE, end: Number.MIN_VALUE };
         for (var _i = 0, _a = this.charts; _i < _a.length; _i++) {
             var chart = _a[_i];
-            var data = chart.dataSource.getData(this.timeAxis.range);
-            var yAxis = new axes_1.NumberAxis(height, 1, { start: data.minOrdinateValue, end: data.maxOrdinateValue });
-            if (chart.renderType === render_1.RenderType.Candlestick) {
-                var candleRender = new render_1.CandlestickChartRenderer();
-                candleRender.render(this.area.mainContext, data, 0, 0, this.timeAxis, yAxis);
+            var valuesRange = chart.dataSource.getValuesRange(this.timeAxis.range);
+            if (valuesRange.end > yRange.end) {
+                yRange.end = valuesRange.end;
             }
-            else if (chart.renderType === render_1.RenderType.Line) {
-                render_1.LineChartRenderer.render(this.area.mainContext, data, 0, 0, this.timeAxis, yAxis);
-            }
-            else {
-                throw new Error("Unexpected RenderType " + chart.renderType);
+            if (valuesRange.start < yRange.start) {
+                yRange.start = valuesRange.start;
             }
         }
-        // render axis
-        render_1.AxisRenderer.renderDateAxis(this.timeAxis, this.area.axisXContext);
+        if (this.charts.length > 0) {
+            this.yAxis.range = yRange;
+        }
+        else {
+            this.yAxis.range = { start: 0, end: 100 }; // default values
+        }
+        // 2. Render charts
+        for (var _b = 0, _c = this.charts; _b < _c.length; _b++) {
+            var chart = _c[_b];
+            chart.render(context, renderLocator);
+        }
+        // 3. Render additional objects
+        //
+        if (context.mousePosition) {
+            // ... calculate mouse position related to this element
+            var mouseX = context.mousePosition.x - this.offset.x;
+            var mouseY = context.mousePosition.y - this.offset.y;
+            // TODO: move to specific renderer
+            var canvas = this.area.mainContext;
+            canvas.setStrokeStyle('black');
+            canvas.beginPath();
+            var text = "[" + mouseX + " " + mouseY + "]";
+            //let w = canvas.measureText(text).width;
+            canvas.strokeText(text, 0, 50);
+            canvas.stroke();
+            canvas.closePath();
+            // Draw crosshair
+            //
+            if (mouseX > 0 && mouseX < this.area.mainContext.w) {
+                // draw vertical line
+                canvas.beginPath();
+                canvas.moveTo(mouseX, 0);
+                canvas.lineTo(mouseX, this.area.mainContext.h);
+                canvas.stroke();
+                canvas.closePath();
+            }
+            if (mouseY > 0 && mouseY < this.area.mainContext.h) {
+                // draw horizontal line
+                canvas.beginPath();
+                canvas.moveTo(0, mouseY);
+                canvas.lineTo(this.area.mainContext.w, mouseY);
+                canvas.stroke();
+                canvas.closePath();
+            }
+        }
     };
     return ChartStack;
-}());
+}(core_1.VisualComponent));
 exports.ChartStack = ChartStack;
-},{"../axes":4,"../render":26,"./Chart":8}],12:[function(require,module,exports){
+},{"../axes":4,"../core":16,"../shared":33,"./Chart":8}],12:[function(require,module,exports){
 "use strict";
 /**
 * Core enumerations.
@@ -11531,6 +11692,47 @@ var Enums_1 = require("./Enums");
 exports.TimeInterval = Enums_1.TimeInterval;
 exports.Unit = Enums_1.Unit;
 },{"./Chart":8,"./ChartArea":9,"./ChartBoard":10,"./ChartStack":11,"./Enums":12}],14:[function(require,module,exports){
+"use strict";
+var shared_1 = require("../shared");
+// export class VisualComponentDesc {
+//     public offset: Point;
+//     constructor(offset: Point) {
+//         this.offset = offset;
+//     }
+// }
+var VisualComponent = (function () {
+    // protected childrenDesc: VisualComponentDesc[] = [];
+    function VisualComponent(offset, size) {
+        this.children = [];
+        this.offset = offset ? offset : new shared_1.Point(0, 0);
+        this.size = size ? size : { width: 0, height: 0 };
+    }
+    VisualComponent.prototype.addChild = function (child) {
+        this.children.push(child);
+        //this.childrenDesc.push(new VisualComponentDesc(offset));
+    };
+    return VisualComponent;
+}());
+exports.VisualComponent = VisualComponent;
+},{"../shared":33}],15:[function(require,module,exports){
+"use strict";
+var VisualContext = (function () {
+    function VisualContext(mousePosition) {
+        this.mousePosition = mousePosition;
+    }
+    return VisualContext;
+}());
+exports.VisualContext = VisualContext;
+},{}],16:[function(require,module,exports){
+"use strict";
+/**
+ *
+ */
+var VisualComponent_1 = require("./VisualComponent");
+exports.VisualComponent = VisualComponent_1.VisualComponent;
+var VisualContext_1 = require("./VisualContext");
+exports.VisualContext = VisualContext_1.VisualContext;
+},{"./VisualComponent":14,"./VisualContext":15}],17:[function(require,module,exports){
 /**
 * CandleArrayDataSource class.
 */
@@ -11540,6 +11742,8 @@ var CandleArrayDataSource = (function () {
     function CandleArrayDataSource(data) {
         this.data = data;
         this.dateChangedEvent = new shared_1.Event();
+        this.defaultMinValue = 0;
+        this.defaultMaxValue = 100;
     }
     Object.defineProperty(CandleArrayDataSource.prototype, "dateChanged", {
         get: function () {
@@ -11548,13 +11752,33 @@ var CandleArrayDataSource = (function () {
         enumerable: true,
         configurable: true
     });
+    CandleArrayDataSource.prototype.getValuesRange = function (range) {
+        if (this.data.length === 0) {
+            return { start: this.defaultMinValue, end: this.defaultMaxValue };
+        }
+        var lowestPrice = Number.MAX_VALUE;
+        var highestPrice = Number.MIN_VALUE;
+        // Filter data by date and find min/max price
+        //
+        this.data.forEach(function (candle) {
+            if (candle.date >= range.start && candle.date <= range.end) {
+                // update min / max values
+                if (candle.l < lowestPrice) {
+                    lowestPrice = candle.l;
+                }
+                if (candle.h > highestPrice) {
+                    highestPrice = candle.h;
+                }
+            }
+        });
+        return { start: lowestPrice, end: highestPrice };
+    };
     CandleArrayDataSource.prototype.getData = function (range) {
         var lowestPrice = Number.MAX_VALUE;
         var highestPrice = Number.MIN_VALUE;
         // Filter data by date and find min/max price
         //
-        var filteredData = this.data
-            .filter(function (candle) {
+        var filteredData = this.data.filter(function (candle) {
             if (candle.date >= range.start && candle.date <= range.end) {
                 // update min / max values
                 if (candle.l < lowestPrice) {
@@ -11569,22 +11793,20 @@ var CandleArrayDataSource = (function () {
         });
         console.debug("Data Source: min: " + lowestPrice + " max: " + highestPrice + " data.count: " + filteredData.length);
         return {
-            data: filteredData,
-            maxOrdinateValue: highestPrice,
-            minOrdinateValue: lowestPrice
+            data: filteredData
         };
     };
     return CandleArrayDataSource;
 }());
 exports.CandleArrayDataSource = CandleArrayDataSource;
-},{"../shared":28}],15:[function(require,module,exports){
+},{"../shared":33}],18:[function(require,module,exports){
 "use strict";
 /**
  *
  */
 var CandleArrayDataSource_1 = require("./CandleArrayDataSource");
 exports.CandleArrayDataSource = CandleArrayDataSource_1.CandleArrayDataSource;
-},{"./CandleArrayDataSource":14}],16:[function(require,module,exports){
+},{"./CandleArrayDataSource":17}],19:[function(require,module,exports){
 /**
  * SimpleIndicator class.
  */
@@ -11603,6 +11825,9 @@ var SimpleIndicator = (function () {
         enumerable: true,
         configurable: true
     });
+    SimpleIndicator.prototype.getValuesRange = function (range) {
+        return this.dataSource.getValuesRange(range);
+    };
     SimpleIndicator.prototype.getData = function (range) {
         var indicator = [];
         var sourceData = this.dataSource.getData(range);
@@ -11613,9 +11838,7 @@ var SimpleIndicator = (function () {
             indicator.push({ date: sourceData.data[i].date, value: value });
         }
         return {
-            data: indicator,
-            minOrdinateValue: sourceData.minOrdinateValue,
-            maxOrdinateValue: sourceData.maxOrdinateValue
+            data: indicator
         };
     };
     SimpleIndicator.prototype.onDataSourceChanged = function (arg) {
@@ -11624,16 +11847,16 @@ var SimpleIndicator = (function () {
     return SimpleIndicator;
 }());
 exports.SimpleIndicator = SimpleIndicator;
-},{"../shared":28}],17:[function(require,module,exports){
+},{"../shared":33}],20:[function(require,module,exports){
 "use strict";
 /**
  *
  */
 var SimpleIndicator_1 = require("./SimpleIndicator");
 exports.SimpleIndicator = SimpleIndicator_1.SimpleIndicator;
-},{"./SimpleIndicator":16}],18:[function(require,module,exports){
+},{"./SimpleIndicator":19}],21:[function(require,module,exports){
 "use strict";
-},{}],19:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /**
  * Candlestick class.
  */
@@ -11644,7 +11867,7 @@ var Candlestick = (function () {
     return Candlestick;
 }());
 exports.Candlestick = Candlestick;
-},{}],20:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /**
  * Point class.
  */
@@ -11655,7 +11878,7 @@ var Point = (function () {
     return Point;
 }());
 exports.Point = Point;
-},{}],21:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -11664,7 +11887,7 @@ var Candlestick_1 = require("./Candlestick");
 exports.Candlestick = Candlestick_1.Candlestick;
 var Point_1 = require("./Point");
 exports.Point = Point_1.Point;
-},{"./Candlestick":19,"./Point":20}],22:[function(require,module,exports){
+},{"./Candlestick":22,"./Point":23}],25:[function(require,module,exports){
 /**
  * AxisRenderer
  *
@@ -11674,7 +11897,7 @@ exports.Point = Point_1.Point;
 var AxisRenderer = (function () {
     function AxisRenderer() {
     }
-    AxisRenderer.renderDateAxis = function (dateAxis, canvas) {
+    AxisRenderer.prototype.renderDateAxis = function (dateAxis, canvas) {
         var scaleFit = new ScaleFit(dateAxis.width, dateAxis.interval, dateAxis.range);
         var bars = scaleFit.getBars();
         canvas.setStrokeStyle('black');
@@ -11687,7 +11910,7 @@ var AxisRenderer = (function () {
         canvas.stroke();
         canvas.closePath();
     };
-    AxisRenderer.drawBar = function (canvas, date, x) {
+    AxisRenderer.prototype.drawBar = function (canvas, date, x) {
         // draw bar
         canvas.moveTo(x, 7);
         canvas.lineTo(x, 10);
@@ -11776,7 +11999,7 @@ var ScaleFit = (function () {
     };
     return ScaleFit;
 }());
-},{}],23:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /**
 * CandlestickChartRenderer
 *
@@ -11843,7 +12066,7 @@ var CandlestickChartRenderer = (function () {
     return CandlestickChartRenderer;
 }());
 exports.CandlestickChartRenderer = CandlestickChartRenderer;
-},{}],24:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 "use strict";
 /**
  * Render related enums.
@@ -11853,7 +12076,7 @@ var RenderType;
     RenderType[RenderType["Candlestick"] = 0] = "Candlestick";
     RenderType[RenderType["Line"] = 1] = "Line";
 })(RenderType = exports.RenderType || (exports.RenderType = {}));
-},{}],25:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /**
 * LineChartRenderer
 *
@@ -11863,7 +12086,7 @@ var RenderType;
 var LineChartRenderer = (function () {
     function LineChartRenderer() {
     }
-    LineChartRenderer.render = function (canvas, data, offsetX, offsetY, timeAxis, yAxis) {
+    LineChartRenderer.prototype.render = function (canvas, data, offsetX, offsetY, timeAxis, yAxis) {
         console.debug("[LineChartRenderer] start rendering...");
         // Calculate size of frame
         var frameSize = {
@@ -11876,7 +12099,7 @@ var LineChartRenderer = (function () {
             this.renderPart(canvas, timeAxis, yAxis, data.data[i - 1], data.data[i], frameSize);
         }
     };
-    LineChartRenderer.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frameSize) {
+    LineChartRenderer.prototype.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frameSize) {
         // Startin drawing
         canvas.setStrokeStyle('#555555');
         canvas.beginPath();
@@ -11887,7 +12110,7 @@ var LineChartRenderer = (function () {
         canvas.stroke();
         canvas.closePath();
     };
-    LineChartRenderer.line = function (canvas, x1, y1, x2, y2) {
+    LineChartRenderer.prototype.line = function (canvas, x1, y1, x2, y2) {
         console.debug("line: {" + x1 + "," + y1 + "} - {" + x2 + "," + y2 + "}");
         canvas.moveTo(x1, y1);
         canvas.lineTo(x2, y2);
@@ -11895,7 +12118,52 @@ var LineChartRenderer = (function () {
     return LineChartRenderer;
 }());
 exports.LineChartRenderer = LineChartRenderer;
-},{}],26:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
+"use strict";
+/**
+ *
+ */
+var AxisRenderer_1 = require("./AxisRenderer");
+var CandlestickChartRenderer_1 = require("./CandlestickChartRenderer");
+var LineChartRenderer_1 = require("./LineChartRenderer");
+var RenderLocator = (function () {
+    function RenderLocator() {
+        this.candlestickChartRender = new CandlestickChartRenderer_1.CandlestickChartRenderer();
+        this.lineChartRender = new LineChartRenderer_1.LineChartRenderer();
+        this.axisRenderer = new AxisRenderer_1.AxisRenderer();
+    }
+    Object.defineProperty(RenderLocator, "Instance", {
+        get: function () {
+            return this.instance || (this.instance = new this());
+        },
+        enumerable: true,
+        configurable: true
+    });
+    RenderLocator.prototype.getChartRender = function (uid) {
+        switch (uid) {
+            case 'line': return this.lineChartRender;
+            case 'candle': return this.candlestickChartRender;
+            default:
+                throw new Error('Unexpected chart render uid: ' + uid);
+        }
+    };
+    RenderLocator.prototype.getAxesRender = function (uid) {
+        switch (uid) {
+            case 'date': return this.axisRenderer;
+            default:
+                throw new Error('Unexpected axes render uid: ' + uid);
+        }
+    };
+    RenderLocator.prototype.getPopupRender = function (uid) {
+        throw new Error('Not implemented.');
+    };
+    RenderLocator.prototype.getMarkRender = function (uid) {
+        throw new Error('Not implemented.');
+    };
+    return RenderLocator;
+}());
+exports.RenderLocator = RenderLocator;
+},{"./AxisRenderer":25,"./CandlestickChartRenderer":26,"./LineChartRenderer":28}],30:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -11908,7 +12176,9 @@ var Enums_1 = require("./Enums");
 exports.RenderType = Enums_1.RenderType;
 var LineChartRenderer_1 = require("./LineChartRenderer");
 exports.LineChartRenderer = LineChartRenderer_1.LineChartRenderer;
-},{"./AxisRenderer":22,"./CandlestickChartRenderer":23,"./Enums":24,"./LineChartRenderer":25}],27:[function(require,module,exports){
+var RenderLocator_1 = require("./RenderLocator");
+exports.RenderLocator = RenderLocator_1.RenderLocator;
+},{"./AxisRenderer":25,"./CandlestickChartRenderer":26,"./Enums":27,"./LineChartRenderer":28,"./RenderLocator":29}],31:[function(require,module,exports){
 /**
 * Typed events for TypeScript.
 */
@@ -11931,21 +12201,37 @@ var Event = (function () {
     return Event;
 }());
 exports.Event = Event;
-},{}],28:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
+/**
+* Commonly used interfaces, that can be used in other projects.
+*/
+"use strict";
+var Point = (function () {
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    return Point;
+}());
+exports.Point = Point;
+},{}],33:[function(require,module,exports){
 "use strict";
 /**
  *
  */
 var Event_1 = require("./Event");
 exports.Event = Event_1.Event;
-},{"./Event":27}],29:[function(require,module,exports){
+var Interfaces_1 = require("./Interfaces");
+exports.Point = Interfaces_1.Point;
+},{"./Event":31,"./Interfaces":32}],34:[function(require,module,exports){
 /**
  *
  */
 "use strict";
-var core_1 = require("./lib/core");
+var component_1 = require("./lib/component");
 var axes = require("./lib/axes");
 var canvas = require("./lib/canvas");
+var core = require("./lib/core");
 var data = require("./lib/data");
 var indicator = require("./lib/indicator");
 var interaction = require("./lib/interaction");
@@ -11956,15 +12242,16 @@ var shared = require("./lib/shared");
 //     ChartBoard
 // }
 window.lychart = {
-    Chart: core_1.Chart,
-    ChartArea: core_1.ChartArea,
-    ChartBoard: core_1.ChartBoard,
-    ChartStack: core_1.ChartStack,
-    TimeInterval: core_1.TimeInterval,
-    Unit: core_1.Unit,
+    Chart: component_1.Chart,
+    ChartArea: component_1.ChartArea,
+    ChartBoard: component_1.ChartBoard,
+    ChartStack: component_1.ChartStack,
+    TimeInterval: component_1.TimeInterval,
+    Unit: component_1.Unit,
     // 
     axes: axes,
     canvas: canvas,
+    core: core,
     data: data,
     indicator: indicator,
     interaction: interaction,
@@ -11972,7 +12259,7 @@ window.lychart = {
     render: render,
     shared: shared
 };
-},{"./lib/axes":4,"./lib/canvas":7,"./lib/core":13,"./lib/data":15,"./lib/indicator":17,"./lib/interaction":18,"./lib/model":21,"./lib/render":26,"./lib/shared":28}]},{},[29])(29)
+},{"./lib/axes":4,"./lib/canvas":7,"./lib/component":13,"./lib/core":16,"./lib/data":18,"./lib/indicator":20,"./lib/interaction":21,"./lib/model":24,"./lib/render":30,"./lib/shared":33}]},{},[34])(34)
 });
 
 

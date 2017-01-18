@@ -6,12 +6,13 @@
 
 import { IAxis } from '../axes';
 import { ICanvas } from '../canvas';
-import { TimeInterval } from '../core';
+import { TimeInterval } from '../component';
 import { IRange } from '../shared';
+import { IAxesRender } from './Interfaces';
 
-export class AxisRenderer {
+export class AxisRenderer implements IAxesRender {
 
-    public static renderDateAxis(dateAxis: IAxis<Date>, canvas: ICanvas): void {
+    public renderDateAxis(dateAxis: IAxis<Date>, canvas: ICanvas): void {
 
         let scaleFit = new ScaleFit(dateAxis.width, dateAxis.interval, dateAxis.range);
         let bars: Date[] = scaleFit.getBars();
@@ -20,9 +21,7 @@ export class AxisRenderer {
         canvas.beginPath();
 
         for (var bar of bars) {
-        
             let x = dateAxis.toX(bar);
-            
             this.drawBar(canvas, bar, x);
         }
 
@@ -30,7 +29,7 @@ export class AxisRenderer {
         canvas.closePath();
     }
 
-    private static drawBar(canvas: ICanvas, date: Date, x: number) : void {
+    private drawBar(canvas: ICanvas, date: Date, x: number) : void {
 
         // draw bar
         canvas.moveTo(x, 7);

@@ -7,7 +7,7 @@
 var AxisRenderer = (function () {
     function AxisRenderer() {
     }
-    AxisRenderer.renderDateAxis = function (dateAxis, canvas) {
+    AxisRenderer.prototype.renderDateAxis = function (dateAxis, canvas) {
         var scaleFit = new ScaleFit(dateAxis.width, dateAxis.interval, dateAxis.range);
         var bars = scaleFit.getBars();
         canvas.setStrokeStyle('black');
@@ -20,7 +20,7 @@ var AxisRenderer = (function () {
         canvas.stroke();
         canvas.closePath();
     };
-    AxisRenderer.drawBar = function (canvas, date, x) {
+    AxisRenderer.prototype.drawBar = function (canvas, date, x) {
         // draw bar
         canvas.moveTo(x, 7);
         canvas.lineTo(x, 10);

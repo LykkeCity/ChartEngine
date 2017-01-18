@@ -4,12 +4,22 @@
  * @classdesc Represents a chart's axis of numbers
  */
 "use strict";
-var TimeAxis = (function () {
-    function TimeAxis(width, interval, // Defines maximum zoom
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var core_1 = require("../core");
+var TimeAxis = (function (_super) {
+    __extends(TimeAxis, _super);
+    function TimeAxis(canvas, width, interval, // Defines maximum zoom
         initialRange) {
-        this._w = width;
-        this._interval = interval;
-        this._range = initialRange;
+        var _this = _super.call(this) || this;
+        _this.canvas = canvas;
+        _this._w = width;
+        _this._interval = interval;
+        _this._range = initialRange;
+        return _this;
     }
     Object.defineProperty(TimeAxis.prototype, "range", {
         get: function () {
@@ -74,6 +84,10 @@ var TimeAxis = (function () {
             end: this.range.end
         };
     };
+    TimeAxis.prototype.render = function (context, renderLocator) {
+        var render = renderLocator.getAxesRender('date');
+        render.renderDateAxis(this, this.canvas);
+    };
     return TimeAxis;
-}());
+}(core_1.VisualComponent));
 exports.TimeAxis = TimeAxis;

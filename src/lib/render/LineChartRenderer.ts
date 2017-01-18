@@ -8,10 +8,11 @@ import { IAxis } from '../axes';
 import { ICanvas } from '../canvas';
 import { Point } from '../model';
 import { ISize } from '../shared';
+import { IChartRender } from './Interfaces';
 
-export class LineChartRenderer {
+export class LineChartRenderer implements IChartRender {
 
-    public static render(
+    public render(
         canvas: ICanvas,
         data: any,
         offsetX: number,
@@ -36,7 +37,7 @@ export class LineChartRenderer {
         }
     }
 
-    private static renderPart(canvas: ICanvas, 
+    private renderPart(canvas: ICanvas, 
         timeAxis: IAxis<Date>,
         yAxis: IAxis<number>, pointFrom: Point, pointTo: Point, frameSize: ISize): void {
 
@@ -57,7 +58,7 @@ export class LineChartRenderer {
         canvas.closePath();
     }
 
-    private static line(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {
+    private line(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {
         console.debug(`line: {${x1},${y1}} - {${x2},${y2}}`);
         canvas.moveTo(x1, y1);
         canvas.lineTo(x2, y2);

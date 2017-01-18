@@ -5,6 +5,15 @@ export interface IRange<T> {
     readonly start: T;
     readonly end: T;
 }
+export interface IPoint {
+    readonly x: number;
+    readonly y: number;
+}
+export declare class Point {
+    readonly x: number;
+    readonly y: number;
+    constructor(x: number, y: number);
+}
 export interface ISize {
     readonly width: number;
     readonly height: number;

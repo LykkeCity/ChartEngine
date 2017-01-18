@@ -1,14 +1,29 @@
 "use strict";
-var NumberAxis = (function () {
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+/**
+ * NumberAxis class.
+ */
+var core_1 = require("../core");
+var NumberAxis = (function (_super) {
+    __extends(NumberAxis, _super);
     function NumberAxis(width, interval, // Defines maximum zoom
         initialRange) {
-        this._w = width;
-        this._interval = interval;
-        this._range = initialRange;
+        var _this = _super.call(this) || this;
+        _this._w = width;
+        _this._interval = interval;
+        _this._range = initialRange ? initialRange : { start: 0, end: 0 };
+        return _this;
     }
     Object.defineProperty(NumberAxis.prototype, "range", {
         get: function () {
             return this._range;
+        },
+        set: function (newRange) {
+            this._range = newRange;
         },
         enumerable: true,
         configurable: true
@@ -34,11 +49,13 @@ var NumberAxis = (function () {
         return d * (value - min);
     };
     NumberAxis.prototype.move = function (direction) {
-        direction = 0;
     };
     NumberAxis.prototype.scale = function (direction) {
-        direction = 0;
+    };
+    NumberAxis.prototype.render = function (context, renderLocator) {
+        // const render = renderLocator.getAxesRender('date');
+        // render.renderDateAxis(this, this.canvas);
     };
     return NumberAxis;
-}());
+}(core_1.VisualComponent));
 exports.NumberAxis = NumberAxis;

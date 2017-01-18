@@ -7,6 +7,21 @@ export interface IRange<T> {
     readonly end: T;
 }
 
+export interface IPoint {
+    readonly x: number,
+    readonly y: number
+}
+
+export class Point {
+    public readonly x: number;
+    public readonly y: number;
+
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
 export interface ISize {
     readonly width: number,
     readonly height: number

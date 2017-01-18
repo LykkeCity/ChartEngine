@@ -1,10 +1,12 @@
 /**
  * NumberAxis class.
  */
+import { VisualComponent, VisualContext } from '../core';
+import { IRenderLocator } from '../render';
 import { IRange } from '../shared';
 import { IAxis } from './IAxis';
 
-export class NumberAxis implements IAxis<number> {
+export class NumberAxis extends VisualComponent implements IAxis<number> {
 
     private _range: IRange<number>;
     private _w: number;
@@ -13,14 +15,19 @@ export class NumberAxis implements IAxis<number> {
     constructor(
         width: number,
         interval: number,         // Defines maximum zoom
-        initialRange: IRange<number>) {
-        this._w = width;
-        this._interval = interval;
-        this._range = initialRange;
+        initialRange?: IRange<number>) {
+            super();
+            this._w = width;
+            this._interval = interval;
+            this._range = initialRange ? initialRange : {start: 0, end: 0};
     }
 
     public get range(): IRange<number> {
         return this._range;
+    }
+
+    public set range(newRange: IRange<number>) {
+        this._range = newRange;
     }
 
     public get interval(): number {
@@ -31,18 +38,22 @@ export class NumberAxis implements IAxis<number> {
         return this._w;
     }
 
-    toX(value: number): number {
+    public toX(value: number): number {
         let range = Math.abs(this.range.end - this.range.start);
         let min = Math.min(this.range.end, this.range.start);
         let d = this.width / (range);
         return d * (value - min);
     }
 
-    move(direction: number): void {
-        direction = 0;
+    public move(direction: number): void {
     }
 
-    scale(direction: number): void {
-        direction = 0;
+    public scale(direction: number): void {
     }
+
+    public render(context: VisualContext, renderLocator: IRenderLocator) {
+        // const render = renderLocator.getAxesRender('date');
+
+        // render.renderDateAxis(this, this.canvas);
+    }    
 }

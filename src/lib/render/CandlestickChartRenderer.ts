@@ -8,8 +8,9 @@ import { IAxis } from '../axes';
 import { ICanvas } from '../canvas';
 import { Candlestick } from '../model';
 import { ISize } from '../shared';
+import { IChartRender } from './Interfaces';
 
-export class CandlestickChartRenderer  {
+export class CandlestickChartRenderer implements IChartRender  {
 
     public constructor() { }
 

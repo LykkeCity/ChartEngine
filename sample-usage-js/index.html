@@ -45,6 +45,9 @@
         if (container != null) {
             var chart = new lychart.ChartBoard(container, 500, 300, dataSource);
             chart.render();
+
+            var indicator = new lychart.indicator.SimpleIndicator(dataSource);
+            chart.addIndicator(indicator);
         }
     </script>
 </body>

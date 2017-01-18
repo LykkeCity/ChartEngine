@@ -18,6 +18,10 @@ export class SimpleIndicator implements IDataSource<Point> {
         return this.dateChangedEvent;
     }
 
+    public getValuesRange(range: IRange<Date>): IRange<number> {
+        return this.dataSource.getValuesRange(range);
+    }
+
     public getData(range: IRange<Date>): IChartData<Point> {
         let indicator: Point[] = [];
         let sourceData = this.dataSource.getData(range);
@@ -30,9 +34,7 @@ export class SimpleIndicator implements IDataSource<Point> {
         }
 
         return {
-            data: indicator,
-            minOrdinateValue: sourceData.minOrdinateValue,
-            maxOrdinateValue: sourceData.maxOrdinateValue
+            data: indicator
         };
     }
 

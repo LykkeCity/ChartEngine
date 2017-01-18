@@ -5,7 +5,8 @@
  */
 import { IAxis } from '../axes';
 import { ICanvas } from '../canvas';
-export declare class CandlestickChartRenderer {
+import { IChartRender } from './Interfaces';
+export declare class CandlestickChartRenderer implements IChartRender {
     constructor();
     render(canvas: ICanvas, data: any, offsetX: number, offsetY: number, timeAxis: IAxis<Date>, yAxis: IAxis<number>): void;
     private startRender(canvas);

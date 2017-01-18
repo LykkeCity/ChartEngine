@@ -4,22 +4,26 @@
  * @classdesc Facade for the chart library.
  */
 
-import { RenderType } from '../render';
-import { TimeInterval } from './Enums';
 import { TimeAxis } from '../axes';
+import { CanvasWrapper, ICanvas } from '../canvas';
+import { VisualComponent, VisualContext } from '../core';
+import { IDataSource } from '../data';
+import { IMouseHandler } from '../interaction';
+import { Candlestick, Point } from '../model';
+import { IRenderLocator, RenderLocator, RenderType } from '../render';
+import { IEventHandler, IHashTable, Point as MousePoint } from '../shared';
 import { ChartArea } from './ChartArea';
 import { ChartStack } from './ChartStack';
-import { IDataSource } from '../data';
-import { Candlestick, Point } from '../model';
-import { IEventHandler, IHashTable } from '../shared';
-import { IMouseHandler } from '../interaction';
+import { TimeInterval } from './Enums';
+
 import * as $ from 'jquery';
 
-export class ChartBoard {
+export class ChartBoard extends VisualComponent {
 
     private table: HTMLTableElement;
     private curInterval: TimeInterval = TimeInterval.day;
     private timeAxis: TimeAxis;
+    private timeAxisCanvas: ICanvas;
 
     private readonly areas: ChartArea[] = [];
     private readonly chartStacks: ChartStack[] = [];
@@ -35,19 +39,25 @@ export class ChartBoard {
         private readonly h: number,
         private readonly dataSource: IDataSource<Candlestick>
     ) {
+        super();
 
         this.table = document.createElement('table');
         this.container.appendChild(this.table);
 
-        this.timeAxis = new TimeAxis(w, TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) })
+        // Make place for the Time Axis
+        this.timeAxisCanvas = this.appendTimeCanvas(this.table, w, 25);
+
+        this.timeAxis = new TimeAxis(this.timeAxisCanvas, w, TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
+        this.addChild(this.timeAxis);
 
         // Create main chart area
         //
         let mainArea = this.appendArea(this.table, w, h);
         this.areas.push(mainArea);
 
-        let chartStack = new ChartStack(mainArea, this.timeAxis);
+        let chartStack = new ChartStack(mainArea, new MousePoint(0, 0), this.timeAxis);
         this.chartStacks.push(chartStack);
+        this.addChild(chartStack);
 
         chartStack.addChart(dataSource, RenderType.Candlestick);
 
@@ -73,6 +83,25 @@ export class ChartBoard {
         this.container.addEventListener('mouseleave', this.eventHandlers['mouseleave'], false);
     }
 
+    private appendTimeCanvas(table: HTMLTableElement, w: number, h: number) : ICanvas {
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+
+        let row = table.insertRow();
+        let cell1 = row.insertCell();
+        let cell2 = row.insertCell();
+        let cell3 = row.insertCell();
+
+        cell2.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+        if (ctx == null) {
+            throw new Error('Context is null');
+        }
+        return new CanvasWrapper(ctx, w, h);
+    }
+
     private appendArea(table: HTMLTableElement, w: number, h: number) : ChartArea {
 
         let mainCanvas = document.createElement('canvas');
@@ -86,7 +115,7 @@ export class ChartBoard {
         let xCanvas = document.createElement('canvas');
         xCanvas.width = w;
         xCanvas.height = 50;
-        
+
         let row1 = table.insertRow();
         let cell11 = row1.insertCell();
         let cell12 = row1.insertCell();
@@ -108,34 +137,53 @@ export class ChartBoard {
 
         return new ChartArea(mainCanvas, xCanvas, yCanvas);
     }
-    
+
     public addIndicator(indicatorDataSource: IDataSource<Point>) {
         this.indicators.push(indicatorDataSource);
+
+        const yOffset = this.areas.length * this.h;
 
         let newArea = this.appendArea(this.table, this.w, this.h);
         this.areas.push(newArea);
 
-        let chartStack = new ChartStack(newArea, this.timeAxis);
+        let chartStack = new ChartStack(newArea, new MousePoint(0, yOffset), this.timeAxis);
         chartStack.addChart(indicatorDataSource, RenderType.Line);
         this.chartStacks.push(chartStack);
     }
 
     public render(): void {
-        for (var chartStack of this.chartStacks) {
-            chartStack.render();
+
+        // Prepare rendering objects: locator and context.
+        const locator: IRenderLocator = RenderLocator.Instance;
+        const context: VisualContext = new VisualContext(
+            (this.mouseX && this.mouseY) ? new MousePoint(this.mouseX, this.mouseY) : undefined);
+
+        // Clear canvas
+        this.timeAxisCanvas.clear();
+
+        // Render all chart stacks
+        for (const chartStack of this.chartStacks) {
+            chartStack.render(context, locator);
         }
-        
+
+        // Render time axis as it does not belong to any chart
+        this.timeAxis.render(context, locator);
     }
+
+    // public render(renderLocator: IRenderLocator) {
+
+    // }
 
     private onDataChanged(): void {
-
     }
 
-    private onMouseWheel(event: any): void {
-        var ev = event;
-        if (false == !!event) event = window.event;
+    // TODO: Make mouse events handlers private
+    //
+    public onMouseWheel(event: any): void {
+        //let ev = event;
+        if (false == !!event) { event = window.event; }
 
-        var direction = ((event.wheelDelta) ? event.wheelDelta / 120 : event.detail / -3) || 0;
+        const direction = ((event.wheelDelta) ? event.wheelDelta / 120 : event.detail / -3) || 0;
         if (direction) {
             console.debug('Mousewhell event: ' + direction);
             this.timeAxis.scale(direction);
@@ -146,20 +194,22 @@ export class ChartBoard {
 
     private isMouseEntered = false;
     private isMouseDown = false;
-    private x: number | null = null;
-    private y: number | null = null;
+    private mouseX: number | null = null;
+    private mouseY: number | null = null;
 
-    private onMouseMove(event: any): void {
-        if (this.isMouseDown && this.x && this.y) {
-            let diffX = event.pageX - this.x;
-            let diffY = event.pageY - this.y;
+    public onMouseMove(event: any): void {
+        //super.onMouseMove(event);
+
+        if (this.isMouseDown && this.mouseX && this.mouseY) {
+            let diffX = event.pageX - this.mouseX;
+            let diffY = event.pageY - this.mouseY;
 
             if (this.timeAxis) {
                 this.timeAxis.move(diffX);
             }
         }
 
-        [this.x, this.y] = [event.pageX, event.pageY];
+        [this.mouseX, this.mouseY] = [event.pageX, event.pageY];
 
         if (this.isMouseEntered) {
             // TODO: Use animation loop (?)
@@ -167,24 +217,32 @@ export class ChartBoard {
         }
     }
 
-    private onMouseEnter(event: any): void {
+    public onMouseEnter(event: any): void {
+        //super.onMouseEnter(event);
+
         this.isMouseEntered = true;
-        for (var handler of this.mouseHandlers) { handler.onMouseEnter(event); }
+        for (const handler of this.mouseHandlers) { handler.onMouseEnter(event); }
     }
 
-    private onMouseLeave(event: any): void {
+    public onMouseLeave(event: any): void {
+        //super.onMouseLeave(event);
+
         this.isMouseEntered = false;
         this.isMouseDown = false;
-        for (var handler of this.mouseHandlers) { handler.onMouseLeave(event); }
+        for (const handler of this.mouseHandlers) { handler.onMouseLeave(event); }
     }
 
-    private onMouseUp(event: any): void {
-        this.isMouseDown = false;        
-        for (var handler of this.mouseHandlers) { handler.onMouseUp(event); }
+    public onMouseUp(event: any): void {
+        //super.onMouseUp(event);
+
+        this.isMouseDown = false;
+        for (const handler of this.mouseHandlers) { handler.onMouseUp(event); }
     }
 
-    private onMouseDown(event: any): void {
-        this.isMouseDown = true;        
-        for (var handler of this.mouseHandlers) { handler.onMouseDown(event); }
+    public onMouseDown(event: any): void {
+        //super.onMouseDown(event);
+
+        this.isMouseDown = true;
+        for (const handler of this.mouseHandlers) { handler.onMouseDown(event); }
     }
 }

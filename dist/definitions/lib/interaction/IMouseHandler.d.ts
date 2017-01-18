@@ -8,5 +8,5 @@ export interface IMouseHandler {
     onMouseLeave(event: any): void;
     onMouseUp(event: any): void;
     onMouseDown(event: any): void;
-    onclick(event: any): void;
+    onClick(event: any): void;
 }
