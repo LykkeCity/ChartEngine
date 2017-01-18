@@ -44,7 +44,6 @@ gulp.task("build-js", function () {
 });
 
 gulp.task("build-bundle", ['clean'], function () {
-
     return browserify({
         basedir: '.',
         debug: true,
@@ -52,8 +51,14 @@ gulp.task("build-bundle", ['clean'], function () {
         cache: {},
         packageCache: {},
         standalone: 'Bundle'
+        // ,shim: {
+        //     "jquery": {
+        //         path: './node_modules/jquery/dist/jquery.min.js',
+        //         exports: '$'
+        //     }            
+        // }
     })
-    .ignore('jquery')
+    //.ignore('jquery')
     .plugin(tsify)  // tsify plugin instead of gulp-typescript
     .bundle()
     .pipe(source('bundle.js'))

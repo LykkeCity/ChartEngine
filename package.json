@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/jasmine": "^2.5.41",
     "@types/jquery": "^2.0.39",
+    "browserify-shim": "^3.8.12",
     "del": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-clean": "^0.3.2",
@@ -43,5 +44,5 @@
   },
   "dependencies": {
     "jquery": "^1.12"
-  }
+  } 
 }
