@@ -1,0 +1,31 @@
+import { IDataSource } from '../data';
+import { Candlestick, Point } from '../model';
+export declare class ChartBoard {
+    private readonly container;
+    private readonly w;
+    private readonly h;
+    private readonly dataSource;
+    private table;
+    private curInterval;
+    private timeAxis;
+    private readonly areas;
+    private readonly chartStacks;
+    private readonly indicators;
+    private eventHandlers;
+    private readonly mouseHandlers;
+    constructor(container: HTMLElement, w: number, h: number, dataSource: IDataSource<Candlestick>);
+    private appendArea(table, w, h);
+    addIndicator(indicatorDataSource: IDataSource<Point>): void;
+    render(): void;
+    private onDataChanged();
+    private onMouseWheel(event);
+    private isMouseEntered;
+    private isMouseDown;
+    private x;
+    private y;
+    private onMouseMove(event);
+    private onMouseEnter(event);
+    private onMouseLeave(event);
+    private onMouseUp(event);
+    private onMouseDown(event);
+}

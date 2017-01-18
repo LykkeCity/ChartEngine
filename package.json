@@ -8,11 +8,12 @@
   },
   "main": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "karma start --single-run"
   },
   "author": "pegilo",
   "license": "MIT",
   "devDependencies": {
+    "@types/jasmine": "^2.5.41",
     "@types/jquery": "^2.0.39",
     "del": "^2.2.2",
     "gulp": "^3.9.1",
@@ -21,11 +22,24 @@
     "gulp-tslint": "^7.0.1",
     "gulp-typescript": "^3.1.4",
     "gulp-uglify": "^2.0.0",
+    "jasmine-core": "^2.5.2",
     "jquery": "^1.12.4",
+    "karma": "^1.4.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-cli": "^1.0.1",
+    "karma-jasmine": "^1.1.0",
+    "karma-requirejs": "^1.1.0",
+    "karma-typescript": "^2.1.6",
+    "karma-typescript-preprocessor": "^0.3.1",
+    "merge2": "^1.0.3",
+    "requirejs": "^2.3.2",
+    "tsify": "^3.0.0",
     "tslint": "^4.3.1",
     "tslint-microsoft-contrib": "^4.0.0",
     "typescript": "^2.1.5",
-    "typing": "^0.1.9"
+    "typing": "^0.1.9",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
     "jquery": "^1.12"
