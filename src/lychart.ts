@@ -6,9 +6,7 @@ import {
     Chart,
     ChartArea,
     ChartBoard,
-    ChartStack,
-    TimeInterval,
-    Unit
+    ChartStack
 } from './lib/component';
 
 import * as axes from './lib/axes';
@@ -30,8 +28,6 @@ import * as shared from './lib/shared';
     ChartArea: ChartArea,
     ChartBoard: ChartBoard,
     ChartStack: ChartStack,
-    TimeInterval: TimeInterval,
-    Unit: Unit,
     // 
     axes: axes,
     canvas: canvas,

@@ -1,6 +1,3 @@
-/**
- * SimpleIndicator class.
- */
 "use strict";
 var shared_1 = require("../shared");
 var SimpleIndicator = (function () {
@@ -16,12 +13,12 @@ var SimpleIndicator = (function () {
         enumerable: true,
         configurable: true
     });
-    SimpleIndicator.prototype.getValuesRange = function (range) {
-        return this.dataSource.getValuesRange(range);
+    SimpleIndicator.prototype.getValuesRange = function (range, interval) {
+        return this.dataSource.getValuesRange(range, interval);
     };
-    SimpleIndicator.prototype.getData = function (range) {
+    SimpleIndicator.prototype.getData = function (range, interval) {
         var indicator = [];
-        var sourceData = this.dataSource.getData(range);
+        var sourceData = this.dataSource.getData(range, interval);
         for (var i = 3; i < sourceData.data.length; i++) {
             var value = (sourceData.data[i - 3].c
                 + sourceData.data[i - 2].c

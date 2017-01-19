@@ -61,9 +61,7 @@ export class ChartStack extends VisualComponent {
         }
 
         // 2. Render charts
-        for (const chart of this.charts) {
-            chart.render(context, renderLocator);
-        }
+        super.render(context, renderLocator);
 
         // 3. Render additional objects
         //

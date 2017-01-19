@@ -6,7 +6,7 @@
 
 import { TimeAxis } from '../axes';
 import { CanvasWrapper, ICanvas } from '../canvas';
-import { VisualComponent, VisualContext } from '../core';
+import { TimeInterval, VisualComponent, VisualContext } from '../core';
 import { IDataSource } from '../data';
 import { IMouseHandler } from '../interaction';
 import { Candlestick, Point } from '../model';
@@ -14,7 +14,6 @@ import { IRenderLocator, RenderLocator, RenderType } from '../render';
 import { IEventHandler, IHashTable, Point as MousePoint } from '../shared';
 import { ChartArea } from './ChartArea';
 import { ChartStack } from './ChartStack';
-import { TimeInterval } from './Enums';
 
 import * as $ from 'jquery';
 
@@ -161,13 +160,15 @@ export class ChartBoard extends VisualComponent {
         // Clear canvas
         this.timeAxisCanvas.clear();
 
-        // Render all chart stacks
-        for (const chartStack of this.chartStacks) {
-            chartStack.render(context, locator);
-        }
+        // // Render all chart stacks
+        // for (const chartStack of this.chartStacks) {
+        //     chartStack.render(context, locator);
+        // }
 
-        // Render time axis as it does not belong to any chart
-        this.timeAxis.render(context, locator);
+        // // Render time axis as it does not belong to any chart
+        // this.timeAxis.render(context, locator);
+
+        super.render(context, locator);
     }
 
     // public render(renderLocator: IRenderLocator) {

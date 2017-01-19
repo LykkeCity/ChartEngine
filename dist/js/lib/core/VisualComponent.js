@@ -17,6 +17,12 @@ var VisualComponent = (function () {
         this.children.push(child);
         //this.childrenDesc.push(new VisualComponentDesc(offset));
     };
+    VisualComponent.prototype.render = function (context, renderLocator) {
+        for (var _i = 0, _a = this.children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            child.render(context, renderLocator);
+        }
+    };
     return VisualComponent;
 }());
 exports.VisualComponent = VisualComponent;

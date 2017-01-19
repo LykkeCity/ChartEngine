@@ -1,7 +1,7 @@
 /**
  * SimpleIndicator class.
  */
-
+import { TimeInterval } from '../core';
 import { IChartData, IDataSource } from '../data';
 import { Candlestick, Point } from '../model';
 import { Event, IEvent, IRange } from '../shared';
@@ -18,13 +18,13 @@ export class SimpleIndicator implements IDataSource<Point> {
         return this.dateChangedEvent;
     }
 
-    public getValuesRange(range: IRange<Date>): IRange<number> {
-        return this.dataSource.getValuesRange(range);
+    public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
+        return this.dataSource.getValuesRange(range, interval);
     }
 
-    public getData(range: IRange<Date>): IChartData<Point> {
+    public getData(range: IRange<Date>, interval: TimeInterval): IChartData<Point> {
         let indicator: Point[] = [];
-        let sourceData = this.dataSource.getData(range);
+        let sourceData = this.dataSource.getData(range, interval);
 
         for(let i = 3; i < sourceData.data.length; i++) {
             let value = (sourceData.data[i-3].c

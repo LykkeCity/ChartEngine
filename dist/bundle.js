@@ -11300,6 +11300,7 @@ var Chart = (function (_super) {
         var render = renderLocator.getChartRender(renderType);
         var data = this.dataSource.getData(this.timeAxis.range);
         render.render(this.canvas, data, 0, 0, this.timeAxis, this.yAxis);
+        _super.prototype.render.call(this, context, renderLocator);
     };
     return Chart;
 }(core_1.VisualComponent));
@@ -11366,7 +11367,6 @@ var render_1 = require("../render");
 var shared_1 = require("../shared");
 var ChartArea_1 = require("./ChartArea");
 var ChartStack_1 = require("./ChartStack");
-var Enums_1 = require("./Enums");
 var $ = require("jquery");
 var ChartBoard = (function (_super) {
     __extends(ChartBoard, _super);
@@ -11376,7 +11376,7 @@ var ChartBoard = (function (_super) {
         _this.w = w;
         _this.h = h;
         _this.dataSource = dataSource;
-        _this.curInterval = Enums_1.TimeInterval.day;
+        _this.curInterval = core_1.TimeInterval.day;
         _this.areas = [];
         _this.chartStacks = [];
         _this.indicators = [];
@@ -11390,7 +11390,7 @@ var ChartBoard = (function (_super) {
         _this.container.appendChild(_this.table);
         // Make place for the Time Axis
         _this.timeAxisCanvas = _this.appendTimeCanvas(_this.table, w, 25);
-        _this.timeAxis = new axes_1.TimeAxis(_this.timeAxisCanvas, w, Enums_1.TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
+        _this.timeAxis = new axes_1.TimeAxis(_this.timeAxisCanvas, w, core_1.TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
         _this.addChild(_this.timeAxis);
         // Create main chart area
         //
@@ -11477,13 +11477,13 @@ var ChartBoard = (function (_super) {
         var context = new core_1.VisualContext((this.mouseX && this.mouseY) ? new shared_1.Point(this.mouseX, this.mouseY) : undefined);
         // Clear canvas
         this.timeAxisCanvas.clear();
-        // Render all chart stacks
-        for (var _i = 0, _a = this.chartStacks; _i < _a.length; _i++) {
-            var chartStack = _a[_i];
-            chartStack.render(context, locator);
-        }
-        // Render time axis as it does not belong to any chart
-        this.timeAxis.render(context, locator);
+        // // Render all chart stacks
+        // for (const chartStack of this.chartStacks) {
+        //     chartStack.render(context, locator);
+        // }
+        // // Render time axis as it does not belong to any chart
+        // this.timeAxis.render(context, locator);
+        _super.prototype.render.call(this, context, locator);
     };
     // public render(renderLocator: IRenderLocator) {
     // }
@@ -11556,7 +11556,7 @@ var ChartBoard = (function (_super) {
     return ChartBoard;
 }(core_1.VisualComponent));
 exports.ChartBoard = ChartBoard;
-},{"../axes":4,"../canvas":7,"../core":16,"../render":30,"../shared":33,"./ChartArea":9,"./ChartStack":11,"./Enums":12,"jquery":1}],11:[function(require,module,exports){
+},{"../axes":4,"../canvas":7,"../core":16,"../render":30,"../shared":33,"./ChartArea":9,"./ChartStack":11,"jquery":1}],11:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11611,10 +11611,7 @@ var ChartStack = (function (_super) {
             this.yAxis.range = { start: 0, end: 100 }; // default values
         }
         // 2. Render charts
-        for (var _b = 0, _c = this.charts; _b < _c.length; _b++) {
-            var chart = _c[_b];
-            chart.render(context, renderLocator);
-        }
+        _super.prototype.render.call(this, context, renderLocator);
         // 3. Render additional objects
         //
         if (context.mousePosition) {
@@ -11654,6 +11651,19 @@ var ChartStack = (function (_super) {
 }(core_1.VisualComponent));
 exports.ChartStack = ChartStack;
 },{"../axes":4,"../core":16,"../shared":33,"./Chart":8}],12:[function(require,module,exports){
+/**
+ *
+ */
+"use strict";
+var Chart_1 = require("./Chart");
+exports.Chart = Chart_1.Chart;
+var ChartArea_1 = require("./ChartArea");
+exports.ChartArea = ChartArea_1.ChartArea;
+var ChartBoard_1 = require("./ChartBoard");
+exports.ChartBoard = ChartBoard_1.ChartBoard;
+var ChartStack_1 = require("./ChartStack");
+exports.ChartStack = ChartStack_1.ChartStack;
+},{"./Chart":8,"./ChartArea":9,"./ChartBoard":10,"./ChartStack":11}],13:[function(require,module,exports){
 "use strict";
 /**
 * Core enumerations.
@@ -11675,23 +11685,7 @@ var Unit;
 (function (Unit) {
     Unit[Unit["Price"] = 0] = "Price";
 })(Unit = exports.Unit || (exports.Unit = {}));
-},{}],13:[function(require,module,exports){
-/**
- *
- */
-"use strict";
-var Chart_1 = require("./Chart");
-exports.Chart = Chart_1.Chart;
-var ChartArea_1 = require("./ChartArea");
-exports.ChartArea = ChartArea_1.ChartArea;
-var ChartBoard_1 = require("./ChartBoard");
-exports.ChartBoard = ChartBoard_1.ChartBoard;
-var ChartStack_1 = require("./ChartStack");
-exports.ChartStack = ChartStack_1.ChartStack;
-var Enums_1 = require("./Enums");
-exports.TimeInterval = Enums_1.TimeInterval;
-exports.Unit = Enums_1.Unit;
-},{"./Chart":8,"./ChartArea":9,"./ChartBoard":10,"./ChartStack":11,"./Enums":12}],14:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 var shared_1 = require("../shared");
 // export class VisualComponentDesc {
@@ -11711,6 +11705,12 @@ var VisualComponent = (function () {
         this.children.push(child);
         //this.childrenDesc.push(new VisualComponentDesc(offset));
     };
+    VisualComponent.prototype.render = function (context, renderLocator) {
+        for (var _i = 0, _a = this.children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            child.render(context, renderLocator);
+        }
+    };
     return VisualComponent;
 }());
 exports.VisualComponent = VisualComponent;
@@ -11728,14 +11728,14 @@ exports.VisualContext = VisualContext;
 /**
  *
  */
+var Enums_1 = require("./Enums");
+exports.TimeInterval = Enums_1.TimeInterval;
+exports.Unit = Enums_1.Unit;
 var VisualComponent_1 = require("./VisualComponent");
 exports.VisualComponent = VisualComponent_1.VisualComponent;
 var VisualContext_1 = require("./VisualContext");
 exports.VisualContext = VisualContext_1.VisualContext;
-},{"./VisualComponent":14,"./VisualContext":15}],17:[function(require,module,exports){
-/**
-* CandleArrayDataSource class.
-*/
+},{"./Enums":13,"./VisualComponent":14,"./VisualContext":15}],17:[function(require,module,exports){
 "use strict";
 var shared_1 = require("../shared");
 var CandleArrayDataSource = (function () {
@@ -11752,7 +11752,7 @@ var CandleArrayDataSource = (function () {
         enumerable: true,
         configurable: true
     });
-    CandleArrayDataSource.prototype.getValuesRange = function (range) {
+    CandleArrayDataSource.prototype.getValuesRange = function (range, interval) {
         if (this.data.length === 0) {
             return { start: this.defaultMinValue, end: this.defaultMaxValue };
         }
@@ -11773,7 +11773,7 @@ var CandleArrayDataSource = (function () {
         });
         return { start: lowestPrice, end: highestPrice };
     };
-    CandleArrayDataSource.prototype.getData = function (range) {
+    CandleArrayDataSource.prototype.getData = function (range, interval) {
         var lowestPrice = Number.MAX_VALUE;
         var highestPrice = Number.MIN_VALUE;
         // Filter data by date and find min/max price
@@ -11807,9 +11807,6 @@ exports.CandleArrayDataSource = CandleArrayDataSource;
 var CandleArrayDataSource_1 = require("./CandleArrayDataSource");
 exports.CandleArrayDataSource = CandleArrayDataSource_1.CandleArrayDataSource;
 },{"./CandleArrayDataSource":17}],19:[function(require,module,exports){
-/**
- * SimpleIndicator class.
- */
 "use strict";
 var shared_1 = require("../shared");
 var SimpleIndicator = (function () {
@@ -11825,12 +11822,12 @@ var SimpleIndicator = (function () {
         enumerable: true,
         configurable: true
     });
-    SimpleIndicator.prototype.getValuesRange = function (range) {
-        return this.dataSource.getValuesRange(range);
+    SimpleIndicator.prototype.getValuesRange = function (range, interval) {
+        return this.dataSource.getValuesRange(range, interval);
     };
-    SimpleIndicator.prototype.getData = function (range) {
+    SimpleIndicator.prototype.getData = function (range, interval) {
         var indicator = [];
-        var sourceData = this.dataSource.getData(range);
+        var sourceData = this.dataSource.getData(range, interval);
         for (var i = 3; i < sourceData.data.length; i++) {
             var value = (sourceData.data[i - 3].c
                 + sourceData.data[i - 2].c
@@ -12246,8 +12243,6 @@ window.lychart = {
     ChartArea: component_1.ChartArea,
     ChartBoard: component_1.ChartBoard,
     ChartStack: component_1.ChartStack,
-    TimeInterval: component_1.TimeInterval,
-    Unit: component_1.Unit,
     // 
     axes: axes,
     canvas: canvas,
@@ -12259,7 +12254,7 @@ window.lychart = {
     render: render,
     shared: shared
 };
-},{"./lib/axes":4,"./lib/canvas":7,"./lib/component":13,"./lib/core":16,"./lib/data":18,"./lib/indicator":20,"./lib/interaction":21,"./lib/model":24,"./lib/render":30,"./lib/shared":33}]},{},[34])(34)
+},{"./lib/axes":4,"./lib/canvas":7,"./lib/component":12,"./lib/core":16,"./lib/data":18,"./lib/indicator":20,"./lib/interaction":21,"./lib/model":24,"./lib/render":30,"./lib/shared":33}]},{},[34])(34)
 });
 
 

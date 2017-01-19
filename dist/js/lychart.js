@@ -20,8 +20,6 @@ window.lychart = {
     ChartArea: component_1.ChartArea,
     ChartBoard: component_1.ChartBoard,
     ChartStack: component_1.ChartStack,
-    TimeInterval: component_1.TimeInterval,
-    Unit: component_1.Unit,
     // 
     axes: axes,
     canvas: canvas,

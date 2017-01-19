@@ -1,6 +1,3 @@
-/**
- * CandleArrayDataSource class.
- */
 "use strict";
 var shared_1 = require("../shared");
 var CandleArrayDataSource = (function () {
@@ -17,7 +14,7 @@ var CandleArrayDataSource = (function () {
         enumerable: true,
         configurable: true
     });
-    CandleArrayDataSource.prototype.getValuesRange = function (range) {
+    CandleArrayDataSource.prototype.getValuesRange = function (range, interval) {
         if (this.data.length === 0) {
             return { start: this.defaultMinValue, end: this.defaultMaxValue };
         }
@@ -38,7 +35,7 @@ var CandleArrayDataSource = (function () {
         });
         return { start: lowestPrice, end: highestPrice };
     };
-    CandleArrayDataSource.prototype.getData = function (range) {
+    CandleArrayDataSource.prototype.getData = function (range, interval) {
         var lowestPrice = Number.MAX_VALUE;
         var highestPrice = Number.MIN_VALUE;
         // Filter data by date and find min/max price

@@ -7,5 +7,5 @@ export declare abstract class VisualComponent {
     protected children: VisualComponent[];
     constructor(offset?: Point, size?: ISize);
     addChild(child: VisualComponent): void;
-    abstract render(context: VisualContext, renderLocator: IRenderLocator): void;
+    render(context: VisualContext, renderLocator: IRenderLocator): void;
 }

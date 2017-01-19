@@ -33,5 +33,7 @@ export class Chart extends VisualComponent {
 
         const data = this.dataSource.getData(this.timeAxis.range);
         render.render(this.canvas, data, 0, 0, this.timeAxis, this.yAxis);
+
+        super.render(context, renderLocator);
     }
 }

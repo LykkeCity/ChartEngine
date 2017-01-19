@@ -30,7 +30,11 @@ export abstract class VisualComponent { //implements IMouseHandler {
         //this.childrenDesc.push(new VisualComponentDesc(offset));
     }
 
-    public abstract render(context: VisualContext, renderLocator: IRenderLocator): void;
+    public render(context: VisualContext, renderLocator: IRenderLocator): void {
+        for (const child of this.children) {
+            child.render(context, renderLocator);
+        }
+    }
 
     // public onMouseWheel(event: any): void {
     // }

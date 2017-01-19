@@ -16,7 +16,6 @@ var render_1 = require("../render");
 var shared_1 = require("../shared");
 var ChartArea_1 = require("./ChartArea");
 var ChartStack_1 = require("./ChartStack");
-var Enums_1 = require("./Enums");
 var $ = require("jquery");
 var ChartBoard = (function (_super) {
     __extends(ChartBoard, _super);
@@ -26,7 +25,7 @@ var ChartBoard = (function (_super) {
         _this.w = w;
         _this.h = h;
         _this.dataSource = dataSource;
-        _this.curInterval = Enums_1.TimeInterval.day;
+        _this.curInterval = core_1.TimeInterval.day;
         _this.areas = [];
         _this.chartStacks = [];
         _this.indicators = [];
@@ -40,7 +39,7 @@ var ChartBoard = (function (_super) {
         _this.container.appendChild(_this.table);
         // Make place for the Time Axis
         _this.timeAxisCanvas = _this.appendTimeCanvas(_this.table, w, 25);
-        _this.timeAxis = new axes_1.TimeAxis(_this.timeAxisCanvas, w, Enums_1.TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
+        _this.timeAxis = new axes_1.TimeAxis(_this.timeAxisCanvas, w, core_1.TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
         _this.addChild(_this.timeAxis);
         // Create main chart area
         //
@@ -127,13 +126,13 @@ var ChartBoard = (function (_super) {
         var context = new core_1.VisualContext((this.mouseX && this.mouseY) ? new shared_1.Point(this.mouseX, this.mouseY) : undefined);
         // Clear canvas
         this.timeAxisCanvas.clear();
-        // Render all chart stacks
-        for (var _i = 0, _a = this.chartStacks; _i < _a.length; _i++) {
-            var chartStack = _a[_i];
-            chartStack.render(context, locator);
-        }
-        // Render time axis as it does not belong to any chart
-        this.timeAxis.render(context, locator);
+        // // Render all chart stacks
+        // for (const chartStack of this.chartStacks) {
+        //     chartStack.render(context, locator);
+        // }
+        // // Render time axis as it does not belong to any chart
+        // this.timeAxis.render(context, locator);
+        _super.prototype.render.call(this, context, locator);
     };
     // public render(renderLocator: IRenderLocator) {
     // }

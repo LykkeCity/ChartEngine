@@ -6,7 +6,7 @@
 
 import { IAxis } from '../axes';
 import { ICanvas } from '../canvas';
-import { TimeInterval } from '../component';
+import { TimeInterval } from '../core';
 import { IRange } from '../shared';
 import { IAxesRender } from './Interfaces';
 

@@ -31,6 +31,7 @@ var Chart = (function (_super) {
         var render = renderLocator.getChartRender(renderType);
         var data = this.dataSource.getData(this.timeAxis.range);
         render.render(this.canvas, data, 0, 0, this.timeAxis, this.yAxis);
+        _super.prototype.render.call(this, context, renderLocator);
     };
     return Chart;
 }(core_1.VisualComponent));

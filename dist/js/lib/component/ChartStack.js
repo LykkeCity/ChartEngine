@@ -52,10 +52,7 @@ var ChartStack = (function (_super) {
             this.yAxis.range = { start: 0, end: 100 }; // default values
         }
         // 2. Render charts
-        for (var _b = 0, _c = this.charts; _b < _c.length; _b++) {
-            var chart = _c[_b];
-            chart.render(context, renderLocator);
-        }
+        _super.prototype.render.call(this, context, renderLocator);
         // 3. Render additional objects
         //
         if (context.mousePosition) {
