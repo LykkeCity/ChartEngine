@@ -2,7 +2,7 @@
 /**
  * ChartArea class.
  */
-var canvas_1 = require("../canvas");
+var index_1 = require("../canvas/index");
 var ChartArea = (function () {
     function ChartArea(mainCanvas, axisXCanvas, axisYCanvas) {
         this._mainContext = this.getContext(mainCanvas, mainCanvas.width, mainCanvas.height);
@@ -35,7 +35,7 @@ var ChartArea = (function () {
         if (ctx == null) {
             throw new Error('Context is null');
         }
-        return new canvas_1.CanvasWrapper(ctx, w, h);
+        return new index_1.CanvasWrapper(ctx, w, h);
     };
     return ChartArea;
 }());

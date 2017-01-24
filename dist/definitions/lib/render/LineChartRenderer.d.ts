@@ -3,11 +3,13 @@
  *
  * @classdesc Renders specified data in a form of line chart.
  */
-import { IAxis } from '../axes';
-import { ICanvas } from '../canvas';
+import { IAxis } from '../axes/index';
+import { ICanvas } from '../canvas/index';
+import { IDataIterator } from '../data/index';
+import { Point } from '../model/index';
 import { IChartRender } from './Interfaces';
-export declare class LineChartRenderer implements IChartRender {
-    render(canvas: ICanvas, data: any, offsetX: number, offsetY: number, timeAxis: IAxis<Date>, yAxis: IAxis<number>): void;
+export declare class LineChartRenderer implements IChartRender<Point> {
+    render(canvas: ICanvas, dataIterator: IDataIterator<Point>, offsetX: number, offsetY: number, timeAxis: IAxis<Date>, yAxis: IAxis<number>): void;
     private renderPart(canvas, timeAxis, yAxis, pointFrom, pointTo, frameSize);
     private line(canvas, x1, y1, x2, y2);
 }

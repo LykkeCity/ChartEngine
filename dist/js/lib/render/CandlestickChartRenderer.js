@@ -7,7 +7,7 @@
 var CandlestickChartRenderer = (function () {
     function CandlestickChartRenderer() {
     }
-    CandlestickChartRenderer.prototype.render = function (canvas, data, offsetX, offsetY, timeAxis, yAxis) {
+    CandlestickChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
         console.debug("[CandlestickChartRenderer] start rendering...");
         // Calculate size of frame
         var frameSize = {
@@ -17,9 +17,8 @@ var CandlestickChartRenderer = (function () {
         // Render
         //
         this.startRender(canvas);
-        for (var _i = 0, _a = data.data; _i < _a.length; _i++) {
-            var candle = _a[_i];
-            this.renderCandle(canvas, timeAxis, yAxis, candle, frameSize);
+        while (dataIterator.moveNext()) {
+            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frameSize);
         }
         this.finishRender(canvas);
     };
@@ -28,6 +27,9 @@ var CandlestickChartRenderer = (function () {
     CandlestickChartRenderer.prototype.finishRender = function (canvas) {
     };
     CandlestickChartRenderer.prototype.renderCandle = function (canvas, timeAxis, yAxis, candle, frameSize) {
+        if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
+            return;
+        }
         // Lower and upper ranges of the candle's body.
         //let bodyMin = Math.min(candle.o, candle.c);
         //let bodyMax = Math.max(candle.o, candle.c);
@@ -52,12 +54,12 @@ var CandlestickChartRenderer = (function () {
         this.rect(canvas, x - 1, ocMin, x + 1, ocMax);
     };
     CandlestickChartRenderer.prototype.line = function (canvas, x1, y1, x2, y2) {
-        console.debug("line: {" + x1 + "," + y1 + "} - {" + x2 + "," + y2 + "}");
+        //console.debug(`line: {${x1},${y1}} - {${x2},${y2}}`);
         canvas.moveTo(x1, y1);
         canvas.lineTo(x2, y2);
     };
     CandlestickChartRenderer.prototype.rect = function (canvas, x1, y1, x2, y2) {
-        console.debug("rect: {" + x1 + "," + y1 + "} - {" + x2 + "," + y2 + "}");
+        //console.debug(`rect: {${x1},${y1}} - {${x2},${y2}}`);
         canvas.fillRect(x1, y1, Math.abs(x2 - x1), Math.abs(y2 - y1));
         canvas.strokeRect(x1, y1, Math.abs(x2 - x1), Math.abs(y2 - y1));
     };

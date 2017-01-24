@@ -1,9 +1,9 @@
 /**
  * NumberAxis class.
  */
-import { VisualComponent, VisualContext } from '../core';
-import { IRenderLocator } from '../render';
-import { IRange } from '../shared';
+import { VisualComponent, VisualContext } from '../core/index';
+import { IRenderLocator } from '../render/index';
+import { IRange } from '../shared/index';
 import { IAxis } from './IAxis';
 export declare class NumberAxis extends VisualComponent implements IAxis<number> {
     private _range;

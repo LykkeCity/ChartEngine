@@ -4,14 +4,14 @@
  * @classdesc Facade for the chart library.
  */
 
-import { TimeAxis } from '../axes';
-import { CanvasWrapper, ICanvas } from '../canvas';
-import { TimeInterval, VisualComponent, VisualContext } from '../core';
-import { IDataSource } from '../data';
-import { IMouseHandler } from '../interaction';
-import { Candlestick, Point } from '../model';
-import { IRenderLocator, RenderLocator, RenderType } from '../render';
-import { IEventHandler, IHashTable, Point as MousePoint } from '../shared';
+import { TimeAxis } from '../axes/index';
+import { CanvasWrapper, ICanvas } from '../canvas/index';
+import { ChartType, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { DataChangedArgument, IDataSource } from '../data/index';
+import { IMouseHandler } from '../interaction/index';
+import { Candlestick, Point } from '../model/index';
+import { IRenderLocator, RenderLocator, RenderType } from '../render/index';
+import { IEventHandler, IHashTable, Point as MousePoint } from '../shared/index';
 import { ChartArea } from './ChartArea';
 import { ChartStack } from './ChartStack';
 
@@ -35,8 +35,8 @@ export class ChartBoard extends VisualComponent {
     constructor(
         private readonly container: HTMLElement,
         private readonly w: number,
-        private readonly h: number,
-        private readonly dataSource: IDataSource<Candlestick>
+        private readonly h: number
+        //private readonly dataSource: IDataSource<Candlestick>
     ) {
         super();
 
@@ -57,8 +57,6 @@ export class ChartBoard extends VisualComponent {
         let chartStack = new ChartStack(mainArea, new MousePoint(0, 0), this.timeAxis);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
-
-        chartStack.addChart(dataSource, RenderType.Candlestick);
 
         // Hook up event handlers
         //
@@ -137,6 +135,18 @@ export class ChartBoard extends VisualComponent {
         return new ChartArea(mainCanvas, xCanvas, yCanvas);
     }
 
+    public addChart<T>(chartType: string, dataSource: IDataSource<T>) {
+
+        // add event handlers
+        let self = this;
+        dataSource.dateChanged.on(function (arg: DataChangedArgument) { self.onDataChanged(arg) });
+
+        this.chartStacks[0].addChart(chartType, dataSource);
+
+        // re-render charts
+        this.render();
+    }
+
     public addIndicator(indicatorDataSource: IDataSource<Point>) {
         this.indicators.push(indicatorDataSource);
 
@@ -146,8 +156,9 @@ export class ChartBoard extends VisualComponent {
         this.areas.push(newArea);
 
         let chartStack = new ChartStack(newArea, new MousePoint(0, yOffset), this.timeAxis);
-        chartStack.addChart(indicatorDataSource, RenderType.Line);
+        chartStack.addChart(ChartType.line, indicatorDataSource);
         this.chartStacks.push(chartStack);
+        this.addChild(chartStack);
     }
 
     public render(): void {
@@ -175,7 +186,8 @@ export class ChartBoard extends VisualComponent {
 
     // }
 
-    private onDataChanged(): void {
+    private onDataChanged(arg: DataChangedArgument): void {
+        this.render();
     }
 
     // TODO: Make mouse events handlers private
@@ -214,7 +226,8 @@ export class ChartBoard extends VisualComponent {
 
         if (this.isMouseEntered) {
             // TODO: Use animation loop (?)
-            this.render();
+            // TODO: Re-render only front layer
+            //this.render();
         }
     }
 

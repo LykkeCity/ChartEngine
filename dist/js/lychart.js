@@ -12,6 +12,7 @@ var interaction = require("./lib/interaction");
 var model = require("./lib/model");
 var render = require("./lib/render");
 var shared = require("./lib/shared");
+var utils = require("./lib/utils");
 // export {
 //     ChartBoard
 // }
@@ -29,5 +30,6 @@ window.lychart = {
     interaction: interaction,
     model: model,
     render: render,
-    shared: shared
+    shared: shared,
+    utils: utils
 };

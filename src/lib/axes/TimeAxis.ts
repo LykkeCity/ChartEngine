@@ -4,10 +4,10 @@
  * @classdesc Represents a chart's axis of numbers
  */
 
-import { ICanvas } from '../canvas';
-import { VisualComponent, VisualContext } from '../core';
-import { IRenderLocator } from '../render';
-import { IRange } from '../shared';
+import { ICanvas } from '../canvas/index';
+import { VisualComponent, VisualContext } from '../core/index';
+import { IRenderLocator } from '../render/index';
+import { IRange } from '../shared/index';
 import { IAxis } from './IAxis';
 
 export class TimeAxis extends VisualComponent implements IAxis<Date> {

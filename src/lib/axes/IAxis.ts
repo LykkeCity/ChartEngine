@@ -1,7 +1,7 @@
 /**
  * IAxis interface.
  */
-import { IRange } from '../shared';
+import { IRange } from '../shared/index';
 
 export interface IAxis<T> {
     range: IRange<T>;

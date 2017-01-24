@@ -1,10 +1,14 @@
 /**
  * Candlestick class.
  */
-export declare class Candlestick {
-    readonly date: Date;
-    readonly c: number;
-    readonly o: number;
-    readonly h: number;
-    readonly l: number;
+import { ITimeValue } from './Interfaces';
+export declare class Candlestick implements ITimeValue {
+    date: Date;
+    c?: number;
+    o?: number;
+    h?: number;
+    l?: number;
+    constructor(date: Date, c?: number, o?: number, h?: number, l?: number);
+    getValues(): number[];
+    deserialize(data: any): void;
 }

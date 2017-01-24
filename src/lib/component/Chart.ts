@@ -1,38 +1,48 @@
 ﻿/**
  * Chart class.
  */
-import { IAxis } from '../axes';
-import { ICanvas } from '../canvas';
-import { VisualComponent, VisualContext } from '../core';
-import { IRenderLocator, RenderType } from '../render';
-import { Point } from '../shared';
+import { IAxis } from '../axes/index';
+import { ICanvas } from '../canvas/index';
+import { TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { IDataSource } from '../data/index';
+import { IRenderLocator, RenderType } from '../render/index';
+import { IRange, Point } from '../shared/index';
 
-export class Chart extends VisualComponent {
+export interface IChart {
+    getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number>;
+    render(context: VisualContext, renderLocator: IRenderLocator): void;
+}
+
+export class Chart<T> extends VisualComponent implements IChart {
     constructor(
-        offset: Point,
+        private chartType: string,
+        public offset: Point,
         private canvas: ICanvas,
-        public dataSource: any,
+        private dataSource: IDataSource<T>,
         private timeAxis: IAxis<Date>,
-        private yAxis: IAxis<number>,
-        private renderType: RenderType) {
+        private yAxis: IAxis<number>) {
             super(offset);
     }
 
+    public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
+        return this.dataSource.getValuesRange(range, interval);
+    }
+
     public render(context: VisualContext, renderLocator: IRenderLocator) {
-        let renderType = '';
+        // let renderType = '';
 
-        if (this.renderType === RenderType.Candlestick) {
-            renderType = 'candle';
-        } else if (this.renderType === RenderType.Line) {
-            renderType = 'line';
-        } else {
-            throw new Error(`Unexpected render type ${ this.renderType }`);
-        }
+        // if (this.renderType === RenderType.Candlestick) {
+        //     renderType = 'candle';
+        // } else if (this.renderType === RenderType.Line) {
+        //     renderType = 'line';
+        // } else {
+        //     throw new Error(`Unexpected render type ${ this.renderType }`);
+        // }
 
-        const render = renderLocator.getChartRender(renderType);
+        const render = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
 
-        const data = this.dataSource.getData(this.timeAxis.range);
-        render.render(this.canvas, data, 0, 0, this.timeAxis, this.yAxis);
+        const dataIterator = this.dataSource.getData(this.timeAxis.range, this.timeAxis.interval);
+        render.render(this.canvas, dataIterator, 0, 0, this.timeAxis, this.yAxis);
 
         super.render(context, renderLocator);
     }

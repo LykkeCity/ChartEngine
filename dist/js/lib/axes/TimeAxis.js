@@ -9,7 +9,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var core_1 = require("../core");
+var index_1 = require("../core/index");
 var TimeAxis = (function (_super) {
     __extends(TimeAxis, _super);
     function TimeAxis(canvas, width, interval, // Defines maximum zoom
@@ -89,5 +89,5 @@ var TimeAxis = (function (_super) {
         render.renderDateAxis(this, this.canvas);
     };
     return TimeAxis;
-}(core_1.VisualComponent));
+}(index_1.VisualComponent));
 exports.TimeAxis = TimeAxis;

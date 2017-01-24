@@ -1,5 +1,5 @@
 "use strict";
-var shared_1 = require("../shared");
+var index_1 = require("../shared/index");
 // export class VisualComponentDesc {
 //     public offset: Point;
 //     constructor(offset: Point) {
@@ -10,7 +10,7 @@ var VisualComponent = (function () {
     // protected childrenDesc: VisualComponentDesc[] = [];
     function VisualComponent(offset, size) {
         this.children = [];
-        this.offset = offset ? offset : new shared_1.Point(0, 0);
+        this.offset = offset ? offset : new index_1.Point(0, 0);
         this.size = size ? size : { width: 0, height: 0 };
     }
     VisualComponent.prototype.addChild = function (child) {

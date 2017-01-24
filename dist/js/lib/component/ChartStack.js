@@ -7,9 +7,9 @@ var __extends = (this && this.__extends) || function (d, b) {
 /**
  * ChartStack class.
  */
-var axes_1 = require("../axes");
-var core_1 = require("../core");
-var shared_1 = require("../shared");
+var index_1 = require("../axes/index");
+var index_2 = require("../core/index");
+var index_3 = require("../shared/index");
 var Chart_1 = require("./Chart");
 var ChartStack = (function (_super) {
     __extends(ChartStack, _super);
@@ -19,11 +19,11 @@ var ChartStack = (function (_super) {
         _this.timeAxis = timeAxis;
         _this.charts = [];
         // create initial Y axis
-        _this.yAxis = new axes_1.NumberAxis(_this.area.axisYContext.h, 1);
+        _this.yAxis = new index_1.NumberAxis(_this.area.axisYContext.h, 1);
         return _this;
     }
-    ChartStack.prototype.addChart = function (dataSource, renderType) {
-        var newChart = new Chart_1.Chart(new shared_1.Point(this.offset.x, this.offset.y), this.area.mainContext, dataSource, this.timeAxis, this.yAxis, renderType);
+    ChartStack.prototype.addChart = function (chartType, dataSource) {
+        var newChart = new Chart_1.Chart(chartType, new index_3.Point(this.offset.x, this.offset.y), this.area.mainContext, dataSource, this.timeAxis, this.yAxis);
         this.charts.push(newChart);
         this.addChild(newChart);
     };
@@ -37,7 +37,7 @@ var ChartStack = (function (_super) {
         var yRange = { start: Number.MAX_VALUE, end: Number.MIN_VALUE };
         for (var _i = 0, _a = this.charts; _i < _a.length; _i++) {
             var chart = _a[_i];
-            var valuesRange = chart.dataSource.getValuesRange(this.timeAxis.range);
+            var valuesRange = chart.getValuesRange(this.timeAxis.range, this.timeAxis.interval);
             if (valuesRange.end > yRange.end) {
                 yRange.end = valuesRange.end;
             }
@@ -89,5 +89,5 @@ var ChartStack = (function (_super) {
         }
     };
     return ChartStack;
-}(core_1.VisualComponent));
+}(index_2.VisualComponent));
 exports.ChartStack = ChartStack;

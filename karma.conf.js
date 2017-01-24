@@ -5,8 +5,7 @@ module.exports = function(config) {
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
-    //basePath: '',
-
+    basePath: '',
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
@@ -18,9 +17,10 @@ module.exports = function(config) {
       
       {pattern: 'src/**/*.ts', included: false},
       {pattern: 'test/lib/**/*.js', included: false},
+      //{pattern: 'test/lib/**/*.js', included: false},
       {pattern: 'test/**/*Spec.ts', included: false}
       //{pattern: 'test/**/*Spec.js', included: false}
-      ,'test/test-main.js',
+      ,'test-main.js',
     ],
 
 
@@ -38,8 +38,17 @@ module.exports = function(config) {
 
     typescriptPreprocessor: {
       options: {
-        sourceMap: true, // generate source maps
-        noResolve: false // enforce type resolution
+        // sourceMap: true, // generate source maps
+        // noResolve: false // enforce type resolution
+
+        sourceMap: false, // (optional) Generates corresponding .map file.
+        target: 'ES5', // (optional) Specify ECMAScript target version: 'ES3' (default), or 'ES5'
+        module: 'amd', // (optional) Specify module code generation: 'commonjs' or 'amd'
+        noImplicitAny: false, // (optional) Warn on expressions and declarations with an implied 'any' type.
+        noResolve: true, // (optional) Skip resolution and preprocessing.
+        removeComments: true, // (optional) Do not emit comments to output.
+        concatenateOutput: false // (optional) Concatenate and emit output to single file. By default true if module option is omited, otherwise false.
+              
       },
       transformPath: function(path) {
         return path.replace(/\.ts$/, '.js');

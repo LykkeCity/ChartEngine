@@ -3,12 +3,14 @@
  *
  * @classdesc Renders specified data in a form of candlestick chart.
  */
-import { IAxis } from '../axes';
-import { ICanvas } from '../canvas';
+import { IAxis } from '../axes/index';
+import { ICanvas } from '../canvas/index';
+import { IDataIterator } from '../data/index';
+import { Candlestick } from '../model/index';
 import { IChartRender } from './Interfaces';
-export declare class CandlestickChartRenderer implements IChartRender {
+export declare class CandlestickChartRenderer implements IChartRender<Candlestick> {
     constructor();
-    render(canvas: ICanvas, data: any, offsetX: number, offsetY: number, timeAxis: IAxis<Date>, yAxis: IAxis<number>): void;
+    render(canvas: ICanvas, dataIterator: IDataIterator<Candlestick>, offsetX: number, offsetY: number, timeAxis: IAxis<Date>, yAxis: IAxis<number>): void;
     private startRender(canvas);
     private finishRender(canvas);
     private renderCandle(canvas, timeAxis, yAxis, candle, frameSize);

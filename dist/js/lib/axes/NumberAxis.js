@@ -7,7 +7,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 /**
  * NumberAxis class.
  */
-var core_1 = require("../core");
+var index_1 = require("../core/index");
 var NumberAxis = (function (_super) {
     __extends(NumberAxis, _super);
     function NumberAxis(width, interval, // Defines maximum zoom
@@ -57,5 +57,5 @@ var NumberAxis = (function (_super) {
         // render.renderDateAxis(this, this.canvas);
     };
     return NumberAxis;
-}(core_1.VisualComponent));
+}(index_1.VisualComponent));
 exports.NumberAxis = NumberAxis;

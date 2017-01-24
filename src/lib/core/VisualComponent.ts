@@ -1,9 +1,9 @@
 /**
  * VisualComponent class.
  */
-import { IMouseHandler } from '../interaction';
-import { IRenderLocator } from '../render';
-import { ISize, Point } from '../shared';
+import { IMouseHandler } from '../interaction/index';
+import { IRenderLocator } from '../render/index';
+import { ISize, Point } from '../shared/index';
 import { VisualContext } from './VisualContext';
 
 // export class VisualComponentDesc {

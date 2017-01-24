@@ -5,8 +5,19 @@
 	<meta charset="utf-8" />
 </head>
 <body>
-    <div id="chart-container">
-    </div>
+    <table>
+        <tr>
+            <td>
+                <div id="chart-container1">
+                </div>                
+            </td>
+            <td>
+                <div id="chart-container2">
+                </div>    
+            </td>
+        </tr>
+    </table>
+
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="../dist/bundle.js"></script>
 
@@ -39,16 +50,42 @@
     <script type="text/javascript">
         console.debug("starting app...");
 
-        var dataSource = new lychart.data.CandleArrayDataSource(sampleData)
-
-        var container = document.getElementById("chart-container");
-        if (container != null) {
-            var chart = new lychart.ChartBoard(container, 500, 300, dataSource);
-            chart.render();
-
-            var indicator = new lychart.indicator.SimpleIndicator(dataSource);
-            chart.addIndicator(indicator);
+        let candles = [];
+        for(let item of sampleData) {
+            let c = new lychart.model.Candlestick(item.date, item.c, item.o, item.h, item.l);
+            candles.push(c);
         }
+
+        var arrayDataSource = new lychart.data.ArrayDataSource(
+            lychart.model.Candlestick,
+            {
+                // config
+            },
+            candles);
+
+        var httpDataSource = new lychart.data.HttpDataSource(
+            lychart.model.Candlestick,
+            {
+                url: 'http://localhost:2226/api/random'
+            });
+
+        var container1 = document.getElementById("chart-container1");
+        var chart1 = new lychart.ChartBoard(container1, 500, 150);
+        chart1.addChart(lychart.core.ChartType.candle, httpDataSource);
+        chart1.render();
+
+        // var indicator = new lychart.indicator.SimpleIndicator(
+        //     {
+        //         dataType: 'point',
+        //         chartType: 'line'
+        //     },
+        //     httpDataSource);
+        // chart.addIndicator(indicator);
+
+        var container2 = document.getElementById("chart-container2");
+        var chart2 = new lychart.ChartBoard(container2, 500, 150);
+        chart2.addChart(lychart.core.ChartType.candle, arrayDataSource);
+        chart2.render();
     </script>
 </body>
 </html>

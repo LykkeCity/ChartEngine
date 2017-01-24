@@ -1,7 +1,7 @@
 /**
  * 
  */
-import { Point } from '../shared';
+import { Point } from '../shared/index';
 
 export class VisualContext {
     public mousePosition?: Point;

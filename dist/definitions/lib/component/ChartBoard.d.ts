@@ -1,11 +1,10 @@
-import { VisualComponent } from '../core';
-import { IDataSource } from '../data';
-import { Candlestick, Point } from '../model';
+import { VisualComponent } from '../core/index';
+import { IDataSource } from '../data/index';
+import { Point } from '../model/index';
 export declare class ChartBoard extends VisualComponent {
     private readonly container;
     private readonly w;
     private readonly h;
-    private readonly dataSource;
     private table;
     private curInterval;
     private timeAxis;
@@ -15,12 +14,13 @@ export declare class ChartBoard extends VisualComponent {
     private readonly indicators;
     private eventHandlers;
     private readonly mouseHandlers;
-    constructor(container: HTMLElement, w: number, h: number, dataSource: IDataSource<Candlestick>);
+    constructor(container: HTMLElement, w: number, h: number);
     private appendTimeCanvas(table, w, h);
     private appendArea(table, w, h);
+    addChart<T>(chartType: string, dataSource: IDataSource<T>): void;
     addIndicator(indicatorDataSource: IDataSource<Point>): void;
     render(): void;
-    private onDataChanged();
+    private onDataChanged(arg);
     onMouseWheel(event: any): void;
     private isMouseEntered;
     private isMouseDown;

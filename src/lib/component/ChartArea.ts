@@ -1,7 +1,7 @@
 /**
  * ChartArea class.
  */
-import { CanvasWrapper } from '../canvas';
+import { CanvasWrapper } from '../canvas/index';
 
 export class ChartArea {
 

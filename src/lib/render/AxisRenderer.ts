@@ -4,10 +4,10 @@
  * @classdesc Contains methods for rendering axes.
  */
 
-import { IAxis } from '../axes';
-import { ICanvas } from '../canvas';
-import { TimeInterval } from '../core';
-import { IRange } from '../shared';
+import { IAxis } from '../axes/index';
+import { ICanvas } from '../canvas/index';
+import { TimeInterval } from '../core/index';
+import { IRange } from '../shared/index';
 import { IAxesRender } from './Interfaces';
 
 export class AxisRenderer implements IAxesRender {
@@ -41,7 +41,7 @@ export class AxisRenderer implements IAxesRender {
         let w = canvas.measureText(markText).width;
         canvas.strokeText(markText, x - w / 2, 25);
 
-        console.debug(`bar line: {${x},${7}} - {${x},${10}}`);
+        //console.debug(`bar line: {${x},${7}} - {${x},${10}}`);
     }
 }
 

@@ -1,17 +1,17 @@
 /**
  * ChartStack class.
  */
-import { IAxis, NumberAxis } from '../axes';
-import { VisualComponent, VisualContext } from '../core';
-import { IDataSource } from '../data';
-import { AxisRenderer, CandlestickChartRenderer, IRenderLocator, LineChartRenderer, RenderType } from '../render';
-import { Point } from '../shared';
-import { Chart } from './Chart';
+import { IAxis, NumberAxis } from '../axes/index';
+import { VisualComponent, VisualContext } from '../core/index';
+import { IDataSource } from '../data/index';
+import { AxisRenderer, CandlestickChartRenderer, IRenderLocator, LineChartRenderer, RenderType } from '../render/index';
+import { Point } from '../shared/index';
+import { Chart, IChart } from './Chart';
 import { ChartArea } from './ChartArea';
 
 export class ChartStack extends VisualComponent {
 
-    private charts: Chart[] = [];
+    private charts: IChart[] = [];
     private yAxis: NumberAxis;
 
     constructor(
@@ -24,11 +24,11 @@ export class ChartStack extends VisualComponent {
             this.yAxis = new NumberAxis(this.area.axisYContext.h, 1);
     }
 
-    public addChart<T>(dataSource: IDataSource<T>, renderType: RenderType): void {
+    public addChart<T>(chartType: string, dataSource: IDataSource<T>): void {
 
-        const newChart = new Chart(
+        const newChart = new Chart(chartType,
             new Point(this.offset.x, this.offset.y),
-            this.area.mainContext, dataSource, this.timeAxis, this.yAxis, renderType);
+            this.area.mainContext, dataSource, this.timeAxis, this.yAxis);
         this.charts.push(newChart);
         this.addChild(newChart);
     }
@@ -44,7 +44,7 @@ export class ChartStack extends VisualComponent {
         // TODO: Make DataSource.DefaultYRange or take last known data:
         const yRange = { start: Number.MAX_VALUE, end: Number.MIN_VALUE };
         for (const chart of this.charts) {
-            const valuesRange = chart.dataSource.getValuesRange(this.timeAxis.range);
+            const valuesRange = chart.getValuesRange(this.timeAxis.range, this.timeAxis.interval);
 
             if (valuesRange.end > yRange.end) {
                 yRange.end = valuesRange.end;

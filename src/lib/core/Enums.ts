@@ -2,6 +2,7 @@
  * Core enumerations.
  */
 export enum TimeInterval {
+    notSet = 0,
     // TODO: Number can vary.
     month = 2592000000, // amount of milliseconds
     week = 604800000,

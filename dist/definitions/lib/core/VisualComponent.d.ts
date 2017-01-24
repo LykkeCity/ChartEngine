@@ -1,5 +1,5 @@
-import { IRenderLocator } from '../render';
-import { ISize, Point } from '../shared';
+import { IRenderLocator } from '../render/index';
+import { ISize, Point } from '../shared/index';
 import { VisualContext } from './VisualContext';
 export declare abstract class VisualComponent {
     protected offset: Point;

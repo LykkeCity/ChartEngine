@@ -4,19 +4,20 @@
  * @classdesc Renders specified data in a form of candlestick chart.
  */
 
-import { IAxis } from '../axes';
-import { ICanvas } from '../canvas';
-import { Candlestick } from '../model';
-import { ISize } from '../shared';
+import { IAxis } from '../axes/index';
+import { ICanvas } from '../canvas/index';
+import { IDataIterator } from '../data/index';
+import { Candlestick } from '../model/index';
+import { ISize } from '../shared/index';
 import { IChartRender } from './Interfaces';
 
-export class CandlestickChartRenderer implements IChartRender  {
+export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
 
     public constructor() { }
 
     public render(
         canvas: ICanvas,
-        data: any,
+        dataIterator: IDataIterator<Candlestick>,
         offsetX: number,
         offsetY: number,
         timeAxis: IAxis<Date>,
@@ -34,23 +35,23 @@ export class CandlestickChartRenderer implements IChartRender  {
         // Render
         //
         this.startRender(canvas);
-        for (var candle of data.data) {
-            this.renderCandle(canvas, timeAxis, yAxis, candle, frameSize);
+        while (dataIterator.moveNext()) {
+            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frameSize);
         }
         this.finishRender(canvas);
     }
 
     private startRender(canvas: ICanvas): void {
-
     }
 
     private finishRender(canvas: ICanvas): void {
-
     }
 
-    private renderCandle(canvas: ICanvas, 
-        timeAxis: IAxis<Date>,
-        yAxis: IAxis<number>, candle: Candlestick, frameSize: ISize): void {
+    private renderCandle(canvas: ICanvas, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick, frameSize: ISize): void {
+
+        if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
+            return;
+        }
 
         // Lower and upper ranges of the candle's body.
         //let bodyMin = Math.min(candle.o, candle.c);
@@ -88,13 +89,13 @@ export class CandlestickChartRenderer implements IChartRender  {
     }
 
     private line(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {
-        console.debug(`line: {${x1},${y1}} - {${x2},${y2}}`);
+        //console.debug(`line: {${x1},${y1}} - {${x2},${y2}}`);
         canvas.moveTo(x1, y1);
         canvas.lineTo(x2, y2);
     }
 
     private rect(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {
-        console.debug(`rect: {${x1},${y1}} - {${x2},${y2}}`);
+        //console.debug(`rect: {${x1},${y1}} - {${x2},${y2}}`);
         canvas.fillRect(x1, y1, Math.abs(x2 - x1), Math.abs(y2-y1));
         canvas.strokeRect(x1, y1, Math.abs(x2 - x1), Math.abs(y2 - y1));
     }

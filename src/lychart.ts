@@ -18,6 +18,7 @@ import * as interaction from './lib/interaction';
 import * as model from './lib/model';
 import * as render from './lib/render';
 import * as shared from './lib/shared';
+import * as utils from './lib/utils';
 
 // export {
 //     ChartBoard
@@ -37,5 +38,6 @@ import * as shared from './lib/shared';
     interaction: interaction,
     model: model,
     render: render,
-    shared: shared
+    shared: shared,
+    utils: utils
 };

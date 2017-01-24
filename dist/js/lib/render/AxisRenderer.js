@@ -29,7 +29,7 @@ var AxisRenderer = (function () {
         var markText = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes();
         var w = canvas.measureText(markText).width;
         canvas.strokeText(markText, x - w / 2, 25);
-        console.debug("bar line: {" + x + "," + 7 + "} - {" + x + "," + 10 + "}");
+        //console.debug(`bar line: {${x},${7}} - {${x},${10}}`);
     };
     return AxisRenderer;
 }());

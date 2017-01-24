@@ -2,6 +2,8 @@
 /**
  *
  */
+var index_1 = require("../core/index");
+var index_2 = require("../model/index");
 var AxisRenderer_1 = require("./AxisRenderer");
 var CandlestickChartRenderer_1 = require("./CandlestickChartRenderer");
 var LineChartRenderer_1 = require("./LineChartRenderer");
@@ -18,13 +20,23 @@ var RenderLocator = (function () {
         enumerable: true,
         configurable: true
     });
-    RenderLocator.prototype.getChartRender = function (uid) {
-        switch (uid) {
-            case 'line': return this.lineChartRender;
-            case 'candle': return this.candlestickChartRender;
-            default:
-                throw new Error('Unexpected chart render uid: ' + uid);
+    //public getChartRender(chartType: string, dataType: string): any { //IChartRender<T> 
+    RenderLocator.prototype.getChartRender = function (dataType, chartType) {
+        var obj = new dataType(new Date());
+        if (obj instanceof index_2.Point) {
+            if (chartType === index_1.ChartType.line) {
+                return this.lineChartRender;
+            }
         }
+        else if (obj instanceof index_2.Candlestick) {
+            if (chartType === index_1.ChartType.candle) {
+                return this.candlestickChartRender;
+            }
+        }
+        else {
+            throw new Error('Unexpected data type: ' + dataType);
+        }
+        throw new Error('Unexpected chart type ' + chartType);
     };
     RenderLocator.prototype.getAxesRender = function (uid) {
         switch (uid) {
