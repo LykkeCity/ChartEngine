@@ -30,19 +30,22 @@ export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
 
     public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {
 
+        this.validateRange(range);
+        this.validateInterval(interval);
+
         const data = this.dataSnapshot.data;
 
         // Find first and last indexes.
         //
         let startIndex = 0;
-        for (startIndex = 0; startIndex < data.length; startIndex++) {
+        for (startIndex = 0; startIndex < data.length; startIndex += 1) {
             if (data[startIndex].date.getTime() >= range.start.getTime()) {
                 break;
             }
         }
         let lastIndex = data.length - 1;
-        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex--) {
-            if (data[startIndex].date.getTime() <= range.end.getTime()) {
+        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
+            if (data[lastIndex].date.getTime() <= range.end.getTime()) {
                 break;
             }
         }
@@ -55,6 +58,9 @@ export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
     }
 
     public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
+
+        this.validateRange(range);
+        this.validateInterval(interval);
 
         const data = this.dataSnapshot.data;
 

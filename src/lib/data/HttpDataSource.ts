@@ -53,7 +53,8 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
 
     public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {
 
-        // TODO: Validate incoming parameters
+        this.validateRange(range);
+        this.validateInterval(interval);
 
         const data = this.dataSnapshot.data;
 
@@ -99,7 +100,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         }
         let lastIndex = data.length - 1;
         for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
-            if (data[startIndex].date.getTime() <= range.end.getTime()) {
+            if (data[lastIndex].date.getTime() <= range.end.getTime()) {
                 break;
             }
         }
@@ -113,7 +114,8 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
 
     public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
 
-        // TODO: Validate incoming parameters
+        this.validateRange(range);
+        this.validateInterval(interval);
 
         const data = this.dataSnapshot.data;
 
@@ -180,6 +182,11 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         request.done((response: IResponse<T>) => {
             console.debug('request succeeded: ');
             self.mergeData(response.data);
+
+            // Notify subscribers:
+            self.dateChangedEvent.trigger(new DataChangedArgument(
+                { start: response.startDateTime, end: response.endDateTime },
+                self.stringToTimeInterval(response.interval)));
         })
         .fail((jqXHR, textStatus) => {
             console.debug('request failed: ' + jqXHR + textStatus);
@@ -217,11 +224,11 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
 
         // Map incoming data to model
         //
-        let objects = jsonData
+        const objects = jsonData
             .filter((el: T) => { return el && el.date; })
             .map((el: T) => {
-                let date = new Date(el.date);
-                let obj = new this.dataType(date);
+                const date = new Date(el.date);
+                const obj = new this.dataType(date);
                 // TODO: Make interface
                 (<any>obj).deserialize(el);
                 return obj;
@@ -234,10 +241,6 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         this.dataSnapshot.data = ArrayUtils.merge(this.dataSnapshot.data,
                                                   objects,
                                                   (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
-
-        // Notify subscribers:
-        const range = { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) };
-        this.dateChangedEvent.trigger(new DataChangedArgument(range, TimeInterval.day));
     }
 
     protected getDefaultConfig(): DataSourceConfig {
@@ -258,6 +261,22 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
             case TimeInterval.min: return '1m';
             default:
                 throw new Error('Unexpected TimeInterval value ' + interval);
+        }
+    }
+
+    protected stringToTimeInterval(interval: string): TimeInterval {
+        switch (interval) {
+            case '1mo': return TimeInterval.month;
+            case '1w': return TimeInterval.week;
+            case '1d': return TimeInterval.day;
+            case '4h': return TimeInterval.hours4;
+            case '1h': return TimeInterval.hour;
+            case '30m': return TimeInterval.min30;
+            case '15m': return TimeInterval.min15;
+            case '5m': return TimeInterval.min5;
+            case '1m': return TimeInterval.min;
+            default:
+                throw new Error('Unexpected "interval" value ' + interval);
         }
     }
 }

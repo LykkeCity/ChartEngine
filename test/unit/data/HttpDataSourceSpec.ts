@@ -44,6 +44,7 @@ describe('HttpDataSource tests', () => {
     const minuteIntervals = [
             { date: new Date('2017-01-10T10:11:58.000Z'), c: 60.1636, o: 60.0788, h: 60.2795, l: 59.8283 },
             { date: new Date('2017-01-10T10:11:59.000Z'), c: 60.0788, o: 59.6046, h: 60.0860, l: 59.6046 },
+            { date: new Date('2017-01-10T10:12:00.000Z'), c: 59.6146, o: 59.4481, h: 59.7453, l: 59.1028 },
             { date: new Date('2017-01-10T10:12:01.000Z'), c: 59.6046, o: 59.4481, h: 59.7453, l: 59.1128 },
             { date: new Date('2017-01-10T10:12:02.000Z'), c: 59.4481, o: 60.4653, h: 60.4653, l: 59.2225 },
             { date: new Date('2017-01-10T10:12:03.000Z'), c: 60.4653, o: 60.9133, h: 61.1961, l: 60.2538 },
@@ -178,6 +179,58 @@ describe('HttpDataSource tests', () => {
         $def.resolve();
     });
 
+    it('Test "getData" with normal dataset. Selecting exact range.', () => {
+        const dataReader = makeDataReader(testCandlesSet['1m']);
+        spyOn(dataReader, 'readData').and.callThrough();
+
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
+
+        let iterator;
+        let requestedStartDate;
+        let requestedEndDate;
+        let expectedIntervals;
+        let firedEventsCount = 0;
+        ads.dateChanged.on((arg: DataChangedArgument) => {
+            // count events
+            firedEventsCount += 1;
+
+            // validate argument range
+            expect(arg.range.start).toEqual(requestedStartDate);
+            expect(arg.range.end).toEqual(requestedEndDate);
+            expect(arg.interval).toEqual(TimeInterval.min);
+
+            // re-read data
+            iterator = ads.getData({ start: requestedStartDate, end: requestedEndDate }, TimeInterval.min);
+
+            // validate data
+            expect(iterator).toBeDefined();
+            let count = 0;
+            while (iterator.moveNext()) { count += 1; }
+            expect(count).toEqual(expectedIntervals);
+        });
+
+        // Getting 1 interval
+        requestedStartDate = makeUtcDate(2017, 0, 10, 10, 11, 59);
+        requestedEndDate = makeUtcDate(2017, 0, 10, 10, 11, 59);
+        expectedIntervals = 1;
+        iterator = ads.getData({ start: requestedStartDate, end: requestedEndDate }, TimeInterval.min);
+
+        // Getting 3 intervals
+        requestedStartDate = makeUtcDate(2017, 0, 10, 10, 11, 59);
+        requestedEndDate = makeUtcDate(2017, 0, 10, 10, 12, 1);
+        expectedIntervals = 3;
+        iterator = ads.getData({ start: requestedStartDate, end: requestedEndDate }, TimeInterval.min);
+
+        // Getting 4 intervals
+        requestedStartDate = makeUtcDate(2017, 0, 10, 10, 12, 1);
+        requestedEndDate = makeUtcDate(2017, 0, 10, 10, 12, 4);
+        expectedIntervals = 4;
+        iterator = ads.getData({ start: requestedStartDate, end: requestedEndDate }, TimeInterval.min);
+
+        expect(firedEventsCount).toEqual(3);
+    });
+
     it('Test iterator expiration after "changeData" event is fired.', () => {
         const $def = $.Deferred();
         const dataReader = makeDataReader(testCandlesSet['1d'], $def);
@@ -205,7 +258,7 @@ describe('HttpDataSource tests', () => {
         }
     });
 
-    it('Test "getData" with normal dataset. Selecting the same range two times. Check that no additional request made.', (done) => {
+    it('Test "getData" with normal dataset. Selecting the same range twice. Check that no additional request has been made.', (done) => {
 
         const dataReader = makeDataReader(testCandlesSet['1m']);
         spyOn(dataReader, 'readData').and.callThrough();
@@ -235,7 +288,7 @@ describe('HttpDataSource tests', () => {
             while (iterator.moveNext()) {
                 count += 1;
             }
-            expect(count).toEqual(14, 'Expected 14 intervals');
+            expect(count).toEqual(15, 'Expected 15 intervals');
         });
 
         // Getting data
@@ -248,7 +301,7 @@ describe('HttpDataSource tests', () => {
         done();
     });
 
-    it('Test "getData" with normal dataset. Selecting the same range two times in the same time. Expected one request.', () => {
+    it('Test "getData" with normal dataset. Selecting the same range twice in the same time. Expected one request.', () => {
         const $def = $.Deferred();
         const dataReader = makeDataReader(testCandlesSet['1m'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
@@ -296,7 +349,7 @@ describe('HttpDataSource tests', () => {
         while (iterator.moveNext()) {
             count += 1;
         }
-        expect(count).toEqual(14, 'Expected 14 intervals');
+        expect(count).toEqual(15, 'Expected 15 intervals');
     });
 
     it('Test "getData" with normal dataset. Selecting two ranges with overlapping dates. Expected two requests.', () => {
@@ -354,6 +407,6 @@ describe('HttpDataSource tests', () => {
         while (iterator.moveNext()) {
             count += 1;
         }
-        expect(count).toEqual(14, 'Expected 14 intervals');
+        expect(count).toEqual(15, 'Expected 15 intervals');
     });
 });

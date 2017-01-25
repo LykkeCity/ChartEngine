@@ -11781,24 +11781,28 @@ var ArrayDataSource = (function (_super) {
         return _this;
     }
     ArrayDataSource.prototype.getData = function (range, interval) {
+        this.validateRange(range);
+        this.validateInterval(interval);
         var data = this.dataSnapshot.data;
         // Find first and last indexes.
         //
         var startIndex = 0;
-        for (startIndex = 0; startIndex < data.length; startIndex++) {
+        for (startIndex = 0; startIndex < data.length; startIndex += 1) {
             if (data[startIndex].date.getTime() >= range.start.getTime()) {
                 break;
             }
         }
         var lastIndex = data.length - 1;
-        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex--) {
-            if (data[startIndex].date.getTime() <= range.end.getTime()) {
+        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
+            if (data[lastIndex].date.getTime() <= range.end.getTime()) {
                 break;
             }
         }
         return new ArrayIterator_1.ArrayIterator(this.dataSnapshot, startIndex, lastIndex, this.dataSnapshot.timestamp);
     };
     ArrayDataSource.prototype.getValuesRange = function (range, interval) {
+        this.validateRange(range);
+        this.validateInterval(interval);
         var data = this.dataSnapshot.data;
         if (data.length === 0) {
             return { start: this.defaultMinValue, end: this.defaultMaxValue };
@@ -11918,9 +11922,6 @@ var DataSource = (function () {
         configurable: true
     });
     Object.defineProperty(DataSource.prototype, "dateChanged", {
-        // public get chartType(): string {
-        //     return this.config.chartType;
-        // }
         get: function () {
             return this.dateChangedEvent;
         },
@@ -11934,6 +11935,22 @@ var DataSource = (function () {
         enumerable: true,
         configurable: true
     });
+    DataSource.prototype.validateRange = function (range) {
+        if (!range) {
+            throw new Error('Argument "range" is not defined.');
+        }
+        if (!range.start || !range.end) {
+            throw new Error('Range is not defined.');
+        }
+        if (range.start > range.end) {
+            throw new Error('Start of specified range should not be less then end.');
+        }
+    };
+    DataSource.prototype.validateInterval = function (interval) {
+        if (!interval) {
+            throw new Error('Argument "interval" is not defined.');
+        }
+    };
     return DataSource;
 }());
 exports.DataSource = DataSource;
@@ -12008,7 +12025,8 @@ var HttpDataSource = (function (_super) {
         configurable: true
     });
     HttpDataSource.prototype.getData = function (range, interval) {
-        // TODO: Validate incoming parameters
+        this.validateRange(range);
+        this.validateInterval(interval);
         var data = this.dataSnapshot.data;
         var rangesToRequest = [];
         // 1. Check existing data and define what we need to request
@@ -12050,14 +12068,15 @@ var HttpDataSource = (function (_super) {
         }
         var lastIndex = data.length - 1;
         for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
-            if (data[startIndex].date.getTime() <= range.end.getTime()) {
+            if (data[lastIndex].date.getTime() <= range.end.getTime()) {
                 break;
             }
         }
         return new ArrayIterator_1.ArrayIterator(this.dataSnapshot, startIndex, lastIndex, this.dataSnapshot.timestamp);
     };
     HttpDataSource.prototype.getValuesRange = function (range, interval) {
-        // TODO: Validate incoming parameters
+        this.validateRange(range);
+        this.validateInterval(interval);
         var data = this.dataSnapshot.data;
         if (data.length === 0) {
             return { start: this.defaultMinValue, end: this.defaultMaxValue };
@@ -12123,6 +12142,8 @@ var HttpDataSource = (function (_super) {
         request.done(function (response) {
             console.debug('request succeeded: ');
             self.mergeData(response.data);
+            // Notify subscribers:
+            self.dateChangedEvent.trigger(new Interfaces_1.DataChangedArgument({ start: response.startDateTime, end: response.endDateTime }, self.stringToTimeInterval(response.interval)));
         })
             .fail(function (jqXHR, textStatus) {
             console.debug('request failed: ' + jqXHR + textStatus);
@@ -12169,12 +12190,7 @@ var HttpDataSource = (function (_super) {
         // update current timestamp
         this.dataSnapshot.timestamp = this.dataSnapshot.timestamp + 1;
         // Import incoming data to the array
-        //console.debug(JSON.stringify(data));
-        //let curData = this.dataSnapshot.data;
         this.dataSnapshot.data = index_2.ArrayUtils.merge(this.dataSnapshot.data, objects, function (item1, item2) { return item1.date.getTime() - item2.date.getTime(); });
-        // Notify subscribers:
-        var range = { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) };
-        this.dateChangedEvent.trigger(new Interfaces_1.DataChangedArgument(range, index_1.TimeInterval.day));
     };
     HttpDataSource.prototype.getDefaultConfig = function () {
         return new DataSourceConfig_1.DataSourceConfig();
@@ -12192,6 +12208,21 @@ var HttpDataSource = (function (_super) {
             case index_1.TimeInterval.min: return '1m';
             default:
                 throw new Error('Unexpected TimeInterval value ' + interval);
+        }
+    };
+    HttpDataSource.prototype.stringToTimeInterval = function (interval) {
+        switch (interval) {
+            case '1mo': return index_1.TimeInterval.month;
+            case '1w': return index_1.TimeInterval.week;
+            case '1d': return index_1.TimeInterval.day;
+            case '4h': return index_1.TimeInterval.hours4;
+            case '1h': return index_1.TimeInterval.hour;
+            case '30m': return index_1.TimeInterval.min30;
+            case '15m': return index_1.TimeInterval.min15;
+            case '5m': return index_1.TimeInterval.min5;
+            case '1m': return index_1.TimeInterval.min;
+            default:
+                throw new Error('Unexpected "interval" value ' + interval);
         }
     };
     return HttpDataSource;
