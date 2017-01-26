@@ -12,11 +12,9 @@ var __extends = (this && this.__extends) || function (d, b) {
 var index_1 = require("../core/index");
 var TimeAxis = (function (_super) {
     __extends(TimeAxis, _super);
-    function TimeAxis(canvas, width, interval, // Defines maximum zoom
+    function TimeAxis(offset, size, interval, // Defines maximum zoom
         initialRange) {
-        var _this = _super.call(this) || this;
-        _this.canvas = canvas;
-        _this._w = width;
+        var _this = _super.call(this, offset, size) || this;
         _this._interval = interval;
         _this._range = initialRange;
         return _this;
@@ -35,21 +33,28 @@ var TimeAxis = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TimeAxis.prototype, "width", {
-        get: function () {
-            return this._w;
-        },
-        enumerable: true,
-        configurable: true
-    });
+    TimeAxis.prototype.getValuesRange = function (x1, x2) {
+        if (x1 > 0 && x2 > 0 && x1 < this.size.width && x2 < this.size.width) {
+            return {
+                start: this.toValue(Math.min(x1, x2)),
+                end: this.toValue(Math.max(x1, x2))
+            };
+        }
+    };
+    TimeAxis.prototype.toValue = function (x) {
+        var range = Math.abs(this.range.end.getTime() - this.range.start.getTime());
+        var base = Math.min(this.range.end.getTime(), this.range.start.getTime());
+        var d = x / this.size.width;
+        return new Date(d * range + base);
+    };
     TimeAxis.prototype.toX = function (value) {
         if (value < this.range.start || value > this.range.end) {
             throw new Error("Date " + value + " is out of range.");
         }
-        var total = Math.abs(this.range.end.getTime() - this.range.start.getTime());
-        var toDate = Math.abs(value.getTime() - this.range.start.getTime());
-        var x = (toDate / total) * this.width;
-        return x;
+        var range = Math.abs(this.range.end.getTime() - this.range.start.getTime());
+        var base = Math.min(this.range.end.getTime(), this.range.start.getTime());
+        var toDate = value.getTime() - base;
+        return (toDate / range) * this.size.width;
     };
     TimeAxis.prototype.move = function (direction) {
         //direction = Math.round(direction);
@@ -57,7 +62,7 @@ var TimeAxis = (function (_super) {
             return;
         }
         var curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
-        var shiftInMs = direction * curRangeInMs / this.width;
+        var shiftInMs = direction * curRangeInMs / this.size.width;
         this._range = {
             start: new Date(this.range.start.getTime() - shiftInMs),
             end: new Date(this.range.end.getTime() - shiftInMs)
@@ -85,8 +90,12 @@ var TimeAxis = (function (_super) {
         };
     };
     TimeAxis.prototype.render = function (context, renderLocator) {
-        var render = renderLocator.getAxesRender('date');
-        render.renderDateAxis(this, this.canvas);
+        if (context.renderBase) {
+            var canvas = context.getCanvas(this.target);
+            var render = renderLocator.getAxesRender('date');
+            render.render(canvas, this, this.offset, this.size);
+        }
+        _super.prototype.render.call(this, context, renderLocator);
     };
     return TimeAxis;
 }(index_1.VisualComponent));

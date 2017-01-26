@@ -1,15 +1,22 @@
-import { IAxesRender, IMarkRender, IPopupRender, IRenderLocator } from './Interfaces';
+import { IRenderLocator } from './Interfaces';
 export declare class RenderLocator implements IRenderLocator {
     private candlestickChartRender;
     private lineChartRender;
-    private axisRenderer;
+    private timeAxisRender;
+    private priceAxisRender;
+    private numberAxisRender;
+    private candlePopupRenderer;
+    private linePopupRenderer;
+    private timeMarkRender;
+    private numberMarkRender;
     private static instance;
     static readonly Instance: RenderLocator;
-    private constructor();
     getChartRender<T>(dataType: {
         new (d: Date): T;
     }, chartType: string): any;
-    getAxesRender(uid: string): IAxesRender;
-    getPopupRender(uid: string): IPopupRender;
-    getMarkRender(uid: string): IMarkRender;
+    getAxesRender<T>(uid: string): any;
+    getPopupRender<T>(dataType: {
+        new (d: Date): T;
+    }): any;
+    getMarkRender<T>(uid: string): any;
 }

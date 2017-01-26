@@ -6,48 +6,61 @@ import { IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
 import { VisualContext } from './VisualContext';
 
-// export class VisualComponentDesc {
-//     public offset: Point;
-//     constructor(offset: Point) {
-//         this.offset = offset;
-//     }
-// }
-
 export abstract class VisualComponent { //implements IMouseHandler {
 
-    protected offset: Point;
-    protected size: ISize;
+    private _offset: Point;
+    private _size: ISize;
     protected children: VisualComponent[] = [];
     // protected childrenDesc: VisualComponentDesc[] = [];
 
+    public get offset(): Point {
+        return this._offset;
+    }
+
+    public set offset(value: Point) {
+        this._offset = value;
+    }
+
+    public get size(): ISize {
+        return this._size;
+    }
+
+    public get target(): string {
+        // TODO: Make an enum
+        return 'base'; // 'front'
+    }
+
     constructor(offset?: Point, size?: ISize) {
-        this.offset = offset ? offset : new Point(0, 0);
-        this.size = size ? size : {width: 0, height: 0};
+        this._offset = offset ? offset : new Point(0, 0);
+        this._size = size ? size : {width: 0, height: 0};
     }
 
     public addChild(child: VisualComponent) {
         this.children.push(child);
-        //this.childrenDesc.push(new VisualComponentDesc(offset));
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator): void {
         for (const child of this.children) {
+
+            // convert mouse coords to relative coords
+            const origMousePos = context.mousePosition;
+            if (context.mousePosition) {
+                context.mousePosition = new Point(
+                    context.mousePosition.x - child.offset.x,
+                    context.mousePosition.y - child.offset.y);
+            }
+
             child.render(context, renderLocator);
+
+            // restore mousePosition
+            context.mousePosition = origMousePos;
         }
     }
 
-    // public onMouseWheel(event: any): void {
-    // }
-    // public onMouseMove(event: any): void {
-    // }
-    // public onMouseEnter(event: any): void {
-    // }
-    // public onMouseLeave(event: any): void {
-    // }
-    // public onMouseUp(event: any): void {
-    // }
-    // public onMouseDown(event: any): void {
-    // }
-    // public onClick(event: any): void {
-    // }
+    public forEach(delegate: {(component: VisualComponent): void }) {
+        for (const child of this.children) {
+            delegate(child);
+            child.forEach(delegate);
+        }
+    }
 }

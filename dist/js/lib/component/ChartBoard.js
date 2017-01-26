@@ -10,23 +10,29 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var index_1 = require("../axes/index");
-var index_2 = require("../canvas/index");
-var index_3 = require("../core/index");
-var index_4 = require("../render/index");
-var index_5 = require("../shared/index");
+var index_2 = require("../core/index");
+var index_3 = require("../render/index");
+var index_4 = require("../shared/index");
 var ChartArea_1 = require("./ChartArea");
 var ChartStack_1 = require("./ChartStack");
+var NumberMarker_1 = require("./NumberMarker");
+var PriceMarker_1 = require("./PriceMarker");
+var TimeMarker_1 = require("./TimeMarker");
 var $ = require("jquery");
 var ChartBoard = (function (_super) {
     __extends(ChartBoard, _super);
-    function ChartBoard(container, w, h) {
-        var _this = _super.call(this) || this;
+    function ChartBoard(container, offsetLeft, offsetTop, w, h) {
+        var _this = _super.call(this, { x: 0, y: 0 }, { width: w, height: h }) || this;
         _this.container = container;
+        _this.offsetLeft = offsetLeft;
+        _this.offsetTop = offsetTop;
         _this.w = w;
         _this.h = h;
-        _this.curInterval = index_3.TimeInterval.day;
-        _this.areas = [];
+        _this.chartAreas = [];
         _this.chartStacks = [];
+        _this.yAxisAreas = [];
+        _this.yAxes = [];
+        //private timeAxisCanvas: ICanvas;
         _this.indicators = [];
         _this.eventHandlers = {};
         _this.mouseHandlers = [];
@@ -35,18 +41,36 @@ var ChartBoard = (function (_super) {
         _this.mouseX = null;
         _this.mouseY = null;
         _this.table = document.createElement('table');
+        _this.table.style.setProperty('position', 'relative');
         _this.container.appendChild(_this.table);
-        // Make place for the Time Axis
-        _this.timeAxisCanvas = _this.appendTimeCanvas(_this.table, w, 25);
-        _this.timeAxis = new index_1.TimeAxis(_this.timeAxisCanvas, w, index_3.TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
+        _this.timeArea = _this.makeArea(w, 25);
+        var now = new Date();
+        _this.timeAxis = new index_1.TimeAxis({ x: 0, y: h }, // offset
+        { width: _this.timeArea.width, height: _this.timeArea.height }, // size
+        index_2.TimeInterval.day, { start: new Date(2017, 0, 1), end: now });
         _this.addChild(_this.timeAxis);
+        var timeMarker = new TimeMarker_1.TimeMarker({ x: 0, y: 0 }, _this.timeAxis.size, _this.timeAxis);
+        _this.timeAxis.addChild(timeMarker);
         // Create main chart area
         //
-        var mainArea = _this.appendArea(_this.table, w, h);
-        _this.areas.push(mainArea);
-        var chartStack = new ChartStack_1.ChartStack(mainArea, new index_5.Point(0, 0), _this.timeAxis);
+        var chartArea = _this.makeArea(w, h);
+        _this.chartAreas.push(chartArea);
+        var yAxisArea = _this.makeArea(15, h);
+        _this.yAxisAreas.push(yAxisArea);
+        // create initial Y axis
+        var yAxis = new index_1.PriceAxis({ x: chartArea.width, y: 0 }, // offset
+        { width: yAxisArea.width, height: yAxisArea.height }, // size
+        0.0005);
+        _this.yAxes.push(yAxis);
+        _this.addChild(yAxis);
+        var priceMarker = new PriceMarker_1.PriceMarker({ x: 0, y: 0 }, yAxis.size, yAxis);
+        yAxis.addChild(priceMarker);
+        // Add main chart stack
+        var chartStack = new ChartStack_1.ChartStack(new index_4.Point(0, 0), { width: w, height: h }, _this.timeAxis, yAxis);
         _this.chartStacks.push(chartStack);
         _this.addChild(chartStack);
+        _this.insertRow(_this.table, 0, undefined, chartArea, yAxisArea);
+        _this.insertRow(_this.table, undefined, undefined, _this.timeArea, undefined);
         // Hook up event handlers
         //
         var self = _this;
@@ -67,47 +91,55 @@ var ChartBoard = (function (_super) {
         _this.container.addEventListener('mouseleave', _this.eventHandlers['mouseleave'], false);
         return _this;
     }
-    ChartBoard.prototype.appendTimeCanvas = function (table, w, h) {
-        var canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        var row = table.insertRow();
+    ChartBoard.prototype.insertRow = function (table, index, el1, el2, el3) {
+        var row = table.insertRow(index);
         var cell1 = row.insertCell();
         var cell2 = row.insertCell();
         var cell3 = row.insertCell();
-        cell2.appendChild(canvas);
-        var ctx = canvas.getContext('2d');
-        if (ctx == null) {
-            throw new Error('Context is null');
+        var div1 = document.createElement('div');
+        var div2 = document.createElement('div');
+        var div3 = document.createElement('div');
+        div1.style.setProperty('position', 'relative');
+        div1.style.setProperty('height', el1 ? el1.height + 'px' : '');
+        div1.style.setProperty('width', el1 ? el1.width + 'px' : '');
+        div2.style.setProperty('position', 'relative');
+        div2.style.setProperty('height', el2 ? el2.height + 'px' : '');
+        div2.style.setProperty('width', el2 ? el2.width + 'px' : '');
+        div3.style.setProperty('position', 'relative');
+        div3.style.setProperty('height', el3 ? el3.height + 'px' : '');
+        div3.style.setProperty('width', el3 ? el3.width + 'px' : '');
+        cell1.appendChild(div1);
+        cell2.appendChild(div2);
+        cell3.appendChild(div3);
+        if (el1) {
+            div1.appendChild(el1.baseCanvas);
+            div1.appendChild(el1.frontCanvas);
         }
-        return new index_2.CanvasWrapper(ctx, w, h);
+        if (el2) {
+            div2.appendChild(el2.baseCanvas);
+            div2.appendChild(el2.frontCanvas);
+        }
+        if (el3) {
+            div3.appendChild(el3.baseCanvas);
+            div3.appendChild(el3.frontCanvas);
+        }
     };
-    ChartBoard.prototype.appendArea = function (table, w, h) {
-        var mainCanvas = document.createElement('canvas');
-        mainCanvas.width = w;
-        mainCanvas.height = h;
-        var yCanvas = document.createElement('canvas');
-        yCanvas.width = 50;
-        yCanvas.height = h;
-        var xCanvas = document.createElement('canvas');
-        xCanvas.width = w;
-        xCanvas.height = 50;
-        var row1 = table.insertRow();
-        var cell11 = row1.insertCell();
-        var cell12 = row1.insertCell();
-        var cell13 = row1.insertCell();
-        var row2 = table.insertRow();
-        var cell21 = row2.insertCell();
-        var cell22 = row2.insertCell();
-        var cell23 = row2.insertCell();
-        var row3 = table.insertRow();
-        var cell31 = row3.insertCell();
-        var cell32 = row3.insertCell();
-        var cell33 = row3.insertCell();
-        cell22.appendChild(mainCanvas);
-        cell32.appendChild(xCanvas);
-        cell23.appendChild(yCanvas);
-        return new ChartArea_1.ChartArea(mainCanvas, xCanvas, yCanvas);
+    ChartBoard.prototype.makeArea = function (w, h) {
+        var baseCanvas = document.createElement('canvas');
+        baseCanvas.width = w;
+        baseCanvas.height = h;
+        baseCanvas.style.setProperty('left', '0');
+        baseCanvas.style.setProperty('top', '0');
+        baseCanvas.style.setProperty('z-index', '0');
+        baseCanvas.style.setProperty('position', 'absolute');
+        var frontCanvas = document.createElement('canvas');
+        frontCanvas.width = w;
+        frontCanvas.height = h;
+        frontCanvas.style.setProperty('left', '0');
+        frontCanvas.style.setProperty('top', '0');
+        frontCanvas.style.setProperty('z-index', '1');
+        frontCanvas.style.setProperty('position', 'absolute');
+        return new ChartArea_1.ChartArea(w, h, baseCanvas, frontCanvas);
     };
     ChartBoard.prototype.addChart = function (chartType, dataSource) {
         // add event handlers
@@ -119,30 +151,83 @@ var ChartBoard = (function (_super) {
     };
     ChartBoard.prototype.addIndicator = function (indicatorDataSource) {
         this.indicators.push(indicatorDataSource);
-        var yOffset = this.areas.length * this.h;
-        var newArea = this.appendArea(this.table, this.w, this.h);
-        this.areas.push(newArea);
-        var chartStack = new ChartStack_1.ChartStack(newArea, new index_5.Point(0, yOffset), this.timeAxis);
-        chartStack.addChart(index_3.ChartType.line, indicatorDataSource);
+        var yOffset = this.chartAreas.length * this.h;
+        // create new are
+        var chartArea = this.makeArea(this.w, this.h);
+        this.chartAreas.push(chartArea);
+        var yAxisArea = this.makeArea(15, this.h);
+        this.yAxisAreas.push(yAxisArea);
+        // create Y axis
+        var yAxis = new index_1.NumberAxis({ x: chartArea.width, y: yOffset }, // offset
+        { width: yAxisArea.width, height: yAxisArea.height }, // size
+        0.0005);
+        this.yAxes.push(yAxis);
+        this.addChild(yAxis);
+        var numberMarker = new NumberMarker_1.NumberMarker({ x: 0, y: 0 }, yAxis.size, yAxis);
+        yAxis.addChild(numberMarker);
+        var chartStack = new ChartStack_1.ChartStack(new index_4.Point(0, yOffset), { width: this.w, height: this.h }, this.timeAxis, yAxis);
+        chartStack.addChart(index_2.ChartType.line, indicatorDataSource);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
+        this.insertRow(this.table, this.chartAreas.length - 1, undefined, chartArea, yAxisArea);
+        // change timeAxisOffset
+        var curOffset = this.timeAxis.offset;
+        this.timeAxis.offset = new index_4.Point(curOffset.x, curOffset.y + this.h);
     };
     ChartBoard.prototype.render = function () {
-        // Prepare rendering objects: locator and context.
-        var locator = index_4.RenderLocator.Instance;
-        var context = new index_3.VisualContext((this.mouseX && this.mouseY) ? new index_5.Point(this.mouseX, this.mouseY) : undefined);
-        // Clear canvas
-        this.timeAxisCanvas.clear();
-        // // Render all chart stacks
-        // for (const chartStack of this.chartStacks) {
-        //     chartStack.render(context, locator);
-        // }
-        // // Render time axis as it does not belong to any chart
-        // this.timeAxis.render(context, locator);
-        _super.prototype.render.call(this, context, locator);
+        this.renderLayers(true, true);
     };
-    // public render(renderLocator: IRenderLocator) {
-    // }
+    ChartBoard.prototype.renderLayers = function (renderBase, renderFront) {
+        renderBase = renderBase === undefined ? true : renderBase;
+        renderFront = renderFront === undefined ? true : renderFront;
+        var mouse = undefined;
+        if (this.isMouseEntered && this.mouseX && this.mouseY) {
+            mouse = new index_4.Point(this.mouseX - this.offsetLeft - this.container.offsetLeft, this.mouseY - this.offsetTop - this.container.offsetTop);
+        }
+        for (var i = 0; i < this.chartStacks.length; i += 1) {
+            var cStack = this.chartStacks[i];
+            var area = this.chartAreas[i];
+            var yAxis = this.yAxes[i];
+            var yAxisArea = this.yAxisAreas[i];
+            if (renderBase) {
+                // clear base layer
+                area.mainContext.clear();
+                yAxisArea.mainContext.clear();
+            }
+            if (renderFront) {
+                area.frontContext.clear();
+                yAxisArea.frontContext.clear();
+            }
+            var relativeMouse_1 = undefined;
+            // Convert mouse coords to relative
+            if (mouse) {
+                relativeMouse_1 = new index_4.Point(mouse.x - cStack.offset.x, mouse.y - cStack.offset.y);
+            }
+            // Prepare rendering objects: locator and context.
+            var context_1 = new index_2.VisualContext(renderBase, renderFront, area.mainContext, area.frontContext, relativeMouse_1);
+            cStack.render(context_1, index_3.RenderLocator.Instance);
+            context_1 = new index_2.VisualContext(renderBase, renderFront, yAxisArea.mainContext, yAxisArea.frontContext, relativeMouse_1);
+            if (mouse) {
+                relativeMouse_1 = new index_4.Point(mouse.x - yAxis.offset.x, mouse.y - yAxis.offset.y);
+            }
+            yAxis.render(context_1, index_3.RenderLocator.Instance);
+        }
+        // Do not rerender time axis when rendering only front.
+        if (renderBase) {
+            // Clear canvas
+            this.timeArea.mainContext.clear();
+        }
+        if (renderFront) {
+            this.timeArea.frontContext.clear();
+        }
+        var relativeMouse = undefined;
+        // Convert mouse coords to relative
+        if (mouse) {
+            relativeMouse = new index_4.Point(mouse.x - this.timeAxis.offset.x, mouse.y - this.timeAxis.offset.y);
+        }
+        var context = new index_2.VisualContext(renderBase, renderFront, this.timeArea.mainContext, this.timeArea.frontContext, relativeMouse);
+        this.timeAxis.render(context, index_3.RenderLocator.Instance);
+    };
     ChartBoard.prototype.onDataChanged = function (arg) {
         this.render();
     };
@@ -171,7 +256,12 @@ var ChartBoard = (function (_super) {
             }
         }
         _a = [event.pageX, event.pageY], this.mouseX = _a[0], this.mouseY = _a[1];
-        if (this.isMouseEntered) {
+        if (this.isMouseEntered && this.isMouseDown) {
+            // TODO: Use animation loop (?)
+            this.renderLayers(true, true);
+        }
+        else if (this.isMouseEntered) {
+            this.renderLayers(false, true);
         }
         var _a;
     };
@@ -209,5 +299,5 @@ var ChartBoard = (function (_super) {
         }
     };
     return ChartBoard;
-}(index_3.VisualComponent));
+}(index_2.VisualComponent));
 exports.ChartBoard = ChartBoard;

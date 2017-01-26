@@ -17,7 +17,8 @@ export class SimpleIndicator extends DataSource<Point> {
         private dataSource: IDataSource<Candlestick>) {
             super(Point, config);
             this.dataSnapshot = { data: [], timestamp: 0 };
-            dataSource.dateChanged.on(this.onDataSourceChanged);
+            const self = this;
+            dataSource.dateChanged.on((arg) => { self.onDataSourceChanged(arg); });
     }
 
     public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
@@ -36,13 +37,13 @@ export class SimpleIndicator extends DataSource<Point> {
         // Find first and last indexes.
         //
         let startIndex = 0;
-        for (startIndex = 0; startIndex < data.length; startIndex++) {
+        for (startIndex = 0; startIndex < data.length; startIndex += 1) {
             if (data[startIndex].date.getTime() >= range.start.getTime()) {
                 break;
             }
         }
         let lastIndex = data.length - 1;
-        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex--) {
+        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
             if (data[startIndex].date.getTime() <= range.end.getTime()) {
                 break;
             }
@@ -63,7 +64,7 @@ export class SimpleIndicator extends DataSource<Point> {
         );
     }
 
-    protected onDataSourceChanged(arg: DataChangedArgument): void {
+    protected onDataSourceChanged(arg?: DataChangedArgument): void {
         if (arg) {
             // recalculate and notify
             this.update(arg.range, arg.interval);
@@ -82,7 +83,7 @@ export class SimpleIndicator extends DataSource<Point> {
             if (candle.c) {
                 prevValues[i] = candle.c;
             }
-            i++;
+            i += 1;
         }
 
         i = 0;
@@ -99,7 +100,7 @@ export class SimpleIndicator extends DataSource<Point> {
                 prevValues[0] = prevValues[1];
                 prevValues[1] = curValue;
             }
-            i++;
+            i += 1;
         }
 
         // update timestamp

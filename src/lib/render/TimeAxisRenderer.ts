@@ -7,21 +7,21 @@
 import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
 import { TimeInterval } from '../core/index';
-import { IRange } from '../shared/index';
+import { IPoint, IRange, ISize } from '../shared/index';
 import { IAxesRender } from './Interfaces';
 
-export class AxisRenderer implements IAxesRender {
+export class TimeAxisRenderer implements IAxesRender<Date> {
 
-    public renderDateAxis(dateAxis: IAxis<Date>, canvas: ICanvas): void {
+    public render(canvas: ICanvas, axis: IAxis<Date>, offset: IPoint, frameSize: ISize): void {
 
-        let scaleFit = new ScaleFit(dateAxis.width, dateAxis.interval, dateAxis.range);
-        let bars: Date[] = scaleFit.getBars();
+        const scaleFit = new ScaleFit(frameSize.width, axis.interval, axis.range);
+        const bars: Date[] = scaleFit.getBars();
 
         canvas.setStrokeStyle('black');
         canvas.beginPath();
 
-        for (var bar of bars) {
-            let x = dateAxis.toX(bar);
+        for (const bar of bars) {
+            const x = axis.toX(bar);
             this.drawBar(canvas, bar, x);
         }
 

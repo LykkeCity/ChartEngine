@@ -8,7 +8,7 @@ import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
 import { IDataIterator } from '../data/index';
 import { Point } from '../model/index';
-import { ISize } from '../shared/index';
+import { IPoint, ISize } from '../shared/index';
 import { IChartRender } from './Interfaces';
 
 export class LineChartRenderer implements IChartRender<Point> {
@@ -21,16 +21,11 @@ export class LineChartRenderer implements IChartRender<Point> {
         timeAxis: IAxis<Date>,
         yAxis: IAxis<number>): void {
 
-        console.debug(`[LineChartRenderer] start rendering...`);
-
         // Calculate size of frame
-
         const frameSize: ISize = {
             width: canvas.w,
             height: canvas.h
         };
-
-        // Calculate size of candles
 
         // Render
         if (dataIterator.moveNext()) {
@@ -39,6 +34,28 @@ export class LineChartRenderer implements IChartRender<Point> {
                 if (dataIterator.current.value) {
                     this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frameSize);
                     prevPoint = dataIterator.current;
+                }
+            }
+        }
+    }
+
+    public testHitArea(
+        hitPoint: IPoint,
+        dataIterator: IDataIterator<Point>,
+        offsetX: number,
+        offsetY: number,
+        timeAxis: IAxis<Date>,
+        yAxis: IAxis<number>): Point | undefined {
+
+        while (dataIterator.moveNext()) {
+            if (dataIterator.current.value) {
+
+                const x = timeAxis.toX(dataIterator.current.date);
+                const y = yAxis.toX(dataIterator.current.value);
+
+                const R = Math.sqrt(Math.pow(Math.abs(x - hitPoint.x), 2) + Math.pow(Math.abs(y - hitPoint.y), 2));
+                if (R < 2) {
+                    return dataIterator.current;
                 }
             }
         }
@@ -66,7 +83,6 @@ export class LineChartRenderer implements IChartRender<Point> {
     }
 
     private line(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {
-        //console.debug(`line: {${x1},${y1}} - {${x2},${y2}}`);
         canvas.moveTo(x1, y1);
         canvas.lineTo(x2, y2);
     }

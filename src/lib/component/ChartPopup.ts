@@ -1,0 +1,58 @@
+/**
+ * ChartPopup class.
+ */
+import { IAxis } from '../axes/index';
+import { VisualComponent, VisualContext } from '../core/index';
+import { IDataSource } from '../data/index';
+import { Candlestick, Point as MPoint } from '../model/index';
+import { IRenderLocator } from '../render/index';
+import { ISize, Point } from '../shared/index';
+
+export class ChartPopup<T> extends VisualComponent {
+
+    public get target(): string {
+        return 'front'; // 'base'
+    }
+
+    constructor(
+        private chartType: string,
+        offset: Point,
+        size: ISize,
+        private dataSource: IDataSource<T>,
+        private timeAxis: IAxis<Date>,
+        private yAxis: IAxis<number>
+        ) {
+        super(offset, size);
+    }
+
+    public render(context: VisualContext, renderLocator: IRenderLocator) {
+        // only render on front
+        if (!context.renderFront)  { return ; }
+        if (!context.mousePosition) { return ; }
+
+        const mouseX = context.mousePosition.x;
+        const mouseY = context.mousePosition.y;
+
+        if (mouseX > 0 && mouseX < this.size.width
+            && mouseY > 0 && mouseY < this.size.height) {
+
+            const canvas = context.getCanvas(this.target);
+
+            // 1. Get approximate range
+            // 2. Get data in that range            
+            // 3. Test hit area
+            //
+            const dateRange = this.timeAxis.getValuesRange(mouseX - 10, mouseX + 10);
+            if (dateRange && dateRange.start && dateRange.end) {
+                const dataIterator = this.dataSource.getData(dateRange, this.timeAxis.interval);
+                const dataRender = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
+                const item: T = dataRender.testHitArea({ x: mouseX, y: mouseY }, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+
+                if (item) {
+                    const popupRender = renderLocator.getPopupRender<T>(this.dataSource.dataType);
+                    popupRender.render(canvas, item, { x: mouseX, y: mouseY }, this.size);
+                }
+            }
+        }
+    }
+}

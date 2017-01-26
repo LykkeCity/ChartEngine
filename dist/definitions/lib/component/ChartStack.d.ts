@@ -5,14 +5,13 @@ import { IAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { IRenderLocator } from '../render/index';
-import { Point } from '../shared/index';
-import { ChartArea } from './ChartArea';
+import { ISize, Point } from '../shared/index';
 export declare class ChartStack extends VisualComponent {
-    private area;
     private timeAxis;
-    private charts;
     private yAxis;
-    constructor(area: ChartArea, offset: Point, timeAxis: IAxis<Date>);
+    private charts;
+    private crosshair;
+    constructor(offset: Point, size: ISize, timeAxis: IAxis<Date>, yAxis: IAxis<number>);
     addChart<T>(chartType: string, dataSource: IDataSource<T>): void;
     render(context: VisualContext, renderLocator: IRenderLocator): void;
 }

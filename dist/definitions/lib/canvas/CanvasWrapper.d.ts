@@ -7,9 +7,11 @@ import { CanvasTextAlign, CanvasTextBaseLine } from './Enums';
 import { ICanvas } from './ICanvas';
 export declare class CanvasWrapper implements ICanvas {
     private ctx;
+    private adj;
     readonly w: number;
     readonly h: number;
     readonly dpr: number;
+    lineWidth: number;
     constructor(context: CanvasRenderingContext2D, width: number, height: number);
     clear(): void;
     moveTo(x: number, y: number): void;
@@ -27,4 +29,5 @@ export declare class CanvasWrapper implements ICanvas {
     setTextBaseLine(v: CanvasTextBaseLine): void;
     measureText(text: string): TextMetrics;
     strokeText(text: string, x: number, y: number, maxWidth?: number): void;
+    private round(n);
 }

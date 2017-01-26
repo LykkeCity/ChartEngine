@@ -10,84 +10,104 @@ import { ICanvas } from './ICanvas';
 export class CanvasWrapper implements ICanvas {
 
     private ctx: CanvasRenderingContext2D;
+    private adj: number = 0.5; // Adjusment to remove blury lines.
 
     readonly w: number;
     readonly h: number;
     readonly dpr: number;
+
+    public get lineWidth(): number {
+        return this.ctx.lineWidth;
+    }
+
+    public set lineWidth(w: number) {
+        this.adj = (w % 2) / 2;         // If line is width 1, 3, 5... then adjust coords to remove blur.
+        this.ctx.lineWidth = w;
+    }
 
     constructor(context: CanvasRenderingContext2D, width: number, height: number) {
 
         this.ctx = context;
         this.w = width;
         this.h = height;
+        //this.dpr = window.devicePixelRatio || 1;
         this.dpr = 1;
-
-        //this.ctx.translate(0.5, 0.5);
-        //this.ressize(width, height);
     }
 
-    clear() {
-        this.ctx.clearRect(0, 0, this.w, this.h);
+    public clear() {
+        this.ctx.clearRect(0, 0, Math.round(this.w), Math.round(this.h));
     }
 
-    moveTo(x: number, y: number) {
-        this.ctx.moveTo(x * this.dpr, y * this.dpr);
+    public moveTo(x: number, y: number) {
+        this.ctx.moveTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
     }
 
-    lineTo(x: number, y: number) {
-        this.ctx.lineTo(x * this.dpr, y * this.dpr);
+    public lineTo(x: number, y: number) {
+        this.ctx.lineTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
     }
 
-    fillText(s: string, x: number, y: number) {
-        this.ctx.fillText(s, x * this.dpr, y * this.dpr);
+    public fillText(s: string, x: number, y: number) {
+        this.ctx.fillText(s, Math.round(x * this.dpr), Math.round(y * this.dpr));
     }
 
-    fillRect(x: number, y: number, w: number, h: number) {
-        this.ctx.fillRect(x * this.dpr, y * this.dpr, w * this.dpr, h * this.dpr);
+    public fillRect(x: number, y: number, w: number, h: number) {
+        this.ctx.fillRect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj,
+                          Math.round(w * this.dpr), Math.round(h * this.dpr));
     }
 
-    strokeRect(x: number, y: number, w: number, h: number) {
-        this.ctx.strokeRect(x * this.dpr, y * this.dpr, w * this.dpr, h * this.dpr);
+    public strokeRect(x: number, y: number, w: number, h: number) {
+        this.ctx.strokeRect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj,
+                            Math.round(w * this.dpr), Math.round(h * this.dpr));
     }
 
     // Used with beginPath() / stroke() / strokeStyle / fill()
-    rect(x: number, y: number, w: number, h: number) {
-        this.ctx.rect(x * this.dpr, y * this.dpr, w * this.dpr, h * this.dpr);
+    public rect(x: number, y: number, w: number, h: number) {
+        this.ctx.rect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj,
+                      Math.round(w * this.dpr), Math.round(h * this.dpr));
     }
 
-    beginPath() {
+    public beginPath() {
         this.ctx.beginPath();
     }
 
-    stroke() {
+    public stroke() {
         this.ctx.stroke();
     }
 
-    closePath() {
+    public closePath() {
         this.ctx.closePath();
     }
 
-    setStrokeStyle(style: any) {
+    public setStrokeStyle(style: any) {
         this.ctx.strokeStyle = style;
     }
 
-    setFillStyle(style: any) {
+    public setFillStyle(style: any) {
         this.ctx.fillStyle = style;
     }
 
-    setTextAlign(v: CanvasTextAlign) {
+    public setTextAlign(v: CanvasTextAlign) {
         this.ctx.textAlign = CanvasTextBaseLine[v].toLowerCase();
     }
 
-    setTextBaseLine(v: CanvasTextBaseLine) {
+    public setTextBaseLine(v: CanvasTextBaseLine) {
         this.ctx.textBaseline = CanvasTextBaseLine[v].toLowerCase();
     }
 
-    measureText(text: string): TextMetrics {
+    public measureText(text: string): TextMetrics {
         return this.ctx.measureText(text);
     }
 
-    strokeText(text: string, x: number, y: number, maxWidth?: number): void {
-        this.ctx.strokeText(text, x, y, maxWidth);
+    public strokeText(text: string, x: number, y: number, maxWidth?: number): void {
+        this.ctx.strokeText(text, Math.round(x), Math.round(y), maxWidth);
+    }
+
+    private round(n: number): number {
+        // With a bitwise or.
+        return (0.5 + n) | 0;
+        // // A double bitwise not.
+        // rounded = ~~ (0.5 + n);
+        // // Finally, a left bitwise shift.
+        // rounded = (0.5 + n) << 0;
     }
 }

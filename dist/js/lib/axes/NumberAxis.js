@@ -10,10 +10,9 @@ var __extends = (this && this.__extends) || function (d, b) {
 var index_1 = require("../core/index");
 var NumberAxis = (function (_super) {
     __extends(NumberAxis, _super);
-    function NumberAxis(width, interval, // Defines maximum zoom
+    function NumberAxis(offset, size, interval, // Defines maximum zoom
         initialRange) {
-        var _this = _super.call(this) || this;
-        _this._w = width;
+        var _this = _super.call(this, offset, size) || this;
         _this._interval = interval;
         _this._range = initialRange ? initialRange : { start: 0, end: 0 };
         return _this;
@@ -35,26 +34,37 @@ var NumberAxis = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(NumberAxis.prototype, "width", {
-        get: function () {
-            return this._w;
-        },
-        enumerable: true,
-        configurable: true
-    });
+    NumberAxis.prototype.getValuesRange = function (x1, x2) {
+        if (x1 > 0 && x2 > 0 && x1 < this.size.height && x2 < this.size.height) {
+            return {
+                start: this.toValue(Math.min(x1, x2)),
+                end: this.toValue(Math.max(x1, x2))
+            };
+        }
+    };
+    NumberAxis.prototype.toValue = function (x) {
+        var range = Math.abs(this.range.end - this.range.start);
+        var base = Math.min(this.range.end, this.range.start);
+        var d = x / this.size.height;
+        return d * range + base;
+    };
     NumberAxis.prototype.toX = function (value) {
         var range = Math.abs(this.range.end - this.range.start);
-        var min = Math.min(this.range.end, this.range.start);
-        var d = this.width / (range);
-        return d * (value - min);
+        var base = Math.min(this.range.end, this.range.start);
+        var d = (value - base) / range;
+        return d * this.size.height;
     };
     NumberAxis.prototype.move = function (direction) {
     };
     NumberAxis.prototype.scale = function (direction) {
     };
     NumberAxis.prototype.render = function (context, renderLocator) {
-        // const render = renderLocator.getAxesRender('date');
-        // render.renderDateAxis(this, this.canvas);
+        if (context.renderBase) {
+            var canvas = context.getCanvas(this.target);
+            var render = renderLocator.getAxesRender('number');
+            render.render(canvas, this, { x: 0, y: 0 }, this.size);
+        }
+        _super.prototype.render.call(this, context, renderLocator);
     };
     return NumberAxis;
 }(index_1.VisualComponent));

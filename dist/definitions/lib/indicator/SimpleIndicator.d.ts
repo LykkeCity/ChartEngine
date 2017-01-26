@@ -13,6 +13,6 @@ export declare class SimpleIndicator extends DataSource<Point> {
     getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number>;
     getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<Point>;
     protected getDefaultConfig(): DataSourceConfig;
-    protected onDataSourceChanged(arg: DataChangedArgument): void;
+    protected onDataSourceChanged(arg?: DataChangedArgument): void;
     protected update(range: IRange<Date>, interval: TimeInterval): void;
 }

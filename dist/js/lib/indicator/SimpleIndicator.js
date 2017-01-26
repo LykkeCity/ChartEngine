@@ -13,7 +13,8 @@ var SimpleIndicator = (function (_super) {
         _this.dataSource = dataSource;
         _this.dataInitialized = false;
         _this.dataSnapshot = { data: [], timestamp: 0 };
-        dataSource.dateChanged.on(_this.onDataSourceChanged);
+        var self = _this;
+        dataSource.dateChanged.on(function (arg) { self.onDataSourceChanged(arg); });
         return _this;
     }
     SimpleIndicator.prototype.getValuesRange = function (range, interval) {
@@ -29,13 +30,13 @@ var SimpleIndicator = (function (_super) {
         // Find first and last indexes.
         //
         var startIndex = 0;
-        for (startIndex = 0; startIndex < data.length; startIndex++) {
+        for (startIndex = 0; startIndex < data.length; startIndex += 1) {
             if (data[startIndex].date.getTime() >= range.start.getTime()) {
                 break;
             }
         }
         var lastIndex = data.length - 1;
-        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex--) {
+        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
             if (data[startIndex].date.getTime() <= range.end.getTime()) {
                 break;
             }
@@ -62,7 +63,7 @@ var SimpleIndicator = (function (_super) {
             if (candle.c) {
                 prevValues[i] = candle.c;
             }
-            i++;
+            i += 1;
         }
         i = 0;
         while (iterator.moveNext()) {
@@ -75,7 +76,7 @@ var SimpleIndicator = (function (_super) {
                 prevValues[0] = prevValues[1];
                 prevValues[1] = curValue;
             }
-            i++;
+            i += 1;
         }
         // update timestamp
         this.dataSnapshot.timestamp = this.dataSnapshot.timestamp + 1;

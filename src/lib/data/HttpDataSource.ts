@@ -180,23 +180,24 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
 
         const self = this;
         request.done((response: IResponse<T>) => {
-            console.debug('request succeeded: ');
-            self.mergeData(response.data);
+            if (response && response.data && response.data.length > 0) {
+                self.mergeData(response.data);
 
-            // Notify subscribers:
-            self.dateChangedEvent.trigger(new DataChangedArgument(
-                { start: response.startDateTime, end: response.endDateTime },
-                self.stringToTimeInterval(response.interval)));
+
+
+                // Notify subscribers:
+                self.dateChangedEvent.trigger(new DataChangedArgument(
+                    { start: new Date(response.startDateTime), end: new Date(response.endDateTime) },
+                    self.stringToTimeInterval(response.interval)));
+            }
         })
         .fail((jqXHR, textStatus) => {
             console.debug('request failed: ' + jqXHR + textStatus);
         })
         .always((jqXHR, textStatus, errorThrown) => {
             // Remove request from pending requests
-            console.debug('searching request in pending');
             for (let i = 0; i < this.pendingRequests.length; i += 1) {
                 if (this.pendingRequests[i].uid === uid) {
-                    console.debug('removing request.');
                     this.pendingRequests.splice(i, 1);
                 }
             }

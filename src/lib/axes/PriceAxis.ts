@@ -1,15 +1,16 @@
 /**
- * NumberAxis class.
+ * PriceAxis class.
  */
 import { VisualComponent, VisualContext } from '../core/index';
 import { IRenderLocator } from '../render/index';
 import { IRange, ISize, Point } from '../shared/index';
 import { IAxis } from './IAxis';
 
-export class NumberAxis extends VisualComponent implements IAxis<number> {
+export class PriceAxis extends VisualComponent implements IAxis<number> {
 
     private _range: IRange<number>;
     private _interval: number;
+    //private marker: PriceMarker;
 
     constructor(
         offset: Point,
@@ -64,7 +65,7 @@ export class NumberAxis extends VisualComponent implements IAxis<number> {
     public render(context: VisualContext, renderLocator: IRenderLocator) {
         if (context.renderBase) {
             const canvas = context.getCanvas(this.target);
-            const render = renderLocator.getAxesRender('number');
+            const render = renderLocator.getAxesRender('price');
             render.render(canvas, this, { x: 0, y: 0 }, this.size);
         }
         super.render(context, renderLocator);

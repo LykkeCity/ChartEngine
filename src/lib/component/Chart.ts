@@ -6,7 +6,8 @@ import { ICanvas } from '../canvas/index';
 import { TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { IRenderLocator, RenderType } from '../render/index';
-import { IRange, Point } from '../shared/index';
+import { IRange, ISize, Point } from '../shared/index';
+import { ChartPopup } from './ChartPopup';
 
 export interface IChart {
     getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number>;
@@ -14,14 +15,19 @@ export interface IChart {
 }
 
 export class Chart<T> extends VisualComponent implements IChart {
+    private popup: ChartPopup<T>;
+
     constructor(
         private chartType: string,
-        public offset: Point,
-        private canvas: ICanvas,
+        offset: Point,
+        size: ISize,
         private dataSource: IDataSource<T>,
         private timeAxis: IAxis<Date>,
         private yAxis: IAxis<number>) {
-            super(offset);
+            super(offset, size);
+
+            this.popup = new ChartPopup<T>(chartType, offset, size, dataSource, timeAxis, yAxis);
+            this.addChild(this.popup);
     }
 
     public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
@@ -29,20 +35,14 @@ export class Chart<T> extends VisualComponent implements IChart {
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
-        // let renderType = '';
 
-        // if (this.renderType === RenderType.Candlestick) {
-        //     renderType = 'candle';
-        // } else if (this.renderType === RenderType.Line) {
-        //     renderType = 'line';
-        // } else {
-        //     throw new Error(`Unexpected render type ${ this.renderType }`);
-        // }
+        if (context.renderBase) {
+            const canvas = context.getCanvas(this.target);
+            const render = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
+            const dataIterator = this.dataSource.getData(this.timeAxis.range, this.timeAxis.interval);
 
-        const render = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
-
-        const dataIterator = this.dataSource.getData(this.timeAxis.range, this.timeAxis.interval);
-        render.render(this.canvas, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+            render.render(canvas, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+        }
 
         super.render(context, renderLocator);
     }

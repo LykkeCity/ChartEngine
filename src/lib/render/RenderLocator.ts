@@ -1,19 +1,31 @@
 /**
- * 
+ * RenderLocator singleton.
  */
 import { ChartType } from '../core/index';
 import { DataType } from '../data/index';
 import { Candlestick, Point } from '../model/index';
-import { AxisRenderer } from './AxisRenderer';
 import { CandlestickChartRenderer } from './CandlestickChartRenderer';
+import { CandlestickPopupRenderer } from './CandlestickPopupRenderer';
 import { IAxesRender, IChartRender, IMarkRender, IPopupRender, IRenderLocator } from './Interfaces';
 import { LineChartRenderer } from './LineChartRenderer';
+import { LinePopupRenderer } from './LinePopupRenderer';
+import { NumberAxisRenderer } from './NumberAxisRenderer';
+import { NumberMarkRenderer } from './NumberMarkRenderer';
+import { PriceAxisRenderer } from './PriceAxisRenderer';
+import { TimeAxisRenderer } from './TimeAxisRenderer';
+import { TimeMarkRenderer } from './TimeMarkRenderer';
 
 export class RenderLocator implements IRenderLocator {
 
     private candlestickChartRender: CandlestickChartRenderer = new CandlestickChartRenderer();
     private lineChartRender: LineChartRenderer = new LineChartRenderer();
-    private axisRenderer: AxisRenderer = new AxisRenderer();
+    private timeAxisRender: TimeAxisRenderer = new TimeAxisRenderer();
+    private priceAxisRender: PriceAxisRenderer = new PriceAxisRenderer();
+    private numberAxisRender: NumberAxisRenderer = new NumberAxisRenderer();
+    private candlePopupRenderer: CandlestickPopupRenderer = new CandlestickPopupRenderer();
+    private linePopupRenderer: LinePopupRenderer = new LinePopupRenderer();
+    private timeMarkRender: TimeMarkRenderer = new TimeMarkRenderer();
+    private numberMarkRender: NumberMarkRenderer = new NumberMarkRenderer();
 
     private static instance: RenderLocator;
 
@@ -22,10 +34,6 @@ export class RenderLocator implements IRenderLocator {
         return this.instance || (this.instance = new this());
     }
 
-    private constructor() {
-    }
-
-    //public getChartRender(chartType: string, dataType: string): any { //IChartRender<T> 
     public getChartRender<T>(dataType: { new(d: Date): T }, chartType: string): any {
 
         const obj = new dataType(new Date());
@@ -45,19 +53,33 @@ export class RenderLocator implements IRenderLocator {
         throw new Error('Unexpected chart type ' + chartType);
     }
 
-    public getAxesRender(uid: string): IAxesRender {
+    public getAxesRender<T>(uid: string): any {
         switch (uid) {
-            case 'date': return this.axisRenderer;
+            case 'date': return this.timeAxisRender;
+            case 'number': return this.numberAxisRender;
+            case 'price': return this.priceAxisRender;
             default:
                 throw new Error('Unexpected axes render uid: ' + uid);
         }
     }
 
-    public getPopupRender(uid: string): IPopupRender {
-        throw new Error('Not implemented.');
+    public getPopupRender<T>(dataType: { new(d: Date): T }): any {
+        const obj = new dataType(new Date());
+        if (obj instanceof Point) {
+            return this.linePopupRenderer;
+        } else if (obj instanceof Candlestick) {
+            return this.candlePopupRenderer;
+        } else {
+            throw new Error('Unexpected data type: ' + dataType);
+        }
     }
 
-    public getMarkRender(uid: string): IMarkRender {
-        throw new Error('Not implemented.');
+    public getMarkRender<T>(uid: string): any {
+        switch (uid) {
+            case 'date': return this.timeMarkRender;
+            case 'number': return this.numberMarkRender;
+            default:
+                throw new Error('Unexpected axes render uid: ' + uid);
+        }
     }
 }

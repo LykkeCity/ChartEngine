@@ -1,15 +1,15 @@
 /**
  * 
  */
-import { AxisRenderer } from './AxisRenderer';
 import { CandlestickChartRenderer } from './CandlestickChartRenderer';
 import { RenderType } from './Enums';
 import { IAxesRender, IChartRender, IMarkRender, IPopupRender, IRenderLocator } from './Interfaces';
 import { LineChartRenderer } from './LineChartRenderer';
+import { PriceAxisRenderer } from './PriceAxisRenderer';
 import { RenderLocator } from './RenderLocator';
+import { TimeAxisRenderer } from './TimeAxisRenderer';
 
 export {
-    AxisRenderer,
     CandlestickChartRenderer,
     IAxesRender,
     IChartRender,
@@ -17,6 +17,8 @@ export {
     IPopupRender,
     IRenderLocator,
     LineChartRenderer,
+    PriceAxisRenderer,
     RenderType,
-    RenderLocator
+    RenderLocator,
+    TimeAxisRenderer
  };

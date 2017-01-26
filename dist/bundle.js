@@ -11021,10 +11021,9 @@ var __extends = (this && this.__extends) || function (d, b) {
 var index_1 = require("../core/index");
 var NumberAxis = (function (_super) {
     __extends(NumberAxis, _super);
-    function NumberAxis(width, interval, // Defines maximum zoom
+    function NumberAxis(offset, size, interval, // Defines maximum zoom
         initialRange) {
-        var _this = _super.call(this) || this;
-        _this._w = width;
+        var _this = _super.call(this, offset, size) || this;
         _this._interval = interval;
         _this._range = initialRange ? initialRange : { start: 0, end: 0 };
         return _this;
@@ -11046,31 +11045,115 @@ var NumberAxis = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(NumberAxis.prototype, "width", {
-        get: function () {
-            return this._w;
-        },
-        enumerable: true,
-        configurable: true
-    });
+    NumberAxis.prototype.getValuesRange = function (x1, x2) {
+        if (x1 > 0 && x2 > 0 && x1 < this.size.height && x2 < this.size.height) {
+            return {
+                start: this.toValue(Math.min(x1, x2)),
+                end: this.toValue(Math.max(x1, x2))
+            };
+        }
+    };
+    NumberAxis.prototype.toValue = function (x) {
+        var range = Math.abs(this.range.end - this.range.start);
+        var base = Math.min(this.range.end, this.range.start);
+        var d = x / this.size.height;
+        return d * range + base;
+    };
     NumberAxis.prototype.toX = function (value) {
         var range = Math.abs(this.range.end - this.range.start);
-        var min = Math.min(this.range.end, this.range.start);
-        var d = this.width / (range);
-        return d * (value - min);
+        var base = Math.min(this.range.end, this.range.start);
+        var d = (value - base) / range;
+        return d * this.size.height;
     };
     NumberAxis.prototype.move = function (direction) {
     };
     NumberAxis.prototype.scale = function (direction) {
     };
     NumberAxis.prototype.render = function (context, renderLocator) {
-        // const render = renderLocator.getAxesRender('date');
-        // render.renderDateAxis(this, this.canvas);
+        if (context.renderBase) {
+            var canvas = context.getCanvas(this.target);
+            var render = renderLocator.getAxesRender('number');
+            render.render(canvas, this, { x: 0, y: 0 }, this.size);
+        }
+        _super.prototype.render.call(this, context, renderLocator);
     };
     return NumberAxis;
 }(index_1.VisualComponent));
 exports.NumberAxis = NumberAxis;
-},{"../core/index":17}],3:[function(require,module,exports){
+},{"../core/index":23}],3:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+/**
+ * PriceAxis class.
+ */
+var index_1 = require("../core/index");
+var PriceAxis = (function (_super) {
+    __extends(PriceAxis, _super);
+    //private marker: PriceMarker;
+    function PriceAxis(offset, size, interval, // Defines maximum zoom
+        initialRange) {
+        var _this = _super.call(this, offset, size) || this;
+        _this._interval = interval;
+        _this._range = initialRange ? initialRange : { start: 0, end: 0 };
+        return _this;
+    }
+    Object.defineProperty(PriceAxis.prototype, "range", {
+        get: function () {
+            return this._range;
+        },
+        set: function (newRange) {
+            this._range = newRange;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PriceAxis.prototype, "interval", {
+        get: function () {
+            return this._interval;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    PriceAxis.prototype.getValuesRange = function (x1, x2) {
+        if (x1 > 0 && x2 > 0 && x1 < this.size.height && x2 < this.size.height) {
+            return {
+                start: this.toValue(Math.min(x1, x2)),
+                end: this.toValue(Math.max(x1, x2))
+            };
+        }
+    };
+    PriceAxis.prototype.toValue = function (x) {
+        var range = Math.abs(this.range.end - this.range.start);
+        var base = Math.min(this.range.end, this.range.start);
+        var d = x / this.size.height;
+        return d * range + base;
+    };
+    PriceAxis.prototype.toX = function (value) {
+        var range = Math.abs(this.range.end - this.range.start);
+        var base = Math.min(this.range.end, this.range.start);
+        var d = (value - base) / range;
+        return d * this.size.height;
+    };
+    PriceAxis.prototype.move = function (direction) {
+    };
+    PriceAxis.prototype.scale = function (direction) {
+    };
+    PriceAxis.prototype.render = function (context, renderLocator) {
+        if (context.renderBase) {
+            var canvas = context.getCanvas(this.target);
+            var render = renderLocator.getAxesRender('price');
+            render.render(canvas, this, { x: 0, y: 0 }, this.size);
+        }
+        _super.prototype.render.call(this, context, renderLocator);
+    };
+    return PriceAxis;
+}(index_1.VisualComponent));
+exports.PriceAxis = PriceAxis;
+},{"../core/index":23}],4:[function(require,module,exports){
 /**
 * TimeAxis class
 *
@@ -11085,11 +11168,9 @@ var __extends = (this && this.__extends) || function (d, b) {
 var index_1 = require("../core/index");
 var TimeAxis = (function (_super) {
     __extends(TimeAxis, _super);
-    function TimeAxis(canvas, width, interval, // Defines maximum zoom
+    function TimeAxis(offset, size, interval, // Defines maximum zoom
         initialRange) {
-        var _this = _super.call(this) || this;
-        _this.canvas = canvas;
-        _this._w = width;
+        var _this = _super.call(this, offset, size) || this;
         _this._interval = interval;
         _this._range = initialRange;
         return _this;
@@ -11108,21 +11189,28 @@ var TimeAxis = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TimeAxis.prototype, "width", {
-        get: function () {
-            return this._w;
-        },
-        enumerable: true,
-        configurable: true
-    });
+    TimeAxis.prototype.getValuesRange = function (x1, x2) {
+        if (x1 > 0 && x2 > 0 && x1 < this.size.width && x2 < this.size.width) {
+            return {
+                start: this.toValue(Math.min(x1, x2)),
+                end: this.toValue(Math.max(x1, x2))
+            };
+        }
+    };
+    TimeAxis.prototype.toValue = function (x) {
+        var range = Math.abs(this.range.end.getTime() - this.range.start.getTime());
+        var base = Math.min(this.range.end.getTime(), this.range.start.getTime());
+        var d = x / this.size.width;
+        return new Date(d * range + base);
+    };
     TimeAxis.prototype.toX = function (value) {
         if (value < this.range.start || value > this.range.end) {
             throw new Error("Date " + value + " is out of range.");
         }
-        var total = Math.abs(this.range.end.getTime() - this.range.start.getTime());
-        var toDate = Math.abs(value.getTime() - this.range.start.getTime());
-        var x = (toDate / total) * this.width;
-        return x;
+        var range = Math.abs(this.range.end.getTime() - this.range.start.getTime());
+        var base = Math.min(this.range.end.getTime(), this.range.start.getTime());
+        var toDate = value.getTime() - base;
+        return (toDate / range) * this.size.width;
     };
     TimeAxis.prototype.move = function (direction) {
         //direction = Math.round(direction);
@@ -11130,7 +11218,7 @@ var TimeAxis = (function (_super) {
             return;
         }
         var curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
-        var shiftInMs = direction * curRangeInMs / this.width;
+        var shiftInMs = direction * curRangeInMs / this.size.width;
         this._range = {
             start: new Date(this.range.start.getTime() - shiftInMs),
             end: new Date(this.range.end.getTime() - shiftInMs)
@@ -11158,19 +11246,25 @@ var TimeAxis = (function (_super) {
         };
     };
     TimeAxis.prototype.render = function (context, renderLocator) {
-        var render = renderLocator.getAxesRender('date');
-        render.renderDateAxis(this, this.canvas);
+        if (context.renderBase) {
+            var canvas = context.getCanvas(this.target);
+            var render = renderLocator.getAxesRender('date');
+            render.render(canvas, this, this.offset, this.size);
+        }
+        _super.prototype.render.call(this, context, renderLocator);
     };
     return TimeAxis;
 }(index_1.VisualComponent));
 exports.TimeAxis = TimeAxis;
-},{"../core/index":17}],4:[function(require,module,exports){
+},{"../core/index":23}],5:[function(require,module,exports){
 "use strict";
 var NumberAxis_1 = require("./NumberAxis");
 exports.NumberAxis = NumberAxis_1.NumberAxis;
+var PriceAxis_1 = require("./PriceAxis");
+exports.PriceAxis = PriceAxis_1.PriceAxis;
 var TimeAxis_1 = require("./TimeAxis");
 exports.TimeAxis = TimeAxis_1.TimeAxis;
-},{"./NumberAxis":2,"./TimeAxis":3}],5:[function(require,module,exports){
+},{"./NumberAxis":2,"./PriceAxis":3,"./TimeAxis":4}],6:[function(require,module,exports){
 /**
 * CanvasWrapper class.
 *
@@ -11180,34 +11274,45 @@ exports.TimeAxis = TimeAxis_1.TimeAxis;
 var Enums_1 = require("./Enums");
 var CanvasWrapper = (function () {
     function CanvasWrapper(context, width, height) {
+        this.adj = 0.5; // Adjusment to remove blury lines.
         this.ctx = context;
         this.w = width;
         this.h = height;
+        //this.dpr = window.devicePixelRatio || 1;
         this.dpr = 1;
-        //this.ctx.translate(0.5, 0.5);
-        //this.ressize(width, height);
     }
+    Object.defineProperty(CanvasWrapper.prototype, "lineWidth", {
+        get: function () {
+            return this.ctx.lineWidth;
+        },
+        set: function (w) {
+            this.adj = (w % 2) / 2; // If line is width 1, 3, 5... then adjust coords to remove blur.
+            this.ctx.lineWidth = w;
+        },
+        enumerable: true,
+        configurable: true
+    });
     CanvasWrapper.prototype.clear = function () {
-        this.ctx.clearRect(0, 0, this.w, this.h);
+        this.ctx.clearRect(0, 0, Math.round(this.w), Math.round(this.h));
     };
     CanvasWrapper.prototype.moveTo = function (x, y) {
-        this.ctx.moveTo(x * this.dpr, y * this.dpr);
+        this.ctx.moveTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
     };
     CanvasWrapper.prototype.lineTo = function (x, y) {
-        this.ctx.lineTo(x * this.dpr, y * this.dpr);
+        this.ctx.lineTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
     };
     CanvasWrapper.prototype.fillText = function (s, x, y) {
-        this.ctx.fillText(s, x * this.dpr, y * this.dpr);
+        this.ctx.fillText(s, Math.round(x * this.dpr), Math.round(y * this.dpr));
     };
     CanvasWrapper.prototype.fillRect = function (x, y, w, h) {
-        this.ctx.fillRect(x * this.dpr, y * this.dpr, w * this.dpr, h * this.dpr);
+        this.ctx.fillRect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj, Math.round(w * this.dpr), Math.round(h * this.dpr));
     };
     CanvasWrapper.prototype.strokeRect = function (x, y, w, h) {
-        this.ctx.strokeRect(x * this.dpr, y * this.dpr, w * this.dpr, h * this.dpr);
+        this.ctx.strokeRect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj, Math.round(w * this.dpr), Math.round(h * this.dpr));
     };
     // Used with beginPath() / stroke() / strokeStyle / fill()
     CanvasWrapper.prototype.rect = function (x, y, w, h) {
-        this.ctx.rect(x * this.dpr, y * this.dpr, w * this.dpr, h * this.dpr);
+        this.ctx.rect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj, Math.round(w * this.dpr), Math.round(h * this.dpr));
     };
     CanvasWrapper.prototype.beginPath = function () {
         this.ctx.beginPath();
@@ -11234,12 +11339,20 @@ var CanvasWrapper = (function () {
         return this.ctx.measureText(text);
     };
     CanvasWrapper.prototype.strokeText = function (text, x, y, maxWidth) {
-        this.ctx.strokeText(text, x, y, maxWidth);
+        this.ctx.strokeText(text, Math.round(x), Math.round(y), maxWidth);
+    };
+    CanvasWrapper.prototype.round = function (n) {
+        // With a bitwise or.
+        return (0.5 + n) | 0;
+        // // A double bitwise not.
+        // rounded = ~~ (0.5 + n);
+        // // Finally, a left bitwise shift.
+        // rounded = (0.5 + n) << 0;
     };
     return CanvasWrapper;
 }());
 exports.CanvasWrapper = CanvasWrapper;
-},{"./Enums":6}],6:[function(require,module,exports){
+},{"./Enums":7}],7:[function(require,module,exports){
 /**
 * Canvas related enumerations.
 */
@@ -11256,7 +11369,7 @@ var CanvasTextBaseLine;
     CanvasTextBaseLine[CanvasTextBaseLine["Middle"] = 1] = "Middle";
     CanvasTextBaseLine[CanvasTextBaseLine["Bottom"] = 2] = "Bottom";
 })(CanvasTextBaseLine = exports.CanvasTextBaseLine || (exports.CanvasTextBaseLine = {}));
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -11266,7 +11379,7 @@ exports.CanvasWrapper = CanvasWrapper_1.CanvasWrapper;
 var Enums_1 = require("./Enums");
 exports.CanvasTextAlign = Enums_1.CanvasTextAlign;
 exports.CanvasTextBaseLine = Enums_1.CanvasTextBaseLine;
-},{"./CanvasWrapper":5,"./Enums":6}],8:[function(require,module,exports){
+},{"./CanvasWrapper":6,"./Enums":7}],9:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11274,49 +11387,48 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var index_1 = require("../core/index");
+var ChartPopup_1 = require("./ChartPopup");
 var Chart = (function (_super) {
     __extends(Chart, _super);
-    function Chart(chartType, offset, canvas, dataSource, timeAxis, yAxis) {
-        var _this = _super.call(this, offset) || this;
+    function Chart(chartType, offset, size, dataSource, timeAxis, yAxis) {
+        var _this = _super.call(this, offset, size) || this;
         _this.chartType = chartType;
-        _this.offset = offset;
-        _this.canvas = canvas;
         _this.dataSource = dataSource;
         _this.timeAxis = timeAxis;
         _this.yAxis = yAxis;
+        _this.popup = new ChartPopup_1.ChartPopup(chartType, offset, size, dataSource, timeAxis, yAxis);
+        _this.addChild(_this.popup);
         return _this;
     }
     Chart.prototype.getValuesRange = function (range, interval) {
         return this.dataSource.getValuesRange(range, interval);
     };
     Chart.prototype.render = function (context, renderLocator) {
-        // let renderType = '';
-        // if (this.renderType === RenderType.Candlestick) {
-        //     renderType = 'candle';
-        // } else if (this.renderType === RenderType.Line) {
-        //     renderType = 'line';
-        // } else {
-        //     throw new Error(`Unexpected render type ${ this.renderType }`);
-        // }
-        var render = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
-        var dataIterator = this.dataSource.getData(this.timeAxis.range, this.timeAxis.interval);
-        render.render(this.canvas, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+        if (context.renderBase) {
+            var canvas = context.getCanvas(this.target);
+            var render = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
+            var dataIterator = this.dataSource.getData(this.timeAxis.range, this.timeAxis.interval);
+            render.render(canvas, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+        }
         _super.prototype.render.call(this, context, renderLocator);
     };
     return Chart;
 }(index_1.VisualComponent));
 exports.Chart = Chart;
-},{"../core/index":17}],9:[function(require,module,exports){
+},{"../core/index":23,"./ChartPopup":12}],10:[function(require,module,exports){
 "use strict";
 /**
  * ChartArea class.
  */
 var index_1 = require("../canvas/index");
 var ChartArea = (function () {
-    function ChartArea(mainCanvas, axisXCanvas, axisYCanvas) {
-        this._mainContext = this.getContext(mainCanvas, mainCanvas.width, mainCanvas.height);
-        this._axisXContext = this.getContext(axisXCanvas, axisXCanvas.width, axisXCanvas.height);
-        this._axisYContext = this.getContext(axisYCanvas, axisYCanvas.width, axisYCanvas.height);
+    function ChartArea(w, h, baseCanvas, frontCanvas) {
+        this.w = w;
+        this.h = h;
+        this._baseCanvas = baseCanvas;
+        this._frontCanvas = frontCanvas;
+        this._mainContext = this.getContext(baseCanvas, baseCanvas.width, baseCanvas.height);
+        this._frontContext = this.getContext(frontCanvas, frontCanvas.width, frontCanvas.height);
     }
     Object.defineProperty(ChartArea.prototype, "mainContext", {
         get: function () {
@@ -11325,16 +11437,37 @@ var ChartArea = (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(ChartArea.prototype, "axisXContext", {
+    Object.defineProperty(ChartArea.prototype, "frontContext", {
         get: function () {
-            return this._axisXContext;
+            return this._frontContext;
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(ChartArea.prototype, "axisYContext", {
+    Object.defineProperty(ChartArea.prototype, "baseCanvas", {
         get: function () {
-            return this._axisYContext;
+            return this._baseCanvas;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ChartArea.prototype, "frontCanvas", {
+        get: function () {
+            return this._frontCanvas;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ChartArea.prototype, "width", {
+        get: function () {
+            return this.w;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ChartArea.prototype, "height", {
+        get: function () {
+            return this.h;
         },
         enumerable: true,
         configurable: true
@@ -11349,7 +11482,7 @@ var ChartArea = (function () {
     return ChartArea;
 }());
 exports.ChartArea = ChartArea;
-},{"../canvas/index":7}],10:[function(require,module,exports){
+},{"../canvas/index":8}],11:[function(require,module,exports){
 /**
  * ChartBoard class.
  *
@@ -11362,23 +11495,29 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var index_1 = require("../axes/index");
-var index_2 = require("../canvas/index");
-var index_3 = require("../core/index");
-var index_4 = require("../render/index");
-var index_5 = require("../shared/index");
+var index_2 = require("../core/index");
+var index_3 = require("../render/index");
+var index_4 = require("../shared/index");
 var ChartArea_1 = require("./ChartArea");
 var ChartStack_1 = require("./ChartStack");
+var NumberMarker_1 = require("./NumberMarker");
+var PriceMarker_1 = require("./PriceMarker");
+var TimeMarker_1 = require("./TimeMarker");
 var $ = require("jquery");
 var ChartBoard = (function (_super) {
     __extends(ChartBoard, _super);
-    function ChartBoard(container, w, h) {
-        var _this = _super.call(this) || this;
+    function ChartBoard(container, offsetLeft, offsetTop, w, h) {
+        var _this = _super.call(this, { x: 0, y: 0 }, { width: w, height: h }) || this;
         _this.container = container;
+        _this.offsetLeft = offsetLeft;
+        _this.offsetTop = offsetTop;
         _this.w = w;
         _this.h = h;
-        _this.curInterval = index_3.TimeInterval.day;
-        _this.areas = [];
+        _this.chartAreas = [];
         _this.chartStacks = [];
+        _this.yAxisAreas = [];
+        _this.yAxes = [];
+        //private timeAxisCanvas: ICanvas;
         _this.indicators = [];
         _this.eventHandlers = {};
         _this.mouseHandlers = [];
@@ -11387,18 +11526,36 @@ var ChartBoard = (function (_super) {
         _this.mouseX = null;
         _this.mouseY = null;
         _this.table = document.createElement('table');
+        _this.table.style.setProperty('position', 'relative');
         _this.container.appendChild(_this.table);
-        // Make place for the Time Axis
-        _this.timeAxisCanvas = _this.appendTimeCanvas(_this.table, w, 25);
-        _this.timeAxis = new index_1.TimeAxis(_this.timeAxisCanvas, w, index_3.TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
+        _this.timeArea = _this.makeArea(w, 25);
+        var now = new Date();
+        _this.timeAxis = new index_1.TimeAxis({ x: 0, y: h }, // offset
+        { width: _this.timeArea.width, height: _this.timeArea.height }, // size
+        index_2.TimeInterval.day, { start: new Date(2017, 0, 1), end: now });
         _this.addChild(_this.timeAxis);
+        var timeMarker = new TimeMarker_1.TimeMarker({ x: 0, y: 0 }, _this.timeAxis.size, _this.timeAxis);
+        _this.timeAxis.addChild(timeMarker);
         // Create main chart area
         //
-        var mainArea = _this.appendArea(_this.table, w, h);
-        _this.areas.push(mainArea);
-        var chartStack = new ChartStack_1.ChartStack(mainArea, new index_5.Point(0, 0), _this.timeAxis);
+        var chartArea = _this.makeArea(w, h);
+        _this.chartAreas.push(chartArea);
+        var yAxisArea = _this.makeArea(15, h);
+        _this.yAxisAreas.push(yAxisArea);
+        // create initial Y axis
+        var yAxis = new index_1.PriceAxis({ x: chartArea.width, y: 0 }, // offset
+        { width: yAxisArea.width, height: yAxisArea.height }, // size
+        0.0005);
+        _this.yAxes.push(yAxis);
+        _this.addChild(yAxis);
+        var priceMarker = new PriceMarker_1.PriceMarker({ x: 0, y: 0 }, yAxis.size, yAxis);
+        yAxis.addChild(priceMarker);
+        // Add main chart stack
+        var chartStack = new ChartStack_1.ChartStack(new index_4.Point(0, 0), { width: w, height: h }, _this.timeAxis, yAxis);
         _this.chartStacks.push(chartStack);
         _this.addChild(chartStack);
+        _this.insertRow(_this.table, 0, undefined, chartArea, yAxisArea);
+        _this.insertRow(_this.table, undefined, undefined, _this.timeArea, undefined);
         // Hook up event handlers
         //
         var self = _this;
@@ -11419,47 +11576,55 @@ var ChartBoard = (function (_super) {
         _this.container.addEventListener('mouseleave', _this.eventHandlers['mouseleave'], false);
         return _this;
     }
-    ChartBoard.prototype.appendTimeCanvas = function (table, w, h) {
-        var canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        var row = table.insertRow();
+    ChartBoard.prototype.insertRow = function (table, index, el1, el2, el3) {
+        var row = table.insertRow(index);
         var cell1 = row.insertCell();
         var cell2 = row.insertCell();
         var cell3 = row.insertCell();
-        cell2.appendChild(canvas);
-        var ctx = canvas.getContext('2d');
-        if (ctx == null) {
-            throw new Error('Context is null');
+        var div1 = document.createElement('div');
+        var div2 = document.createElement('div');
+        var div3 = document.createElement('div');
+        div1.style.setProperty('position', 'relative');
+        div1.style.setProperty('height', el1 ? el1.height + 'px' : '');
+        div1.style.setProperty('width', el1 ? el1.width + 'px' : '');
+        div2.style.setProperty('position', 'relative');
+        div2.style.setProperty('height', el2 ? el2.height + 'px' : '');
+        div2.style.setProperty('width', el2 ? el2.width + 'px' : '');
+        div3.style.setProperty('position', 'relative');
+        div3.style.setProperty('height', el3 ? el3.height + 'px' : '');
+        div3.style.setProperty('width', el3 ? el3.width + 'px' : '');
+        cell1.appendChild(div1);
+        cell2.appendChild(div2);
+        cell3.appendChild(div3);
+        if (el1) {
+            div1.appendChild(el1.baseCanvas);
+            div1.appendChild(el1.frontCanvas);
         }
-        return new index_2.CanvasWrapper(ctx, w, h);
+        if (el2) {
+            div2.appendChild(el2.baseCanvas);
+            div2.appendChild(el2.frontCanvas);
+        }
+        if (el3) {
+            div3.appendChild(el3.baseCanvas);
+            div3.appendChild(el3.frontCanvas);
+        }
     };
-    ChartBoard.prototype.appendArea = function (table, w, h) {
-        var mainCanvas = document.createElement('canvas');
-        mainCanvas.width = w;
-        mainCanvas.height = h;
-        var yCanvas = document.createElement('canvas');
-        yCanvas.width = 50;
-        yCanvas.height = h;
-        var xCanvas = document.createElement('canvas');
-        xCanvas.width = w;
-        xCanvas.height = 50;
-        var row1 = table.insertRow();
-        var cell11 = row1.insertCell();
-        var cell12 = row1.insertCell();
-        var cell13 = row1.insertCell();
-        var row2 = table.insertRow();
-        var cell21 = row2.insertCell();
-        var cell22 = row2.insertCell();
-        var cell23 = row2.insertCell();
-        var row3 = table.insertRow();
-        var cell31 = row3.insertCell();
-        var cell32 = row3.insertCell();
-        var cell33 = row3.insertCell();
-        cell22.appendChild(mainCanvas);
-        cell32.appendChild(xCanvas);
-        cell23.appendChild(yCanvas);
-        return new ChartArea_1.ChartArea(mainCanvas, xCanvas, yCanvas);
+    ChartBoard.prototype.makeArea = function (w, h) {
+        var baseCanvas = document.createElement('canvas');
+        baseCanvas.width = w;
+        baseCanvas.height = h;
+        baseCanvas.style.setProperty('left', '0');
+        baseCanvas.style.setProperty('top', '0');
+        baseCanvas.style.setProperty('z-index', '0');
+        baseCanvas.style.setProperty('position', 'absolute');
+        var frontCanvas = document.createElement('canvas');
+        frontCanvas.width = w;
+        frontCanvas.height = h;
+        frontCanvas.style.setProperty('left', '0');
+        frontCanvas.style.setProperty('top', '0');
+        frontCanvas.style.setProperty('z-index', '1');
+        frontCanvas.style.setProperty('position', 'absolute');
+        return new ChartArea_1.ChartArea(w, h, baseCanvas, frontCanvas);
     };
     ChartBoard.prototype.addChart = function (chartType, dataSource) {
         // add event handlers
@@ -11471,30 +11636,83 @@ var ChartBoard = (function (_super) {
     };
     ChartBoard.prototype.addIndicator = function (indicatorDataSource) {
         this.indicators.push(indicatorDataSource);
-        var yOffset = this.areas.length * this.h;
-        var newArea = this.appendArea(this.table, this.w, this.h);
-        this.areas.push(newArea);
-        var chartStack = new ChartStack_1.ChartStack(newArea, new index_5.Point(0, yOffset), this.timeAxis);
-        chartStack.addChart(index_3.ChartType.line, indicatorDataSource);
+        var yOffset = this.chartAreas.length * this.h;
+        // create new are
+        var chartArea = this.makeArea(this.w, this.h);
+        this.chartAreas.push(chartArea);
+        var yAxisArea = this.makeArea(15, this.h);
+        this.yAxisAreas.push(yAxisArea);
+        // create Y axis
+        var yAxis = new index_1.NumberAxis({ x: chartArea.width, y: yOffset }, // offset
+        { width: yAxisArea.width, height: yAxisArea.height }, // size
+        0.0005);
+        this.yAxes.push(yAxis);
+        this.addChild(yAxis);
+        var numberMarker = new NumberMarker_1.NumberMarker({ x: 0, y: 0 }, yAxis.size, yAxis);
+        yAxis.addChild(numberMarker);
+        var chartStack = new ChartStack_1.ChartStack(new index_4.Point(0, yOffset), { width: this.w, height: this.h }, this.timeAxis, yAxis);
+        chartStack.addChart(index_2.ChartType.line, indicatorDataSource);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
+        this.insertRow(this.table, this.chartAreas.length - 1, undefined, chartArea, yAxisArea);
+        // change timeAxisOffset
+        var curOffset = this.timeAxis.offset;
+        this.timeAxis.offset = new index_4.Point(curOffset.x, curOffset.y + this.h);
     };
     ChartBoard.prototype.render = function () {
-        // Prepare rendering objects: locator and context.
-        var locator = index_4.RenderLocator.Instance;
-        var context = new index_3.VisualContext((this.mouseX && this.mouseY) ? new index_5.Point(this.mouseX, this.mouseY) : undefined);
-        // Clear canvas
-        this.timeAxisCanvas.clear();
-        // // Render all chart stacks
-        // for (const chartStack of this.chartStacks) {
-        //     chartStack.render(context, locator);
-        // }
-        // // Render time axis as it does not belong to any chart
-        // this.timeAxis.render(context, locator);
-        _super.prototype.render.call(this, context, locator);
+        this.renderLayers(true, true);
     };
-    // public render(renderLocator: IRenderLocator) {
-    // }
+    ChartBoard.prototype.renderLayers = function (renderBase, renderFront) {
+        renderBase = renderBase === undefined ? true : renderBase;
+        renderFront = renderFront === undefined ? true : renderFront;
+        var mouse = undefined;
+        if (this.isMouseEntered && this.mouseX && this.mouseY) {
+            mouse = new index_4.Point(this.mouseX - this.offsetLeft - this.container.offsetLeft, this.mouseY - this.offsetTop - this.container.offsetTop);
+        }
+        for (var i = 0; i < this.chartStacks.length; i += 1) {
+            var cStack = this.chartStacks[i];
+            var area = this.chartAreas[i];
+            var yAxis = this.yAxes[i];
+            var yAxisArea = this.yAxisAreas[i];
+            if (renderBase) {
+                // clear base layer
+                area.mainContext.clear();
+                yAxisArea.mainContext.clear();
+            }
+            if (renderFront) {
+                area.frontContext.clear();
+                yAxisArea.frontContext.clear();
+            }
+            var relativeMouse_1 = undefined;
+            // Convert mouse coords to relative
+            if (mouse) {
+                relativeMouse_1 = new index_4.Point(mouse.x - cStack.offset.x, mouse.y - cStack.offset.y);
+            }
+            // Prepare rendering objects: locator and context.
+            var context_1 = new index_2.VisualContext(renderBase, renderFront, area.mainContext, area.frontContext, relativeMouse_1);
+            cStack.render(context_1, index_3.RenderLocator.Instance);
+            context_1 = new index_2.VisualContext(renderBase, renderFront, yAxisArea.mainContext, yAxisArea.frontContext, relativeMouse_1);
+            if (mouse) {
+                relativeMouse_1 = new index_4.Point(mouse.x - yAxis.offset.x, mouse.y - yAxis.offset.y);
+            }
+            yAxis.render(context_1, index_3.RenderLocator.Instance);
+        }
+        // Do not rerender time axis when rendering only front.
+        if (renderBase) {
+            // Clear canvas
+            this.timeArea.mainContext.clear();
+        }
+        if (renderFront) {
+            this.timeArea.frontContext.clear();
+        }
+        var relativeMouse = undefined;
+        // Convert mouse coords to relative
+        if (mouse) {
+            relativeMouse = new index_4.Point(mouse.x - this.timeAxis.offset.x, mouse.y - this.timeAxis.offset.y);
+        }
+        var context = new index_2.VisualContext(renderBase, renderFront, this.timeArea.mainContext, this.timeArea.frontContext, relativeMouse);
+        this.timeAxis.render(context, index_3.RenderLocator.Instance);
+    };
     ChartBoard.prototype.onDataChanged = function (arg) {
         this.render();
     };
@@ -11523,7 +11741,12 @@ var ChartBoard = (function (_super) {
             }
         }
         _a = [event.pageX, event.pageY], this.mouseX = _a[0], this.mouseY = _a[1];
-        if (this.isMouseEntered) {
+        if (this.isMouseEntered && this.isMouseDown) {
+            // TODO: Use animation loop (?)
+            this.renderLayers(true, true);
+        }
+        else if (this.isMouseEntered) {
+            this.renderLayers(false, true);
         }
         var _a;
     };
@@ -11561,72 +11784,159 @@ var ChartBoard = (function (_super) {
         }
     };
     return ChartBoard;
-}(index_3.VisualComponent));
+}(index_2.VisualComponent));
 exports.ChartBoard = ChartBoard;
-},{"../axes/index":4,"../canvas/index":7,"../core/index":17,"../render/index":39,"../shared/index":42,"./ChartArea":9,"./ChartStack":11,"jquery":1}],11:[function(require,module,exports){
+},{"../axes/index":5,"../core/index":23,"../render/index":51,"../shared/index":54,"./ChartArea":10,"./ChartStack":13,"./NumberMarker":15,"./PriceMarker":16,"./TimeMarker":17,"jquery":1}],12:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-/**
- * ChartStack class.
- */
-var index_1 = require("../axes/index");
-var index_2 = require("../core/index");
-var index_3 = require("../shared/index");
+var index_1 = require("../core/index");
+var ChartPopup = (function (_super) {
+    __extends(ChartPopup, _super);
+    function ChartPopup(chartType, offset, size, dataSource, timeAxis, yAxis) {
+        var _this = _super.call(this, offset, size) || this;
+        _this.chartType = chartType;
+        _this.dataSource = dataSource;
+        _this.timeAxis = timeAxis;
+        _this.yAxis = yAxis;
+        return _this;
+    }
+    Object.defineProperty(ChartPopup.prototype, "target", {
+        get: function () {
+            return 'front'; // 'base'
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ChartPopup.prototype.render = function (context, renderLocator) {
+        // only render on front
+        if (!context.renderFront) {
+            return;
+        }
+        if (!context.mousePosition) {
+            return;
+        }
+        var mouseX = context.mousePosition.x;
+        var mouseY = context.mousePosition.y;
+        if (mouseX > 0 && mouseX < this.size.width
+            && mouseY > 0 && mouseY < this.size.height) {
+            var canvas = context.getCanvas(this.target);
+            // 1. Get approximate range
+            // 2. Get data in that range            
+            // 3. Test hit area
+            //
+            var dateRange = this.timeAxis.getValuesRange(mouseX - 10, mouseX + 10);
+            if (dateRange && dateRange.start && dateRange.end) {
+                var dataIterator = this.dataSource.getData(dateRange, this.timeAxis.interval);
+                var dataRender = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
+                var item = dataRender.testHitArea({ x: mouseX, y: mouseY }, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+                if (item) {
+                    var popupRender = renderLocator.getPopupRender(this.dataSource.dataType);
+                    popupRender.render(canvas, item, { x: mouseX, y: mouseY }, this.size);
+                }
+            }
+        }
+    };
+    return ChartPopup;
+}(index_1.VisualComponent));
+exports.ChartPopup = ChartPopup;
+},{"../core/index":23}],13:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var index_1 = require("../core/index");
+var index_2 = require("../shared/index");
 var Chart_1 = require("./Chart");
+var Crosshair_1 = require("./Crosshair");
 var ChartStack = (function (_super) {
     __extends(ChartStack, _super);
-    function ChartStack(area, offset, timeAxis) {
-        var _this = _super.call(this, offset) || this;
-        _this.area = area;
+    function ChartStack(offset, size, timeAxis, yAxis) {
+        var _this = _super.call(this, offset, size) || this;
         _this.timeAxis = timeAxis;
+        _this.yAxis = yAxis;
         _this.charts = [];
-        // create initial Y axis
-        _this.yAxis = new index_1.NumberAxis(_this.area.axisYContext.h, 1);
+        // create crosshair
+        _this.crosshair = new Crosshair_1.Crosshair(offset, { width: size.width - 20, height: size.height });
         return _this;
     }
     ChartStack.prototype.addChart = function (chartType, dataSource) {
-        var newChart = new Chart_1.Chart(chartType, new index_3.Point(this.offset.x, this.offset.y), this.area.mainContext, dataSource, this.timeAxis, this.yAxis);
+        var newChart = new Chart_1.Chart(chartType, new index_2.Point(this.offset.x, this.offset.y), { width: this.size.width, height: this.size.height }, dataSource, this.timeAxis, this.yAxis);
         this.charts.push(newChart);
         this.addChild(newChart);
     };
     ChartStack.prototype.render = function (context, renderLocator) {
-        this.area.mainContext.clear();
-        this.area.axisXContext.clear();
-        this.area.axisYContext.clear();
-        // 1. Update y axis before rendering charts
-        //
-        // TODO: Make DataSource.DefaultYRange or take last known data:
-        var yRange = { start: Number.MAX_VALUE, end: Number.MIN_VALUE };
-        for (var _i = 0, _a = this.charts; _i < _a.length; _i++) {
-            var chart = _a[_i];
-            var valuesRange = chart.getValuesRange(this.timeAxis.range, this.timeAxis.interval);
-            if (valuesRange.end > yRange.end) {
-                yRange.end = valuesRange.end;
+        if (context.renderBase) {
+            var canvas = context.getCanvas(this.target);
+            // 1. Update y axis before rendering charts
+            //
+            // TODO: Make DataSource.DefaultYRange or take last known data:
+            var yRange = { start: Number.MAX_VALUE, end: Number.MIN_VALUE };
+            for (var _i = 0, _a = this.charts; _i < _a.length; _i++) {
+                var chart = _a[_i];
+                var valuesRange = chart.getValuesRange(this.timeAxis.range, this.timeAxis.interval);
+                if (valuesRange.end > yRange.end) {
+                    yRange.end = valuesRange.end;
+                }
+                if (valuesRange.start < yRange.start) {
+                    yRange.start = valuesRange.start;
+                }
             }
-            if (valuesRange.start < yRange.start) {
-                yRange.start = valuesRange.start;
+            if (this.charts.length > 0) {
+                this.yAxis.range = yRange;
+            }
+            else {
+                this.yAxis.range = { start: 0, end: 100 }; // default values
             }
         }
-        if (this.charts.length > 0) {
-            this.yAxis.range = yRange;
+        // 2. Render children
+        for (var _b = 0, _c = this.charts; _b < _c.length; _b++) {
+            var chart = _c[_b];
+            chart.render(context, renderLocator);
         }
-        else {
-            this.yAxis.range = { start: 0, end: 100 }; // default values
-        }
-        // 2. Render charts
-        _super.prototype.render.call(this, context, renderLocator);
         // 3. Render additional objects
         //
+        this.crosshair.render(context, renderLocator);
+    };
+    return ChartStack;
+}(index_1.VisualComponent));
+exports.ChartStack = ChartStack;
+},{"../core/index":23,"../shared/index":54,"./Chart":9,"./Crosshair":14}],14:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var index_1 = require("../core/index");
+var Crosshair = (function (_super) {
+    __extends(Crosshair, _super);
+    function Crosshair(offset, size) {
+        return _super.call(this, offset, size) || this;
+    }
+    Object.defineProperty(Crosshair.prototype, "target", {
+        get: function () {
+            return 'front'; // 'base'
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Crosshair.prototype.render = function (context, renderLocator) {
+        if (!context.renderFront) {
+            // only render on front
+            return;
+        }
         if (context.mousePosition) {
             // ... calculate mouse position related to this element
-            var mouseX = context.mousePosition.x - this.offset.x;
-            var mouseY = context.mousePosition.y - this.offset.y;
+            var mouseX = context.mousePosition.x; // - this.offset.x;
+            var mouseY = context.mousePosition.y; // - this.offset.y;
             // TODO: move to specific renderer
-            var canvas = this.area.mainContext;
+            var canvas = context.getCanvas(this.target);
             canvas.setStrokeStyle('black');
             canvas.beginPath();
             var text = "[" + mouseX + " " + mouseY + "]";
@@ -11636,28 +11946,155 @@ var ChartStack = (function (_super) {
             canvas.closePath();
             // Draw crosshair
             //
-            if (mouseX > 0 && mouseX < this.area.mainContext.w) {
+            if (mouseX > 0 && mouseX < this.size.width) {
                 // draw vertical line
                 canvas.beginPath();
                 canvas.moveTo(mouseX, 0);
-                canvas.lineTo(mouseX, this.area.mainContext.h);
+                canvas.lineTo(mouseX, this.size.height);
                 canvas.stroke();
                 canvas.closePath();
             }
-            if (mouseY > 0 && mouseY < this.area.mainContext.h) {
+            if (mouseY > 0 && mouseY < this.size.height) {
                 // draw horizontal line
                 canvas.beginPath();
                 canvas.moveTo(0, mouseY);
-                canvas.lineTo(this.area.mainContext.w, mouseY);
+                canvas.lineTo(this.size.width, mouseY);
                 canvas.stroke();
                 canvas.closePath();
             }
         }
     };
-    return ChartStack;
-}(index_2.VisualComponent));
-exports.ChartStack = ChartStack;
-},{"../axes/index":4,"../core/index":17,"../shared/index":42,"./Chart":8}],12:[function(require,module,exports){
+    return Crosshair;
+}(index_1.VisualComponent));
+exports.Crosshair = Crosshair;
+},{"../core/index":23}],15:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var index_1 = require("../core/index");
+var NumberMarker = (function (_super) {
+    __extends(NumberMarker, _super);
+    function NumberMarker(offset, size, axis) {
+        var _this = _super.call(this, offset, size) || this;
+        _this.axis = axis;
+        return _this;
+    }
+    Object.defineProperty(NumberMarker.prototype, "target", {
+        get: function () {
+            return 'front'; // 'base'
+        },
+        enumerable: true,
+        configurable: true
+    });
+    NumberMarker.prototype.render = function (context, renderLocator) {
+        if (!context.renderFront) {
+            // only render on front
+            return;
+        }
+        if (context.mousePosition) {
+            var mouseX = context.mousePosition.x;
+            var mouseY = context.mousePosition.y;
+            if (mouseY > 0 && mouseY < this.size.height) {
+                var canvas = context.getCanvas(this.target);
+                // TODO: move to specific renderer
+                canvas.setStrokeStyle('black');
+                canvas.beginPath();
+                var text = this.axis.toValue(mouseY).toString();
+                canvas.strokeText(text, 0, mouseY);
+                canvas.stroke();
+                canvas.closePath();
+            }
+        }
+    };
+    return NumberMarker;
+}(index_1.VisualComponent));
+exports.NumberMarker = NumberMarker;
+},{"../core/index":23}],16:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var index_1 = require("../core/index");
+var PriceMarker = (function (_super) {
+    __extends(PriceMarker, _super);
+    function PriceMarker(offset, size, axis) {
+        var _this = _super.call(this, offset, size) || this;
+        _this.axis = axis;
+        return _this;
+    }
+    Object.defineProperty(PriceMarker.prototype, "target", {
+        get: function () {
+            return 'front'; // 'base'
+        },
+        enumerable: true,
+        configurable: true
+    });
+    PriceMarker.prototype.render = function (context, renderLocator) {
+        if (!context.renderFront) {
+            // only render on front
+            return;
+        }
+        if (context.mousePosition) {
+            var mouseX = context.mousePosition.x;
+            var mouseY = context.mousePosition.y;
+            if (mouseY > 0 && mouseY < this.size.height) {
+                var canvas = context.getCanvas(this.target);
+                var render = renderLocator.getMarkRender('number');
+                var num = this.axis.toValue(mouseY);
+                render.render(canvas, num, { x: 2, y: mouseY }, this.size);
+            }
+        }
+    };
+    return PriceMarker;
+}(index_1.VisualComponent));
+exports.PriceMarker = PriceMarker;
+},{"../core/index":23}],17:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var index_1 = require("../core/index");
+var TimeMarker = (function (_super) {
+    __extends(TimeMarker, _super);
+    function TimeMarker(offset, size, axis) {
+        var _this = _super.call(this, offset, size) || this;
+        _this.axis = axis;
+        return _this;
+    }
+    Object.defineProperty(TimeMarker.prototype, "target", {
+        get: function () {
+            return 'front'; // 'base'
+        },
+        enumerable: true,
+        configurable: true
+    });
+    TimeMarker.prototype.render = function (context, renderLocator) {
+        if (!context.renderFront) {
+            // only render on front
+            return;
+        }
+        if (context.mousePosition) {
+            var mouseX = context.mousePosition.x; // - this.offset.x;
+            var mouseY = context.mousePosition.y; // - this.offset.y;
+            if (mouseX > 0 && mouseX < this.size.width) {
+                var canvas = context.getCanvas(this.target);
+                var render = renderLocator.getMarkRender('date');
+                var date = this.axis.toValue(mouseX);
+                render.render(canvas, date, { x: mouseX, y: 10 }, this.size);
+            }
+        }
+    };
+    return TimeMarker;
+}(index_1.VisualComponent));
+exports.TimeMarker = TimeMarker;
+},{"../core/index":23}],18:[function(require,module,exports){
 /**
  *
  */
@@ -11670,7 +12107,7 @@ var ChartBoard_1 = require("./ChartBoard");
 exports.ChartBoard = ChartBoard_1.ChartBoard;
 var ChartStack_1 = require("./ChartStack");
 exports.ChartStack = ChartStack_1.ChartStack;
-},{"./Chart":8,"./ChartArea":9,"./ChartBoard":10,"./ChartStack":11}],13:[function(require,module,exports){
+},{"./Chart":9,"./ChartArea":10,"./ChartBoard":11,"./ChartStack":13}],19:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -11683,7 +12120,7 @@ var ChartType = (function () {
 ChartType.candle = 'candle';
 ChartType.line = 'line';
 exports.ChartType = ChartType;
-},{}],14:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 "use strict";
 /**
 * Core enumerations.
@@ -11706,45 +12143,102 @@ var Unit;
 (function (Unit) {
     Unit[Unit["Price"] = 0] = "Price";
 })(Unit = exports.Unit || (exports.Unit = {}));
-},{}],15:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict";
 var index_1 = require("../shared/index");
-// export class VisualComponentDesc {
-//     public offset: Point;
-//     constructor(offset: Point) {
-//         this.offset = offset;
-//     }
-// }
 var VisualComponent = (function () {
-    // protected childrenDesc: VisualComponentDesc[] = [];
     function VisualComponent(offset, size) {
         this.children = [];
-        this.offset = offset ? offset : new index_1.Point(0, 0);
-        this.size = size ? size : { width: 0, height: 0 };
+        this._offset = offset ? offset : new index_1.Point(0, 0);
+        this._size = size ? size : { width: 0, height: 0 };
     }
+    Object.defineProperty(VisualComponent.prototype, "offset", {
+        // protected childrenDesc: VisualComponentDesc[] = [];
+        get: function () {
+            return this._offset;
+        },
+        set: function (value) {
+            this._offset = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(VisualComponent.prototype, "size", {
+        get: function () {
+            return this._size;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(VisualComponent.prototype, "target", {
+        get: function () {
+            // TODO: Make an enum
+            return 'base'; // 'front'
+        },
+        enumerable: true,
+        configurable: true
+    });
     VisualComponent.prototype.addChild = function (child) {
         this.children.push(child);
-        //this.childrenDesc.push(new VisualComponentDesc(offset));
     };
     VisualComponent.prototype.render = function (context, renderLocator) {
         for (var _i = 0, _a = this.children; _i < _a.length; _i++) {
             var child = _a[_i];
+            // convert mouse coords to relative coords
+            var origMousePos = context.mousePosition;
+            if (context.mousePosition) {
+                context.mousePosition = new index_1.Point(context.mousePosition.x - child.offset.x, context.mousePosition.y - child.offset.y);
+            }
             child.render(context, renderLocator);
+            // restore mousePosition
+            context.mousePosition = origMousePos;
+        }
+    };
+    VisualComponent.prototype.forEach = function (delegate) {
+        for (var _i = 0, _a = this.children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            delegate(child);
+            child.forEach(delegate);
         }
     };
     return VisualComponent;
 }());
 exports.VisualComponent = VisualComponent;
-},{"../shared/index":42}],16:[function(require,module,exports){
+},{"../shared/index":54}],22:[function(require,module,exports){
 "use strict";
 var VisualContext = (function () {
-    function VisualContext(mousePosition) {
+    function VisualContext(renderBase, renderFront, baseCanvas, frontCanvas, mousePosition) {
+        this._renderBase = renderBase;
+        this._renderFront = renderFront;
+        this.baseCanvas = baseCanvas;
+        this.frontCanvas = frontCanvas;
         this.mousePosition = mousePosition;
     }
+    Object.defineProperty(VisualContext.prototype, "renderBase", {
+        get: function () {
+            return this._renderBase;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(VisualContext.prototype, "renderFront", {
+        get: function () {
+            return this._renderFront;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    VisualContext.prototype.getCanvas = function (canvasId) {
+        switch (canvasId) {
+            case 'base': return this.baseCanvas;
+            case 'front': return this.frontCanvas;
+            default: throw new Error('Unexpected canvasId ' + canvasId);
+        }
+    };
     return VisualContext;
 }());
 exports.VisualContext = VisualContext;
-},{}],17:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -11758,7 +12252,7 @@ var VisualComponent_1 = require("./VisualComponent");
 exports.VisualComponent = VisualComponent_1.VisualComponent;
 var VisualContext_1 = require("./VisualContext");
 exports.VisualContext = VisualContext_1.VisualContext;
-},{"./ChartType":13,"./Enums":14,"./VisualComponent":15,"./VisualContext":16}],18:[function(require,module,exports){
+},{"./ChartType":19,"./Enums":20,"./VisualComponent":21,"./VisualContext":22}],24:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11833,7 +12327,7 @@ var ArrayDataSource = (function (_super) {
     return ArrayDataSource;
 }(DataSource_1.DataSource));
 exports.ArrayDataSource = ArrayDataSource;
-},{"./ArrayIterator":19,"./DataSource":21,"./DataSourceConfig":22}],19:[function(require,module,exports){
+},{"./ArrayIterator":25,"./DataSource":27,"./DataSourceConfig":28}],25:[function(require,module,exports){
 "use strict";
 var ArrayIterator = (function () {
     function ArrayIterator(dataSnapshot, indexFirst, indexLast, timestamp) {
@@ -11876,7 +12370,7 @@ var ArrayIterator = (function () {
     return ArrayIterator;
 }());
 exports.ArrayIterator = ArrayIterator;
-},{}],20:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11898,7 +12392,7 @@ var DataChangedEvent = (function (_super) {
     return DataChangedEvent;
 }(index_1.Event));
 exports.DataChangedEvent = DataChangedEvent;
-},{"../shared/index":42}],21:[function(require,module,exports){
+},{"../shared/index":54}],27:[function(require,module,exports){
 "use strict";
 var DataChangedEvent_1 = require("./DataChangedEvent");
 var DataSource = (function () {
@@ -11954,7 +12448,7 @@ var DataSource = (function () {
     return DataSource;
 }());
 exports.DataSource = DataSource;
-},{"./DataChangedEvent":20}],22:[function(require,module,exports){
+},{"./DataChangedEvent":26}],28:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -11965,7 +12459,7 @@ var DataSourceConfig = (function () {
     return DataSourceConfig;
 }());
 exports.DataSourceConfig = DataSourceConfig;
-},{}],23:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -11978,7 +12472,7 @@ var DataType = (function () {
 DataType.point = 'point';
 DataType.candle = 'candle';
 exports.DataType = DataType;
-},{}],24:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12140,20 +12634,19 @@ var HttpDataSource = (function (_super) {
         this.pendingRequests.push({ uid: uid, request: request, interval: interval, range: { start: reqStartDate, end: reqEndDate } });
         var self = this;
         request.done(function (response) {
-            console.debug('request succeeded: ');
-            self.mergeData(response.data);
-            // Notify subscribers:
-            self.dateChangedEvent.trigger(new Interfaces_1.DataChangedArgument({ start: response.startDateTime, end: response.endDateTime }, self.stringToTimeInterval(response.interval)));
+            if (response && response.data && response.data.length > 0) {
+                self.mergeData(response.data);
+                // Notify subscribers:
+                self.dateChangedEvent.trigger(new Interfaces_1.DataChangedArgument({ start: new Date(response.startDateTime), end: new Date(response.endDateTime) }, self.stringToTimeInterval(response.interval)));
+            }
         })
             .fail(function (jqXHR, textStatus) {
             console.debug('request failed: ' + jqXHR + textStatus);
         })
             .always(function (jqXHR, textStatus, errorThrown) {
             // Remove request from pending requests
-            console.debug('searching request in pending');
             for (var i = 0; i < _this.pendingRequests.length; i += 1) {
                 if (_this.pendingRequests[i].uid === uid) {
-                    console.debug('removing request.');
                     _this.pendingRequests.splice(i, 1);
                 }
             }
@@ -12228,7 +12721,7 @@ var HttpDataSource = (function (_super) {
     return HttpDataSource;
 }(DataSource_1.DataSource));
 exports.HttpDataSource = HttpDataSource;
-},{"../core/index":17,"../utils/index":44,"./ArrayIterator":19,"./DataSource":21,"./DataSourceConfig":22,"./Interfaces":26,"jquery":1}],25:[function(require,module,exports){
+},{"../core/index":23,"../utils/index":56,"./ArrayIterator":25,"./DataSource":27,"./DataSourceConfig":28,"./Interfaces":32,"jquery":1}],31:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12250,7 +12743,7 @@ var HttpDataSourceConfig = (function (_super) {
     return HttpDataSourceConfig;
 }(DataSourceConfig_1.DataSourceConfig));
 exports.HttpDataSourceConfig = HttpDataSourceConfig;
-},{"./DataSourceConfig":22}],26:[function(require,module,exports){
+},{"./DataSourceConfig":28}],32:[function(require,module,exports){
 "use strict";
 var DataChangedArgument = (function () {
     function DataChangedArgument(range, interval) {
@@ -12274,7 +12767,7 @@ var DataChangedArgument = (function () {
     return DataChangedArgument;
 }());
 exports.DataChangedArgument = DataChangedArgument;
-},{}],27:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -12297,7 +12790,7 @@ var HttpDataSourceConfig_1 = require("./HttpDataSourceConfig");
 exports.HttpDataSourceConfig = HttpDataSourceConfig_1.HttpDataSourceConfig;
 var Interfaces_1 = require("./Interfaces");
 exports.DataChangedArgument = Interfaces_1.DataChangedArgument;
-},{"./ArrayDataSource":18,"./ArrayIterator":19,"./DataChangedEvent":20,"./DataSource":21,"./DataSourceConfig":22,"./DataType":23,"./HttpDataSource":24,"./HttpDataSourceConfig":25,"./Interfaces":26}],28:[function(require,module,exports){
+},{"./ArrayDataSource":24,"./ArrayIterator":25,"./DataChangedEvent":26,"./DataSource":27,"./DataSourceConfig":28,"./DataType":29,"./HttpDataSource":30,"./HttpDataSourceConfig":31,"./Interfaces":32}],34:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12313,7 +12806,8 @@ var SimpleIndicator = (function (_super) {
         _this.dataSource = dataSource;
         _this.dataInitialized = false;
         _this.dataSnapshot = { data: [], timestamp: 0 };
-        dataSource.dateChanged.on(_this.onDataSourceChanged);
+        var self = _this;
+        dataSource.dateChanged.on(function (arg) { self.onDataSourceChanged(arg); });
         return _this;
     }
     SimpleIndicator.prototype.getValuesRange = function (range, interval) {
@@ -12329,13 +12823,13 @@ var SimpleIndicator = (function (_super) {
         // Find first and last indexes.
         //
         var startIndex = 0;
-        for (startIndex = 0; startIndex < data.length; startIndex++) {
+        for (startIndex = 0; startIndex < data.length; startIndex += 1) {
             if (data[startIndex].date.getTime() >= range.start.getTime()) {
                 break;
             }
         }
         var lastIndex = data.length - 1;
-        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex--) {
+        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
             if (data[startIndex].date.getTime() <= range.end.getTime()) {
                 break;
             }
@@ -12362,7 +12856,7 @@ var SimpleIndicator = (function (_super) {
             if (candle.c) {
                 prevValues[i] = candle.c;
             }
-            i++;
+            i += 1;
         }
         i = 0;
         while (iterator.moveNext()) {
@@ -12375,7 +12869,7 @@ var SimpleIndicator = (function (_super) {
                 prevValues[0] = prevValues[1];
                 prevValues[1] = curValue;
             }
-            i++;
+            i += 1;
         }
         // update timestamp
         this.dataSnapshot.timestamp = this.dataSnapshot.timestamp + 1;
@@ -12383,16 +12877,16 @@ var SimpleIndicator = (function (_super) {
     return SimpleIndicator;
 }(index_1.DataSource));
 exports.SimpleIndicator = SimpleIndicator;
-},{"../data/index":27,"../model/index":33}],29:[function(require,module,exports){
+},{"../data/index":33,"../model/index":39}],35:[function(require,module,exports){
 "use strict";
 /**
  *
  */
 var SimpleIndicator_1 = require("./SimpleIndicator");
 exports.SimpleIndicator = SimpleIndicator_1.SimpleIndicator;
-},{"./SimpleIndicator":28}],30:[function(require,module,exports){
+},{"./SimpleIndicator":34}],36:[function(require,module,exports){
 "use strict";
-},{}],31:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 var Candlestick = (function () {
     function Candlestick(date, c, o, h, l) {
@@ -12437,7 +12931,7 @@ var Candlestick = (function () {
     return Candlestick;
 }());
 exports.Candlestick = Candlestick;
-},{}],32:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 "use strict";
 var Point = (function () {
     function Point(d, v) {
@@ -12460,7 +12954,7 @@ var Point = (function () {
     return Point;
 }());
 exports.Point = Point;
-},{}],33:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 /**
  *
  */
@@ -12469,30 +12963,359 @@ var Candlestick_1 = require("./Candlestick");
 exports.Candlestick = Candlestick_1.Candlestick;
 var Point_1 = require("./Point");
 exports.Point = Point_1.Point;
-},{"./Candlestick":31,"./Point":32}],34:[function(require,module,exports){
+},{"./Candlestick":37,"./Point":38}],40:[function(require,module,exports){
+/**
+* CandlestickChartRenderer
+*
+* @classdesc Renders specified data in a form of candlestick chart.
+*/
+"use strict";
+var CandlestickChartRenderer = (function () {
+    function CandlestickChartRenderer() {
+    }
+    CandlestickChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
+        console.debug("[CandlestickChartRenderer] start rendering...");
+        // Calculate size of frame
+        var frameSize = {
+            width: canvas.w,
+            height: canvas.h
+        };
+        // Render
+        //
+        this.startRender(canvas);
+        while (dataIterator.moveNext()) {
+            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frameSize);
+        }
+        this.finishRender(canvas);
+    };
+    CandlestickChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
+        var candleHit = undefined;
+        while (dataIterator.moveNext()) {
+            if (this.testHitAreaCandle(hitPoint, timeAxis, yAxis, dataIterator.current)) {
+                candleHit = dataIterator.current;
+                break;
+            }
+        }
+        return candleHit;
+    };
+    CandlestickChartRenderer.prototype.startRender = function (canvas) {
+    };
+    CandlestickChartRenderer.prototype.finishRender = function (canvas) {
+    };
+    CandlestickChartRenderer.prototype.testHitAreaCandle = function (hitPoint, timeAxis, yAxis, candle) {
+        if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
+            return false;
+        }
+        var x = timeAxis.toX(candle.date);
+        var body = this.calculateBody(x, yAxis, candle.o, candle.c);
+        return (hitPoint.x >= body.x && hitPoint.x <= (body.x + body.w)
+            && hitPoint.y >= body.y && hitPoint.y <= (body.y + body.h));
+    };
+    CandlestickChartRenderer.prototype.renderCandle = function (canvas, timeAxis, yAxis, candle, frameSize) {
+        if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
+            return;
+        }
+        // Startin drawing
+        canvas.lineWidth = 1;
+        canvas.setStrokeStyle('#333333');
+        canvas.beginPath();
+        var x = timeAxis.toX(candle.date);
+        var body = this.calculateBody(x, yAxis, candle.o, candle.c);
+        var h = yAxis.toX(candle.h);
+        var l = yAxis.toX(candle.l);
+        // Drawing upper shadow
+        this.line(canvas, x, body.y, x, h);
+        // Drawing lower shadow
+        this.line(canvas, x, l, x, body.y + body.h);
+        canvas.stroke();
+        canvas.closePath();
+        // Drawing body
+        if (candle.c > candle.o) {
+            canvas.setFillStyle('#008910');
+        }
+        else {
+            canvas.setFillStyle('#D80300');
+        }
+        canvas.fillRect(body.x, body.y, body.w, body.h);
+        canvas.strokeRect(body.x, body.y, body.w, body.h);
+    };
+    CandlestickChartRenderer.prototype.calculateBody = function (x, yAxis, o, c) {
+        var ocMin = yAxis.toX(Math.min(o, c));
+        var ocMax = yAxis.toX(Math.max(o, c));
+        return { x: x - 1, y: ocMin, w: 2, h: ocMax - ocMin };
+    };
+    CandlestickChartRenderer.prototype.line = function (canvas, x1, y1, x2, y2) {
+        canvas.moveTo(x1, y1);
+        canvas.lineTo(x2, y2);
+    };
+    return CandlestickChartRenderer;
+}());
+exports.CandlestickChartRenderer = CandlestickChartRenderer;
+},{}],41:[function(require,module,exports){
+"use strict";
+var CandlestickPopupRenderer = (function () {
+    function CandlestickPopupRenderer() {
+    }
+    CandlestickPopupRenderer.prototype.render = function (canvas, model, point, frameSize) {
+        canvas.setStrokeStyle('black');
+        canvas.beginPath();
+        var text = "[ Candle: " + model.o + " " + model.c + "]";
+        canvas.strokeText(text, point.x, point.y);
+        canvas.stroke();
+        canvas.closePath();
+    };
+    return CandlestickPopupRenderer;
+}());
+exports.CandlestickPopupRenderer = CandlestickPopupRenderer;
+},{}],42:[function(require,module,exports){
+"use strict";
+/**
+ * Render related enums.
+ */
+var RenderType;
+(function (RenderType) {
+    RenderType[RenderType["Candlestick"] = 0] = "Candlestick";
+    RenderType[RenderType["Line"] = 1] = "Line";
+})(RenderType = exports.RenderType || (exports.RenderType = {}));
+},{}],43:[function(require,module,exports){
+/**
+* LineChartRenderer
+*
+* @classdesc Renders specified data in a form of line chart.
+*/
+"use strict";
+var LineChartRenderer = (function () {
+    function LineChartRenderer() {
+    }
+    LineChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
+        // Calculate size of frame
+        var frameSize = {
+            width: canvas.w,
+            height: canvas.h
+        };
+        // Render
+        if (dataIterator.moveNext()) {
+            var prevPoint = dataIterator.current;
+            while (dataIterator.moveNext()) {
+                if (dataIterator.current.value) {
+                    this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frameSize);
+                    prevPoint = dataIterator.current;
+                }
+            }
+        }
+    };
+    LineChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
+        while (dataIterator.moveNext()) {
+            if (dataIterator.current.value) {
+                var x = timeAxis.toX(dataIterator.current.date);
+                var y = yAxis.toX(dataIterator.current.value);
+                var R = Math.sqrt(Math.pow(Math.abs(x - hitPoint.x), 2) + Math.pow(Math.abs(y - hitPoint.y), 2));
+                if (R < 2) {
+                    return dataIterator.current;
+                }
+            }
+        }
+    };
+    LineChartRenderer.prototype.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frameSize) {
+        // Startin drawing
+        canvas.setStrokeStyle('#555555');
+        canvas.beginPath();
+        var x1 = timeAxis.toX(pointFrom.date);
+        var y1 = yAxis.toX(pointFrom.value);
+        var x2 = timeAxis.toX(pointTo.date);
+        var y2 = yAxis.toX(pointTo.value);
+        // Drawing upper shadow
+        this.line(canvas, x1, y1, x2, y2);
+        canvas.stroke();
+        canvas.closePath();
+    };
+    LineChartRenderer.prototype.line = function (canvas, x1, y1, x2, y2) {
+        canvas.moveTo(x1, y1);
+        canvas.lineTo(x2, y2);
+    };
+    return LineChartRenderer;
+}());
+exports.LineChartRenderer = LineChartRenderer;
+},{}],44:[function(require,module,exports){
+"use strict";
+var LinePopupRenderer = (function () {
+    function LinePopupRenderer() {
+    }
+    LinePopupRenderer.prototype.render = function (canvas, model, point, frameSize) {
+        canvas.setStrokeStyle('black');
+        canvas.beginPath();
+        var text = "[Point: " + model.value + "]";
+        canvas.strokeText(text, point.x, point.y);
+        canvas.stroke();
+        canvas.closePath();
+    };
+    return LinePopupRenderer;
+}());
+exports.LinePopupRenderer = LinePopupRenderer;
+},{}],45:[function(require,module,exports){
+/**
+ * NumberAxisRenderer
+ *
+ * @classdesc Contains methods for rendering axes.
+ */
+"use strict";
+var NumberAxisRenderer = (function () {
+    function NumberAxisRenderer() {
+    }
+    NumberAxisRenderer.prototype.render = function (canvas, axis, offset, size) {
+        canvas.setStrokeStyle('black');
+        canvas.beginPath();
+        canvas.strokeRect(offset.x, offset.y, size.width, size.height);
+        canvas.stroke();
+        canvas.closePath();
+    };
+    return NumberAxisRenderer;
+}());
+exports.NumberAxisRenderer = NumberAxisRenderer;
+},{}],46:[function(require,module,exports){
+"use strict";
+var NumberMarkRenderer = (function () {
+    function NumberMarkRenderer() {
+    }
+    NumberMarkRenderer.prototype.render = function (canvas, data, point, frameSize) {
+        canvas.setStrokeStyle('black');
+        canvas.beginPath();
+        var text = data.toString();
+        canvas.strokeText(text, point.x, point.y);
+        canvas.stroke();
+        canvas.closePath();
+    };
+    return NumberMarkRenderer;
+}());
+exports.NumberMarkRenderer = NumberMarkRenderer;
+},{}],47:[function(require,module,exports){
 /**
  * AxisRenderer
  *
  * @classdesc Contains methods for rendering axes.
  */
 "use strict";
-var AxisRenderer = (function () {
-    function AxisRenderer() {
+var PriceAxisRenderer = (function () {
+    function PriceAxisRenderer() {
     }
-    AxisRenderer.prototype.renderDateAxis = function (dateAxis, canvas) {
-        var scaleFit = new ScaleFit(dateAxis.width, dateAxis.interval, dateAxis.range);
+    PriceAxisRenderer.prototype.render = function (canvas, axis, offset, size) {
+        canvas.setStrokeStyle('black');
+        canvas.beginPath();
+        canvas.strokeRect(offset.x, offset.y, size.width, size.height);
+        canvas.stroke();
+        canvas.closePath();
+    };
+    return PriceAxisRenderer;
+}());
+exports.PriceAxisRenderer = PriceAxisRenderer;
+},{}],48:[function(require,module,exports){
+"use strict";
+/**
+ * RenderLocator singleton.
+ */
+var index_1 = require("../core/index");
+var index_2 = require("../model/index");
+var CandlestickChartRenderer_1 = require("./CandlestickChartRenderer");
+var CandlestickPopupRenderer_1 = require("./CandlestickPopupRenderer");
+var LineChartRenderer_1 = require("./LineChartRenderer");
+var LinePopupRenderer_1 = require("./LinePopupRenderer");
+var NumberAxisRenderer_1 = require("./NumberAxisRenderer");
+var NumberMarkRenderer_1 = require("./NumberMarkRenderer");
+var PriceAxisRenderer_1 = require("./PriceAxisRenderer");
+var TimeAxisRenderer_1 = require("./TimeAxisRenderer");
+var TimeMarkRenderer_1 = require("./TimeMarkRenderer");
+var RenderLocator = (function () {
+    function RenderLocator() {
+        this.candlestickChartRender = new CandlestickChartRenderer_1.CandlestickChartRenderer();
+        this.lineChartRender = new LineChartRenderer_1.LineChartRenderer();
+        this.timeAxisRender = new TimeAxisRenderer_1.TimeAxisRenderer();
+        this.priceAxisRender = new PriceAxisRenderer_1.PriceAxisRenderer();
+        this.numberAxisRender = new NumberAxisRenderer_1.NumberAxisRenderer();
+        this.candlePopupRenderer = new CandlestickPopupRenderer_1.CandlestickPopupRenderer();
+        this.linePopupRenderer = new LinePopupRenderer_1.LinePopupRenderer();
+        this.timeMarkRender = new TimeMarkRenderer_1.TimeMarkRenderer();
+        this.numberMarkRender = new NumberMarkRenderer_1.NumberMarkRenderer();
+    }
+    Object.defineProperty(RenderLocator, "Instance", {
+        get: function () {
+            return this.instance || (this.instance = new this());
+        },
+        enumerable: true,
+        configurable: true
+    });
+    RenderLocator.prototype.getChartRender = function (dataType, chartType) {
+        var obj = new dataType(new Date());
+        if (obj instanceof index_2.Point) {
+            if (chartType === index_1.ChartType.line) {
+                return this.lineChartRender;
+            }
+        }
+        else if (obj instanceof index_2.Candlestick) {
+            if (chartType === index_1.ChartType.candle) {
+                return this.candlestickChartRender;
+            }
+        }
+        else {
+            throw new Error('Unexpected data type: ' + dataType);
+        }
+        throw new Error('Unexpected chart type ' + chartType);
+    };
+    RenderLocator.prototype.getAxesRender = function (uid) {
+        switch (uid) {
+            case 'date': return this.timeAxisRender;
+            case 'number': return this.numberAxisRender;
+            case 'price': return this.priceAxisRender;
+            default:
+                throw new Error('Unexpected axes render uid: ' + uid);
+        }
+    };
+    RenderLocator.prototype.getPopupRender = function (dataType) {
+        var obj = new dataType(new Date());
+        if (obj instanceof index_2.Point) {
+            return this.linePopupRenderer;
+        }
+        else if (obj instanceof index_2.Candlestick) {
+            return this.candlePopupRenderer;
+        }
+        else {
+            throw new Error('Unexpected data type: ' + dataType);
+        }
+    };
+    RenderLocator.prototype.getMarkRender = function (uid) {
+        switch (uid) {
+            case 'date': return this.timeMarkRender;
+            case 'number': return this.numberMarkRender;
+            default:
+                throw new Error('Unexpected axes render uid: ' + uid);
+        }
+    };
+    return RenderLocator;
+}());
+exports.RenderLocator = RenderLocator;
+},{"../core/index":23,"../model/index":39,"./CandlestickChartRenderer":40,"./CandlestickPopupRenderer":41,"./LineChartRenderer":43,"./LinePopupRenderer":44,"./NumberAxisRenderer":45,"./NumberMarkRenderer":46,"./PriceAxisRenderer":47,"./TimeAxisRenderer":49,"./TimeMarkRenderer":50}],49:[function(require,module,exports){
+/**
+ * AxisRenderer
+ *
+ * @classdesc Contains methods for rendering axes.
+ */
+"use strict";
+var TimeAxisRenderer = (function () {
+    function TimeAxisRenderer() {
+    }
+    TimeAxisRenderer.prototype.render = function (canvas, axis, offset, frameSize) {
+        var scaleFit = new ScaleFit(frameSize.width, axis.interval, axis.range);
         var bars = scaleFit.getBars();
         canvas.setStrokeStyle('black');
         canvas.beginPath();
         for (var _i = 0, bars_1 = bars; _i < bars_1.length; _i++) {
             var bar = bars_1[_i];
-            var x = dateAxis.toX(bar);
+            var x = axis.toX(bar);
             this.drawBar(canvas, bar, x);
         }
         canvas.stroke();
         canvas.closePath();
     };
-    AxisRenderer.prototype.drawBar = function (canvas, date, x) {
+    TimeAxisRenderer.prototype.drawBar = function (canvas, date, x) {
         // draw bar
         canvas.moveTo(x, 7);
         canvas.lineTo(x, 10);
@@ -12503,9 +13326,9 @@ var AxisRenderer = (function () {
         canvas.strokeText(markText, x - w / 2, 25);
         //console.debug(`bar line: {${x},${7}} - {${x},${10}}`);
     };
-    return AxisRenderer;
+    return TimeAxisRenderer;
 }());
-exports.AxisRenderer = AxisRenderer;
+exports.TimeAxisRenderer = TimeAxisRenderer;
 // Calculates how many bars should be placed on the chart and where it should be placed.
 var ScaleFit = (function () {
     function ScaleFit(width, interval, range) {
@@ -12581,208 +13404,40 @@ var ScaleFit = (function () {
     };
     return ScaleFit;
 }());
-},{}],35:[function(require,module,exports){
-/**
-* CandlestickChartRenderer
-*
-* @classdesc Renders specified data in a form of candlestick chart.
-*/
+},{}],50:[function(require,module,exports){
 "use strict";
-var CandlestickChartRenderer = (function () {
-    function CandlestickChartRenderer() {
+var TimeMarkRenderer = (function () {
+    function TimeMarkRenderer() {
     }
-    CandlestickChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
-        console.debug("[CandlestickChartRenderer] start rendering...");
-        // Calculate size of frame
-        var frameSize = {
-            width: canvas.w,
-            height: canvas.h
-        };
-        // Render
-        //
-        this.startRender(canvas);
-        while (dataIterator.moveNext()) {
-            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frameSize);
-        }
-        this.finishRender(canvas);
-    };
-    CandlestickChartRenderer.prototype.startRender = function (canvas) {
-    };
-    CandlestickChartRenderer.prototype.finishRender = function (canvas) {
-    };
-    CandlestickChartRenderer.prototype.renderCandle = function (canvas, timeAxis, yAxis, candle, frameSize) {
-        if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
-            return;
-        }
-        // Lower and upper ranges of the candle's body.
-        //let bodyMin = Math.min(candle.o, candle.c);
-        //let bodyMax = Math.max(candle.o, candle.c);
-        // Startin drawing
-        canvas.setStrokeStyle('#333333');
+    TimeMarkRenderer.prototype.render = function (canvas, data, point, frameSize) {
+        canvas.setStrokeStyle('black');
         canvas.beginPath();
-        var x = timeAxis.toX(candle.date);
-        var ocMin = yAxis.toX(Math.min(candle.o, candle.c)), ocMax = yAxis.toX(Math.max(candle.o, candle.c)), h = yAxis.toX(candle.h), l = yAxis.toX(candle.l);
-        // Drawing upper shadow
-        this.line(canvas, x, ocMax, x, h);
-        // Drawing lower shadow
-        this.line(canvas, x, l, x, ocMin);
-        canvas.stroke();
-        canvas.closePath();
-        // Drawing body
-        if (candle.c > candle.o) {
-            canvas.setFillStyle('#008910');
-        }
-        else {
-            canvas.setFillStyle('#D80300');
-        }
-        this.rect(canvas, x - 1, ocMin, x + 1, ocMax);
-    };
-    CandlestickChartRenderer.prototype.line = function (canvas, x1, y1, x2, y2) {
-        //console.debug(`line: {${x1},${y1}} - {${x2},${y2}}`);
-        canvas.moveTo(x1, y1);
-        canvas.lineTo(x2, y2);
-    };
-    CandlestickChartRenderer.prototype.rect = function (canvas, x1, y1, x2, y2) {
-        //console.debug(`rect: {${x1},${y1}} - {${x2},${y2}}`);
-        canvas.fillRect(x1, y1, Math.abs(x2 - x1), Math.abs(y2 - y1));
-        canvas.strokeRect(x1, y1, Math.abs(x2 - x1), Math.abs(y2 - y1));
-    };
-    return CandlestickChartRenderer;
-}());
-exports.CandlestickChartRenderer = CandlestickChartRenderer;
-},{}],36:[function(require,module,exports){
-"use strict";
-/**
- * Render related enums.
- */
-var RenderType;
-(function (RenderType) {
-    RenderType[RenderType["Candlestick"] = 0] = "Candlestick";
-    RenderType[RenderType["Line"] = 1] = "Line";
-})(RenderType = exports.RenderType || (exports.RenderType = {}));
-},{}],37:[function(require,module,exports){
-/**
-* LineChartRenderer
-*
-* @classdesc Renders specified data in a form of line chart.
-*/
-"use strict";
-var LineChartRenderer = (function () {
-    function LineChartRenderer() {
-    }
-    LineChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
-        console.debug("[LineChartRenderer] start rendering...");
-        // Calculate size of frame
-        var frameSize = {
-            width: canvas.w,
-            height: canvas.h
-        };
-        // Calculate size of candles
-        // Render
-        if (dataIterator.moveNext()) {
-            var prevPoint = dataIterator.current;
-            while (dataIterator.moveNext()) {
-                if (dataIterator.current.value) {
-                    this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frameSize);
-                    prevPoint = dataIterator.current;
-                }
-            }
-        }
-    };
-    LineChartRenderer.prototype.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frameSize) {
-        // Startin drawing
-        canvas.setStrokeStyle('#555555');
-        canvas.beginPath();
-        var x1 = timeAxis.toX(pointFrom.date);
-        var y1 = yAxis.toX(pointFrom.value);
-        var x2 = timeAxis.toX(pointTo.date);
-        var y2 = yAxis.toX(pointTo.value);
-        // Drawing upper shadow
-        this.line(canvas, x1, y1, x2, y2);
+        var text = data.toString();
+        canvas.strokeText(text, point.x, point.y);
         canvas.stroke();
         canvas.closePath();
     };
-    LineChartRenderer.prototype.line = function (canvas, x1, y1, x2, y2) {
-        //console.debug(`line: {${x1},${y1}} - {${x2},${y2}}`);
-        canvas.moveTo(x1, y1);
-        canvas.lineTo(x2, y2);
-    };
-    return LineChartRenderer;
+    return TimeMarkRenderer;
 }());
-exports.LineChartRenderer = LineChartRenderer;
-},{}],38:[function(require,module,exports){
+exports.TimeMarkRenderer = TimeMarkRenderer;
+},{}],51:[function(require,module,exports){
 "use strict";
 /**
  *
  */
-var index_1 = require("../core/index");
-var index_2 = require("../model/index");
-var AxisRenderer_1 = require("./AxisRenderer");
-var CandlestickChartRenderer_1 = require("./CandlestickChartRenderer");
-var LineChartRenderer_1 = require("./LineChartRenderer");
-var RenderLocator = (function () {
-    function RenderLocator() {
-        this.candlestickChartRender = new CandlestickChartRenderer_1.CandlestickChartRenderer();
-        this.lineChartRender = new LineChartRenderer_1.LineChartRenderer();
-        this.axisRenderer = new AxisRenderer_1.AxisRenderer();
-    }
-    Object.defineProperty(RenderLocator, "Instance", {
-        get: function () {
-            return this.instance || (this.instance = new this());
-        },
-        enumerable: true,
-        configurable: true
-    });
-    //public getChartRender(chartType: string, dataType: string): any { //IChartRender<T> 
-    RenderLocator.prototype.getChartRender = function (dataType, chartType) {
-        var obj = new dataType(new Date());
-        if (obj instanceof index_2.Point) {
-            if (chartType === index_1.ChartType.line) {
-                return this.lineChartRender;
-            }
-        }
-        else if (obj instanceof index_2.Candlestick) {
-            if (chartType === index_1.ChartType.candle) {
-                return this.candlestickChartRender;
-            }
-        }
-        else {
-            throw new Error('Unexpected data type: ' + dataType);
-        }
-        throw new Error('Unexpected chart type ' + chartType);
-    };
-    RenderLocator.prototype.getAxesRender = function (uid) {
-        switch (uid) {
-            case 'date': return this.axisRenderer;
-            default:
-                throw new Error('Unexpected axes render uid: ' + uid);
-        }
-    };
-    RenderLocator.prototype.getPopupRender = function (uid) {
-        throw new Error('Not implemented.');
-    };
-    RenderLocator.prototype.getMarkRender = function (uid) {
-        throw new Error('Not implemented.');
-    };
-    return RenderLocator;
-}());
-exports.RenderLocator = RenderLocator;
-},{"../core/index":17,"../model/index":33,"./AxisRenderer":34,"./CandlestickChartRenderer":35,"./LineChartRenderer":37}],39:[function(require,module,exports){
-"use strict";
-/**
- *
- */
-var AxisRenderer_1 = require("./AxisRenderer");
-exports.AxisRenderer = AxisRenderer_1.AxisRenderer;
 var CandlestickChartRenderer_1 = require("./CandlestickChartRenderer");
 exports.CandlestickChartRenderer = CandlestickChartRenderer_1.CandlestickChartRenderer;
 var Enums_1 = require("./Enums");
 exports.RenderType = Enums_1.RenderType;
 var LineChartRenderer_1 = require("./LineChartRenderer");
 exports.LineChartRenderer = LineChartRenderer_1.LineChartRenderer;
+var PriceAxisRenderer_1 = require("./PriceAxisRenderer");
+exports.PriceAxisRenderer = PriceAxisRenderer_1.PriceAxisRenderer;
 var RenderLocator_1 = require("./RenderLocator");
 exports.RenderLocator = RenderLocator_1.RenderLocator;
-},{"./AxisRenderer":34,"./CandlestickChartRenderer":35,"./Enums":36,"./LineChartRenderer":37,"./RenderLocator":38}],40:[function(require,module,exports){
+var TimeAxisRenderer_1 = require("./TimeAxisRenderer");
+exports.TimeAxisRenderer = TimeAxisRenderer_1.TimeAxisRenderer;
+},{"./CandlestickChartRenderer":40,"./Enums":42,"./LineChartRenderer":43,"./PriceAxisRenderer":47,"./RenderLocator":48,"./TimeAxisRenderer":49}],52:[function(require,module,exports){
 /**
 * Typed events for TypeScript.
 */
@@ -12805,7 +13460,7 @@ var Event = (function () {
     return Event;
 }());
 exports.Event = Event;
-},{}],41:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 /**
 * Commonly used interfaces, that can be used in other projects.
 */
@@ -12818,7 +13473,7 @@ var Point = (function () {
     return Point;
 }());
 exports.Point = Point;
-},{}],42:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -12827,7 +13482,7 @@ var Event_1 = require("./Event");
 exports.Event = Event_1.Event;
 var Interfaces_1 = require("./Interfaces");
 exports.Point = Interfaces_1.Point;
-},{"./Event":40,"./Interfaces":41}],43:[function(require,module,exports){
+},{"./Event":52,"./Interfaces":53}],55:[function(require,module,exports){
 "use strict";
 var ArrayUtils = (function () {
     function ArrayUtils() {
@@ -12874,14 +13529,14 @@ var ArrayUtils = (function () {
     return ArrayUtils;
 }());
 exports.ArrayUtils = ArrayUtils;
-},{}],44:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 "use strict";
 /**
  *
  */
 var ArrayUtils_1 = require("./ArrayUtils");
 exports.ArrayUtils = ArrayUtils_1.ArrayUtils;
-},{"./ArrayUtils":43}],45:[function(require,module,exports){
+},{"./ArrayUtils":55}],57:[function(require,module,exports){
 /**
  *
  */
@@ -12917,7 +13572,7 @@ window.lychart = {
     shared: shared,
     utils: utils
 };
-},{"./lib/axes":4,"./lib/canvas":7,"./lib/component":12,"./lib/core":17,"./lib/data":27,"./lib/indicator":29,"./lib/interaction":30,"./lib/model":33,"./lib/render":39,"./lib/shared":42,"./lib/utils":44}]},{},[45])(45)
+},{"./lib/axes":5,"./lib/canvas":8,"./lib/component":18,"./lib/core":23,"./lib/data":33,"./lib/indicator":35,"./lib/interaction":36,"./lib/model":39,"./lib/render":51,"./lib/shared":54,"./lib/utils":56}]},{},[57])(57)
 });
 
 

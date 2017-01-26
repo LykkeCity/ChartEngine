@@ -8,7 +8,7 @@ import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick } from '../model/index';
-import { ISize } from '../shared/index';
+import { IPoint, IRect, ISize } from '../shared/index';
 import { IChartRender } from './Interfaces';
 
 export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
@@ -26,7 +26,6 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         console.debug(`[CandlestickChartRenderer] start rendering...`);
 
         // Calculate size of frame
-
         let frameSize: ISize = {
             width: canvas.w,
             height: canvas.h
@@ -41,10 +40,40 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         this.finishRender(canvas);
     }
 
+    public testHitArea(
+            hitPoint: IPoint,
+            dataIterator: IDataIterator<Candlestick>,
+            offsetX: number,
+            offsetY: number,
+            timeAxis: IAxis<Date>,
+            yAxis: IAxis<number>): Candlestick | undefined {
+
+        let candleHit: Candlestick | undefined = undefined;
+
+        while (dataIterator.moveNext()) {
+            if (this.testHitAreaCandle(hitPoint, timeAxis, yAxis, dataIterator.current)) {
+                candleHit = dataIterator.current;
+                break;
+            }
+        }
+
+        return candleHit;
+    }
+
     private startRender(canvas: ICanvas): void {
     }
 
     private finishRender(canvas: ICanvas): void {
+    }
+
+    private testHitAreaCandle(hitPoint: IPoint, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick): boolean {
+        if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
+            return false;
+        }
+        const x = timeAxis.toX(candle.date);
+        const body = this.calculateBody(x, yAxis, candle.o, candle.c);
+        return (hitPoint.x >= body.x && hitPoint.x <= (body.x + body.w)
+                && hitPoint.y >= body.y && hitPoint.y <= (body.y + body.h));
     }
 
     private renderCandle(canvas: ICanvas, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick, frameSize: ISize): void {
@@ -53,25 +82,21 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
             return;
         }
 
-        // Lower and upper ranges of the candle's body.
-        //let bodyMin = Math.min(candle.o, candle.c);
-        //let bodyMax = Math.max(candle.o, candle.c);
-
         // Startin drawing
+        canvas.lineWidth = 1;
         canvas.setStrokeStyle('#333333');
         canvas.beginPath();
 
-        let x = timeAxis.toX(candle.date);
-        let ocMin = yAxis.toX(Math.min(candle.o, candle.c)),
-            ocMax = yAxis.toX(Math.max(candle.o, candle.c)),
-            h = yAxis.toX(candle.h),
-            l = yAxis.toX(candle.l);
+        const x = timeAxis.toX(candle.date);
+        const body = this.calculateBody(x, yAxis, candle.o, candle.c);
+        const h = yAxis.toX(candle.h);
+        const l = yAxis.toX(candle.l);
 
         // Drawing upper shadow
-        this.line(canvas, x, ocMax, x, h );
+        this.line(canvas, x, body.y, x, h );
 
         // Drawing lower shadow
-        this.line(canvas, x, l, x, ocMin);
+        this.line(canvas, x, l, x, body.y + body.h);
 
         canvas.stroke();
         canvas.closePath();
@@ -79,24 +104,22 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         // Drawing body
         if (candle.c > candle.o) {
             canvas.setFillStyle('#008910');
-        }
-        else {
+        } else {
             canvas.setFillStyle('#D80300');
         }
 
-        this.rect(canvas, x - 1, ocMin, x + 1, ocMax
-        );
+        canvas.fillRect(body.x, body.y, body.w, body.h);
+        canvas.strokeRect(body.x, body.y, body.w, body.h);
+    }
+
+    private calculateBody(x: number, yAxis: IAxis<number>, o: number, c: number): IRect {
+        const ocMin = yAxis.toX(Math.min(o, c));
+        const ocMax = yAxis.toX(Math.max(o, c));
+        return { x: x - 1, y: ocMin, w: 2, h: ocMax - ocMin };
     }
 
     private line(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {
-        //console.debug(`line: {${x1},${y1}} - {${x2},${y2}}`);
         canvas.moveTo(x1, y1);
         canvas.lineTo(x2, y2);
-    }
-
-    private rect(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {
-        //console.debug(`rect: {${x1},${y1}} - {${x2},${y2}}`);
-        canvas.fillRect(x1, y1, Math.abs(x2 - x1), Math.abs(y2-y1));
-        canvas.strokeRect(x1, y1, Math.abs(x2 - x1), Math.abs(y2 - y1));
     }
 }

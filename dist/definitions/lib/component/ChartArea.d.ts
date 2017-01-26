@@ -3,12 +3,18 @@
  */
 import { CanvasWrapper } from '../canvas/index';
 export declare class ChartArea {
+    private w;
+    private h;
     private _mainContext;
-    private _axisXContext;
-    private _axisYContext;
+    private _frontContext;
+    private _baseCanvas;
+    private _frontCanvas;
     readonly mainContext: CanvasWrapper;
-    readonly axisXContext: CanvasWrapper;
-    readonly axisYContext: CanvasWrapper;
-    constructor(mainCanvas: HTMLCanvasElement, axisXCanvas: HTMLCanvasElement, axisYCanvas: HTMLCanvasElement);
+    readonly frontContext: CanvasWrapper;
+    readonly baseCanvas: HTMLCanvasElement;
+    readonly frontCanvas: HTMLCanvasElement;
+    readonly width: number;
+    readonly height: number;
+    constructor(w: number, h: number, baseCanvas: HTMLCanvasElement, frontCanvas: HTMLCanvasElement);
     private getContext(el, w, h);
 }

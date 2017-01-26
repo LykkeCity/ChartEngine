@@ -7,22 +7,20 @@
 import { ICanvas } from '../canvas/index';
 import { VisualComponent, VisualContext } from '../core/index';
 import { IRenderLocator } from '../render/index';
-import { IRange } from '../shared/index';
+import { IRange, ISize, Point } from '../shared/index';
 import { IAxis } from './IAxis';
 
 export class TimeAxis extends VisualComponent implements IAxis<Date> {
 
     private _range: IRange<Date>;
-    private _w: number;
     private _interval: number;
 
     constructor(
-        private canvas: ICanvas,
-        width: number,
+        offset: Point,
+        size: ISize,
         interval: number,         // Defines maximum zoom
         initialRange: IRange<Date>) {
-            super();
-            this._w = width;
+            super(offset, size);
             this._interval = interval;
             this._range = initialRange;
     }
@@ -35,24 +33,32 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
         return this._interval;
     }
 
-    public get width(): number {
-        return this._w;
+    public getValuesRange(x1: number, x2: number): IRange<Date> | undefined {
+        if (x1 > 0 && x2 > 0 && x1 < this.size.width && x2 < this.size.width) {
+            return {
+                start: this.toValue(Math.min(x1, x2)),
+                end: this.toValue(Math.max(x1, x2)) };
+        }
     }
 
-    toX(value: Date): number {
+    public toValue(x: number): Date {
+        const range = Math.abs(this.range.end.getTime() - this.range.start.getTime());
+        const base = Math.min(this.range.end.getTime(), this.range.start.getTime());
+        const d = x / this.size.width;
+        return new Date(d * range + base);
+    }
 
+    public toX(value: Date): number {
         if (value < this.range.start || value > this.range.end) {
             throw new Error(`Date ${value} is out of range.`);
         }
-
-        let total = Math.abs(this.range.end.getTime() - this.range.start.getTime());
-        let toDate = Math.abs(value.getTime() - this.range.start.getTime());
-        let x = (toDate / total) * this.width;
-
-        return x;
+        const range = Math.abs(this.range.end.getTime() - this.range.start.getTime());
+        const base = Math.min(this.range.end.getTime(), this.range.start.getTime());
+        const toDate = value.getTime() - base;
+        return (toDate / range) * this.size.width;
     }
 
-    move(direction: number): void {
+    public move(direction: number): void {
         //direction = Math.round(direction);
 
         if (direction == 0) {
@@ -61,7 +67,7 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
 
         let curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
 
-        let shiftInMs = direction * curRangeInMs / this.width;
+        let shiftInMs = direction * curRangeInMs / this.size.width;
 
         this._range = {
             start: new Date(this.range.start.getTime() - shiftInMs),
@@ -69,7 +75,7 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
         };
     }
 
-    scale(direction: number): void {
+    public scale(direction: number): void {
         let curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
         let newRange = 0;
 
@@ -80,8 +86,7 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
             if (newRange / this.interval < 10) {
                 newRange = this.interval * 10;
             }
-        }
-        else if (direction < 0) { // zooming out
+        } else if (direction < 0) { // zooming out
             newRange = curRangeInMs * 1.1;
 
             if (newRange / this.interval > 1000) {
@@ -96,8 +101,11 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
-        const render = renderLocator.getAxesRender('date');
-
-        render.renderDateAxis(this, this.canvas);
+        if (context.renderBase) {
+            const canvas = context.getCanvas(this.target);
+            const render = renderLocator.getAxesRender('date');
+            render.render(canvas, this, this.offset, this.size);
+        }
+        super.render(context, renderLocator);
     }
 }

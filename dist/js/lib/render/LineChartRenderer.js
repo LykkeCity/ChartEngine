@@ -8,13 +8,11 @@ var LineChartRenderer = (function () {
     function LineChartRenderer() {
     }
     LineChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
-        console.debug("[LineChartRenderer] start rendering...");
         // Calculate size of frame
         var frameSize = {
             width: canvas.w,
             height: canvas.h
         };
-        // Calculate size of candles
         // Render
         if (dataIterator.moveNext()) {
             var prevPoint = dataIterator.current;
@@ -22,6 +20,18 @@ var LineChartRenderer = (function () {
                 if (dataIterator.current.value) {
                     this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frameSize);
                     prevPoint = dataIterator.current;
+                }
+            }
+        }
+    };
+    LineChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
+        while (dataIterator.moveNext()) {
+            if (dataIterator.current.value) {
+                var x = timeAxis.toX(dataIterator.current.date);
+                var y = yAxis.toX(dataIterator.current.value);
+                var R = Math.sqrt(Math.pow(Math.abs(x - hitPoint.x), 2) + Math.pow(Math.abs(y - hitPoint.y), 2));
+                if (R < 2) {
+                    return dataIterator.current;
                 }
             }
         }
@@ -40,7 +50,6 @@ var LineChartRenderer = (function () {
         canvas.closePath();
     };
     LineChartRenderer.prototype.line = function (canvas, x1, y1, x2, y2) {
-        //console.debug(`line: {${x1},${y1}} - {${x2},${y2}}`);
         canvas.moveTo(x1, y1);
         canvas.lineTo(x2, y2);
     };

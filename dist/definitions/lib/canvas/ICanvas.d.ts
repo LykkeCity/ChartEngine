@@ -9,6 +9,7 @@ export interface ICanvas {
     beginPath(): void;
     moveTo(x: number, y: number): void;
     lineTo(x: number, y: number): void;
+    lineWidth: number;
     stroke(): void;
     closePath(): void;
     fillText(s: string, x: number, y: number): void;

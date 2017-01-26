@@ -4,21 +4,27 @@
 import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
 import { IDataIterator } from '../data/index';
+import { IPoint, ISize } from '../shared/index';
 export interface IRenderLocator {
     getChartRender<T>(dataType: {
         new (d: Date): T;
     }, chartType: string): any;
-    getAxesRender(uid: string): IAxesRender;
-    getPopupRender(uid: string): IPopupRender;
-    getMarkRender(uid: string): IMarkRender;
+    getAxesRender<T>(uid: string): any;
+    getPopupRender<T>(dataType: {
+        new (d: Date): T;
+    }): any;
+    getMarkRender<T>(uid: string): any;
 }
 export interface IChartRender<T> {
     render(canvas: ICanvas, data: IDataIterator<T>, offsetX: number, offsetY: number, timeAxis: IAxis<Date>, yAxis: IAxis<number>): void;
+    testHitArea(hitPoint: IPoint, data: IDataIterator<T>, offsetX: number, offsetY: number, timeAxis: IAxis<Date>, yAxis: IAxis<number>): T | undefined;
 }
-export interface IAxesRender {
-    renderDateAxis(dateAxis: IAxis<Date>, canvas: ICanvas): void;
+export interface IAxesRender<T> {
+    render(canvas: ICanvas, axis: IAxis<T>, offset: IPoint, frameSize: ISize): void;
 }
-export interface IPopupRender {
+export interface IPopupRender<T> {
+    render(canvas: ICanvas, data: T, point: IPoint, frameSize: ISize): void;
 }
-export interface IMarkRender {
+export interface IMarkRender<T> {
+    render(canvas: ICanvas, data: T, point: IPoint, frameSize: ISize): void;
 }

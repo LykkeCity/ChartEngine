@@ -7,34 +7,45 @@
 var Enums_1 = require("./Enums");
 var CanvasWrapper = (function () {
     function CanvasWrapper(context, width, height) {
+        this.adj = 0.5; // Adjusment to remove blury lines.
         this.ctx = context;
         this.w = width;
         this.h = height;
+        //this.dpr = window.devicePixelRatio || 1;
         this.dpr = 1;
-        //this.ctx.translate(0.5, 0.5);
-        //this.ressize(width, height);
     }
+    Object.defineProperty(CanvasWrapper.prototype, "lineWidth", {
+        get: function () {
+            return this.ctx.lineWidth;
+        },
+        set: function (w) {
+            this.adj = (w % 2) / 2; // If line is width 1, 3, 5... then adjust coords to remove blur.
+            this.ctx.lineWidth = w;
+        },
+        enumerable: true,
+        configurable: true
+    });
     CanvasWrapper.prototype.clear = function () {
-        this.ctx.clearRect(0, 0, this.w, this.h);
+        this.ctx.clearRect(0, 0, Math.round(this.w), Math.round(this.h));
     };
     CanvasWrapper.prototype.moveTo = function (x, y) {
-        this.ctx.moveTo(x * this.dpr, y * this.dpr);
+        this.ctx.moveTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
     };
     CanvasWrapper.prototype.lineTo = function (x, y) {
-        this.ctx.lineTo(x * this.dpr, y * this.dpr);
+        this.ctx.lineTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
     };
     CanvasWrapper.prototype.fillText = function (s, x, y) {
-        this.ctx.fillText(s, x * this.dpr, y * this.dpr);
+        this.ctx.fillText(s, Math.round(x * this.dpr), Math.round(y * this.dpr));
     };
     CanvasWrapper.prototype.fillRect = function (x, y, w, h) {
-        this.ctx.fillRect(x * this.dpr, y * this.dpr, w * this.dpr, h * this.dpr);
+        this.ctx.fillRect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj, Math.round(w * this.dpr), Math.round(h * this.dpr));
     };
     CanvasWrapper.prototype.strokeRect = function (x, y, w, h) {
-        this.ctx.strokeRect(x * this.dpr, y * this.dpr, w * this.dpr, h * this.dpr);
+        this.ctx.strokeRect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj, Math.round(w * this.dpr), Math.round(h * this.dpr));
     };
     // Used with beginPath() / stroke() / strokeStyle / fill()
     CanvasWrapper.prototype.rect = function (x, y, w, h) {
-        this.ctx.rect(x * this.dpr, y * this.dpr, w * this.dpr, h * this.dpr);
+        this.ctx.rect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj, Math.round(w * this.dpr), Math.round(h * this.dpr));
     };
     CanvasWrapper.prototype.beginPath = function () {
         this.ctx.beginPath();
@@ -61,7 +72,15 @@ var CanvasWrapper = (function () {
         return this.ctx.measureText(text);
     };
     CanvasWrapper.prototype.strokeText = function (text, x, y, maxWidth) {
-        this.ctx.strokeText(text, x, y, maxWidth);
+        this.ctx.strokeText(text, Math.round(x), Math.round(y), maxWidth);
+    };
+    CanvasWrapper.prototype.round = function (n) {
+        // With a bitwise or.
+        return (0.5 + n) | 0;
+        // // A double bitwise not.
+        // rounded = ~~ (0.5 + n);
+        // // Finally, a left bitwise shift.
+        // rounded = (0.5 + n) << 0;
     };
     return CanvasWrapper;
 }());

@@ -5,7 +5,8 @@
 	<meta charset="utf-8" />
 </head>
 <body>
-    <table>
+
+    <table style="border-collapse: collapse">
         <tr>
             <td>
                 <div id="chart-container1">
@@ -70,22 +71,20 @@
             });
 
         var container1 = document.getElementById("chart-container1");
-        var chart1 = new lychart.ChartBoard(container1, 500, 150);
+        var chart1 = new lychart.ChartBoard(container1, 8,8, 500, 150);
         chart1.addChart(lychart.core.ChartType.candle, httpDataSource);
         chart1.render();
 
-        // var indicator = new lychart.indicator.SimpleIndicator(
-        //     {
-        //         dataType: 'point',
-        //         chartType: 'line'
-        //     },
-        //     httpDataSource);
-        // chart.addIndicator(indicator);
+        var indicator = new lychart.indicator.SimpleIndicator(
+            {
+            },
+            httpDataSource);
+        chart1.addIndicator(indicator);
 
-        var container2 = document.getElementById("chart-container2");
-        var chart2 = new lychart.ChartBoard(container2, 500, 150);
-        chart2.addChart(lychart.core.ChartType.candle, arrayDataSource);
-        chart2.render();
+        // var container2 = document.getElementById("chart-container2");
+        // var chart2 = new lychart.ChartBoard(container2, 500, 150);
+        // chart2.addChart(lychart.core.ChartType.candle, arrayDataSource);
+        // chart2.render();
     </script>
 </body>
 </html>

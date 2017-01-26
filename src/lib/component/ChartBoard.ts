@@ -4,28 +4,33 @@
  * @classdesc Facade for the chart library.
  */
 
-import { TimeAxis } from '../axes/index';
+import { IAxis, NumberAxis, PriceAxis, TimeAxis } from '../axes/index';
 import { CanvasWrapper, ICanvas } from '../canvas/index';
 import { ChartType, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, IDataSource } from '../data/index';
 import { IMouseHandler } from '../interaction/index';
 import { Candlestick, Point } from '../model/index';
 import { IRenderLocator, RenderLocator, RenderType } from '../render/index';
-import { IEventHandler, IHashTable, Point as MousePoint } from '../shared/index';
+import { IEventHandler, IHashTable, Point as IPoint } from '../shared/index';
 import { ChartArea } from './ChartArea';
 import { ChartStack } from './ChartStack';
+import { NumberMarker } from './NumberMarker';
+import { PriceMarker } from './PriceMarker';
+import { TimeMarker } from './TimeMarker';
 
 import * as $ from 'jquery';
 
 export class ChartBoard extends VisualComponent {
 
     private table: HTMLTableElement;
-    private curInterval: TimeInterval = TimeInterval.day;
-    private timeAxis: TimeAxis;
-    private timeAxisCanvas: ICanvas;
 
-    private readonly areas: ChartArea[] = [];
+    private readonly chartAreas: ChartArea[] = [];
     private readonly chartStacks: ChartStack[] = [];
+    private readonly yAxisAreas: ChartArea[] = [];
+    private readonly yAxes: any[] = [];
+
+    private timeAxis: TimeAxis;
+    private timeArea: ChartArea;
 
     private readonly indicators: IDataSource<Point>[] = [];
 
@@ -34,29 +39,56 @@ export class ChartBoard extends VisualComponent {
 
     constructor(
         private readonly container: HTMLElement,
+        private readonly offsetLeft: number,
+        private readonly offsetTop: number,
         private readonly w: number,
         private readonly h: number
-        //private readonly dataSource: IDataSource<Candlestick>
     ) {
-        super();
+        super({ x: 0, y: 0}, { width: w, height: h});
 
         this.table = document.createElement('table');
+        this.table.style.setProperty('position', 'relative');
         this.container.appendChild(this.table);
 
-        // Make place for the Time Axis
-        this.timeAxisCanvas = this.appendTimeCanvas(this.table, w, 25);
 
-        this.timeAxis = new TimeAxis(this.timeAxisCanvas, w, TimeInterval.day, { start: new Date(2017, 0, 1), end: new Date(2017, 0, 31) });
+        this.timeArea = this.makeArea(w, 25);
+
+        const now = new Date();
+        this.timeAxis = new TimeAxis(
+            { x: 0, y: h}, // offset
+            { width: this.timeArea.width, height: this.timeArea.height}, // size
+            TimeInterval.day, { start: new Date(2017, 0, 1), end: now });
         this.addChild(this.timeAxis);
+
+        const timeMarker = new TimeMarker({ x: 0, y: 0 }, this.timeAxis.size, this.timeAxis);
+        this.timeAxis.addChild(timeMarker);
 
         // Create main chart area
         //
-        let mainArea = this.appendArea(this.table, w, h);
-        this.areas.push(mainArea);
+        const chartArea = this.makeArea(w, h);
+        this.chartAreas.push(chartArea);
 
-        let chartStack = new ChartStack(mainArea, new MousePoint(0, 0), this.timeAxis);
+        const yAxisArea = this.makeArea(15, h);
+        this.yAxisAreas.push(yAxisArea);
+
+        // create initial Y axis
+        const yAxis = new PriceAxis(
+            { x: chartArea.width, y: 0 },                         // offset
+            { width: yAxisArea.width, height: yAxisArea.height }, // size
+            0.0005);
+        this.yAxes.push(yAxis);
+        this.addChild(yAxis);
+
+        const priceMarker = new PriceMarker({x: 0, y: 0}, yAxis.size, yAxis);
+        yAxis.addChild(priceMarker);
+
+        // Add main chart stack
+        const chartStack = new ChartStack(new IPoint(0, 0), { width: w, height: h }, this.timeAxis, yAxis);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
+
+        this.insertRow(this.table, 0, undefined, chartArea, yAxisArea);
+        this.insertRow(this.table, undefined, undefined, this.timeArea, undefined);
 
         // Hook up event handlers
         //
@@ -80,59 +112,54 @@ export class ChartBoard extends VisualComponent {
         this.container.addEventListener('mouseleave', this.eventHandlers['mouseleave'], false);
     }
 
-    private appendTimeCanvas(table: HTMLTableElement, w: number, h: number) : ICanvas {
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
+    private insertRow(table: HTMLTableElement, index?: number, el1?: ChartArea, el2?: ChartArea, el3?: ChartArea) {
+        const row = table.insertRow(index);
+        const cell1 = row.insertCell();
+        const cell2 = row.insertCell();
+        const cell3 = row.insertCell();
 
-        let row = table.insertRow();
-        let cell1 = row.insertCell();
-        let cell2 = row.insertCell();
-        let cell3 = row.insertCell();
+        const div1 = document.createElement('div');
+        const div2 = document.createElement('div');
+        const div3 = document.createElement('div');
 
-        cell2.appendChild(canvas);
+        div1.style.setProperty('position', 'relative');
+        div1.style.setProperty('height', el1 ? el1.height + 'px' : '');
+        div1.style.setProperty('width', el1 ? el1.width + 'px' : '');
+        div2.style.setProperty('position', 'relative');
+        div2.style.setProperty('height', el2 ? el2.height + 'px' : '');
+        div2.style.setProperty('width', el2 ? el2.width + 'px' : '');
+        div3.style.setProperty('position', 'relative');
+        div3.style.setProperty('height', el3 ? el3.height + 'px' : '');
+        div3.style.setProperty('width', el3 ? el3.width + 'px' : '');
 
-        const ctx = canvas.getContext('2d');
-        if (ctx == null) {
-            throw new Error('Context is null');
-        }
-        return new CanvasWrapper(ctx, w, h);
+        cell1.appendChild(div1);
+        cell2.appendChild(div2);
+        cell3.appendChild(div3);
+
+        if (el1) { div1.appendChild(el1.baseCanvas); div1.appendChild(el1.frontCanvas); }
+        if (el2) { div2.appendChild(el2.baseCanvas); div2.appendChild(el2.frontCanvas); }
+        if (el3) { div3.appendChild(el3.baseCanvas); div3.appendChild(el3.frontCanvas); }
     }
 
-    private appendArea(table: HTMLTableElement, w: number, h: number) : ChartArea {
+    private makeArea(w: number, h: number) : ChartArea {
 
-        let mainCanvas = document.createElement('canvas');
-        mainCanvas.width = w;
-        mainCanvas.height = h;
+        let baseCanvas = document.createElement('canvas');
+        baseCanvas.width = w;
+        baseCanvas.height = h;
+        baseCanvas.style.setProperty('left', '0');
+        baseCanvas.style.setProperty('top', '0');
+        baseCanvas.style.setProperty('z-index', '0');
+        baseCanvas.style.setProperty('position', 'absolute');
 
-        let yCanvas = document.createElement('canvas');
-        yCanvas.width = 50;
-        yCanvas.height = h;
+        let frontCanvas = document.createElement('canvas');
+        frontCanvas.width = w;
+        frontCanvas.height = h;
+        frontCanvas.style.setProperty('left', '0');
+        frontCanvas.style.setProperty('top', '0');
+        frontCanvas.style.setProperty('z-index', '1');
+        frontCanvas.style.setProperty('position', 'absolute');
 
-        let xCanvas = document.createElement('canvas');
-        xCanvas.width = w;
-        xCanvas.height = 50;
-
-        let row1 = table.insertRow();
-        let cell11 = row1.insertCell();
-        let cell12 = row1.insertCell();
-        let cell13 = row1.insertCell();
-
-        let row2 = table.insertRow();
-        let cell21 = row2.insertCell();
-        let cell22 = row2.insertCell();
-        let cell23 = row2.insertCell();
-
-        let row3 = table.insertRow();
-        let cell31 = row3.insertCell();
-        let cell32 = row3.insertCell();
-        let cell33 = row3.insertCell();
-
-        cell22.appendChild(mainCanvas);
-        cell32.appendChild(xCanvas);
-        cell23.appendChild(yCanvas);
-
-        return new ChartArea(mainCanvas, xCanvas, yCanvas);
+        return new ChartArea(w, h, baseCanvas, frontCanvas);
     }
 
     public addChart<T>(chartType: string, dataSource: IDataSource<T>) {
@@ -150,41 +177,123 @@ export class ChartBoard extends VisualComponent {
     public addIndicator(indicatorDataSource: IDataSource<Point>) {
         this.indicators.push(indicatorDataSource);
 
-        const yOffset = this.areas.length * this.h;
+        const yOffset = this.chartAreas.length * this.h;
 
-        let newArea = this.appendArea(this.table, this.w, this.h);
-        this.areas.push(newArea);
+        // create new area
+        const chartArea = this.makeArea(this.w, this.h);
+        this.chartAreas.push(chartArea);
 
-        let chartStack = new ChartStack(newArea, new MousePoint(0, yOffset), this.timeAxis);
+        const yAxisArea = this.makeArea(15, this.h);
+        this.yAxisAreas.push(yAxisArea);
+
+        // create Y axis
+        const yAxis = new NumberAxis(
+            { x: chartArea.width, y: yOffset },                   // offset
+            { width: yAxisArea.width, height: yAxisArea.height }, // size
+            0.0005);
+        this.yAxes.push(yAxis);
+        this.addChild(yAxis);
+
+        const numberMarker = new NumberMarker({x: 0, y: 0}, yAxis.size, yAxis);
+        yAxis.addChild(numberMarker);
+
+        const chartStack = new ChartStack(new IPoint(0, yOffset), { width: this.w, height: this.h }, this.timeAxis, yAxis);
         chartStack.addChart(ChartType.line, indicatorDataSource);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
+
+        this.insertRow(this.table, this.chartAreas.length - 1, undefined, chartArea, yAxisArea);
+
+        // change timeAxisOffset
+        const curOffset = this.timeAxis.offset;
+        this.timeAxis.offset = new IPoint(curOffset.x, curOffset.y + this.h);
     }
 
     public render(): void {
-
-        // Prepare rendering objects: locator and context.
-        const locator: IRenderLocator = RenderLocator.Instance;
-        const context: VisualContext = new VisualContext(
-            (this.mouseX && this.mouseY) ? new MousePoint(this.mouseX, this.mouseY) : undefined);
-
-        // Clear canvas
-        this.timeAxisCanvas.clear();
-
-        // // Render all chart stacks
-        // for (const chartStack of this.chartStacks) {
-        //     chartStack.render(context, locator);
-        // }
-
-        // // Render time axis as it does not belong to any chart
-        // this.timeAxis.render(context, locator);
-
-        super.render(context, locator);
+        this.renderLayers(true, true);
     }
 
-    // public render(renderLocator: IRenderLocator) {
+    private renderLayers(renderBase: boolean, renderFront: boolean): void {
+        renderBase = renderBase === undefined ? true : renderBase;
+        renderFront = renderFront === undefined ? true : renderFront;
 
-    // }
+        let mouse = undefined;
+        if (this.isMouseEntered && this.mouseX && this.mouseY) {
+            mouse = new IPoint(
+                this.mouseX - this.offsetLeft - this.container.offsetLeft,
+                this.mouseY - this.offsetTop - this.container.offsetTop);
+        }
+
+        for (let i = 0; i < this.chartStacks.length; i += 1) {
+
+            const cStack = this.chartStacks[i];
+            const area = this.chartAreas[i];
+            const yAxis = this.yAxes[i];
+            const yAxisArea = this.yAxisAreas[i];
+
+            if (renderBase) {
+                // clear base layer
+                area.mainContext.clear();
+                yAxisArea.mainContext.clear();
+            }
+            if (renderFront) {
+                area.frontContext.clear();
+                yAxisArea.frontContext.clear();
+            }
+
+            let relativeMouse = undefined;
+            // Convert mouse coords to relative
+            if (mouse) {
+                relativeMouse = new IPoint(mouse.x - cStack.offset.x, mouse.y - cStack.offset.y);
+            }
+
+            // Prepare rendering objects: locator and context.
+            let context: VisualContext = new VisualContext(
+                renderBase,
+                renderFront,
+                area.mainContext,
+                area.frontContext,
+                relativeMouse);
+
+            cStack.render(context, RenderLocator.Instance);
+
+            context = new VisualContext(
+                renderBase,
+                renderFront,
+                yAxisArea.mainContext,
+                yAxisArea.frontContext,
+                relativeMouse);
+            if (mouse) {
+                relativeMouse = new IPoint(mouse.x - yAxis.offset.x, mouse.y - yAxis.offset.y);
+            }
+
+            yAxis.render(context, RenderLocator.Instance);
+        }
+
+        // Do not rerender time axis when rendering only front.
+        if (renderBase) {
+            // Clear canvas
+            this.timeArea.mainContext.clear();
+        }
+        if (renderFront) {
+            this.timeArea.frontContext.clear();
+        }
+
+        let relativeMouse = undefined;
+        // Convert mouse coords to relative
+        if (mouse) {
+            relativeMouse = new IPoint(mouse.x - this.timeAxis.offset.x, mouse.y - this.timeAxis.offset.y);
+        }
+
+        const context: VisualContext = new VisualContext(
+            renderBase,
+            renderFront,
+            this.timeArea.mainContext,
+            this.timeArea.frontContext,
+            relativeMouse);
+
+        this.timeAxis.render(context, RenderLocator.Instance);
+    }
 
     private onDataChanged(arg: DataChangedArgument): void {
         this.render();
@@ -224,10 +333,11 @@ export class ChartBoard extends VisualComponent {
 
         [this.mouseX, this.mouseY] = [event.pageX, event.pageY];
 
-        if (this.isMouseEntered) {
+        if (this.isMouseEntered && this.isMouseDown) {
             // TODO: Use animation loop (?)
-            // TODO: Re-render only front layer
-            //this.render();
+            this.renderLayers(true, true);
+        } else if (this.isMouseEntered) {
+            this.renderLayers(false, true);
         }
     }
 
