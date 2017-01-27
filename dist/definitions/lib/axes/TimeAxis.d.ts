@@ -8,6 +8,7 @@ export declare class TimeAxis extends VisualComponent implements IAxis<Date> {
     constructor(offset: Point, size: ISize, interval: number, initialRange: IRange<Date>);
     readonly range: IRange<Date>;
     readonly interval: number;
+    getGrid(): Date[];
     getValuesRange(x1: number, x2: number): IRange<Date> | undefined;
     toValue(x: number): Date;
     toX(value: Date): number;

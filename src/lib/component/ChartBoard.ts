@@ -48,8 +48,9 @@ export class ChartBoard extends VisualComponent {
 
         this.table = document.createElement('table');
         this.table.style.setProperty('position', 'relative');
+        this.table.style.setProperty('border-spacing', '0');
+        this.table.style.setProperty('border-collapse', 'collapse');
         this.container.appendChild(this.table);
-
 
         this.timeArea = this.makeArea(w, 25);
 
@@ -68,7 +69,7 @@ export class ChartBoard extends VisualComponent {
         const chartArea = this.makeArea(w, h);
         this.chartAreas.push(chartArea);
 
-        const yAxisArea = this.makeArea(15, h);
+        const yAxisArea = this.makeArea(50, h);
         this.yAxisAreas.push(yAxisArea);
 
         // create initial Y axis
@@ -117,6 +118,9 @@ export class ChartBoard extends VisualComponent {
         const cell1 = row.insertCell();
         const cell2 = row.insertCell();
         const cell3 = row.insertCell();
+        cell1.style.setProperty('padding', '0');
+        cell2.style.setProperty('padding', '0');
+        cell3.style.setProperty('padding', '0');
 
         const div1 = document.createElement('div');
         const div2 = document.createElement('div');
@@ -183,7 +187,7 @@ export class ChartBoard extends VisualComponent {
         const chartArea = this.makeArea(this.w, this.h);
         this.chartAreas.push(chartArea);
 
-        const yAxisArea = this.makeArea(15, this.h);
+        const yAxisArea = this.makeArea(50, this.h);
         this.yAxisAreas.push(yAxisArea);
 
         // create Y axis

@@ -16,6 +16,14 @@ export class CanvasWrapper implements ICanvas {
     readonly h: number;
     readonly dpr: number;
 
+    public get font(): string {
+        return this.ctx.font;
+    }
+
+    public set font(font: string) {
+        this.ctx.font = font;
+    }
+
     public get lineWidth(): number {
         return this.ctx.lineWidth;
     }
@@ -44,6 +52,14 @@ export class CanvasWrapper implements ICanvas {
 
     public lineTo(x: number, y: number) {
         this.ctx.lineTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
+    }
+
+    public getLineDash(): number[] {
+        return this.ctx.getLineDash();
+    }
+
+    public setLineDash(segments: number[]): void {
+        this.ctx.setLineDash(segments);
     }
 
     public fillText(s: string, x: number, y: number) {

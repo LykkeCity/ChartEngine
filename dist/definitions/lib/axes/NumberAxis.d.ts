@@ -11,6 +11,7 @@ export declare class NumberAxis extends VisualComponent implements IAxis<number>
     constructor(offset: Point, size: ISize, interval: number, initialRange?: IRange<number>);
     range: IRange<number>;
     readonly interval: number;
+    getGrid(): number[];
     getValuesRange(x1: number, x2: number): IRange<number> | undefined;
     toValue(x: number): number;
     toX(value: number): number;

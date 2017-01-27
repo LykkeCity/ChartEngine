@@ -7,22 +7,28 @@
 var CandlestickChartRenderer = (function () {
     function CandlestickChartRenderer() {
     }
-    CandlestickChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
-        console.debug("[CandlestickChartRenderer] start rendering...");
-        // Calculate size of frame
-        var frameSize = {
-            width: canvas.w,
-            height: canvas.h
-        };
+    CandlestickChartRenderer.prototype.render = function (canvas, dataIterator, frame, timeAxis, yAxis) {
         // Render
         //
-        this.startRender(canvas);
+        // border lines
+        canvas.setStrokeStyle('#333333');
+        canvas.beginPath();
+        // ... bottom
+        canvas.moveTo(frame.x, frame.y + frame.h - 1);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        // ... left
+        canvas.moveTo(frame.x, frame.y);
+        canvas.lineTo(frame.x, frame.y + frame.h - 1);
+        // ... right
+        canvas.moveTo(frame.x + frame.w - 1, frame.y);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        canvas.stroke();
+        canvas.closePath();
         while (dataIterator.moveNext()) {
-            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frameSize);
+            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frame);
         }
-        this.finishRender(canvas);
     };
-    CandlestickChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
+    CandlestickChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, frame, timeAxis, yAxis) {
         var candleHit = undefined;
         while (dataIterator.moveNext()) {
             if (this.testHitAreaCandle(hitPoint, timeAxis, yAxis, dataIterator.current)) {
@@ -31,10 +37,6 @@ var CandlestickChartRenderer = (function () {
             }
         }
         return candleHit;
-    };
-    CandlestickChartRenderer.prototype.startRender = function (canvas) {
-    };
-    CandlestickChartRenderer.prototype.finishRender = function (canvas) {
     };
     CandlestickChartRenderer.prototype.testHitAreaCandle = function (hitPoint, timeAxis, yAxis, candle) {
         if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
@@ -45,7 +47,7 @@ var CandlestickChartRenderer = (function () {
         return (hitPoint.x >= body.x && hitPoint.x <= (body.x + body.w)
             && hitPoint.y >= body.y && hitPoint.y <= (body.y + body.h));
     };
-    CandlestickChartRenderer.prototype.renderCandle = function (canvas, timeAxis, yAxis, candle, frameSize) {
+    CandlestickChartRenderer.prototype.renderCandle = function (canvas, timeAxis, yAxis, candle, frame) {
         if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
             return;
         }

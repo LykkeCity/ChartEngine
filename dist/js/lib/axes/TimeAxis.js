@@ -10,6 +10,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var index_1 = require("../core/index");
+var AutoGrid_1 = require("./AutoGrid");
 var TimeAxis = (function (_super) {
     __extends(TimeAxis, _super);
     function TimeAxis(offset, size, interval, // Defines maximum zoom
@@ -33,6 +34,10 @@ var TimeAxis = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    TimeAxis.prototype.getGrid = function () {
+        var autoGrid = new AutoGrid_1.TimeAutoGrid(this.size.width, this.interval, this.range);
+        return autoGrid.getGrid();
+    };
     TimeAxis.prototype.getValuesRange = function (x1, x2) {
         if (x1 > 0 && x2 > 0 && x1 < this.size.width && x2 < this.size.width) {
             return {
@@ -93,7 +98,7 @@ var TimeAxis = (function (_super) {
         if (context.renderBase) {
             var canvas = context.getCanvas(this.target);
             var render = renderLocator.getAxesRender('date');
-            render.render(canvas, this, this.offset, this.size);
+            render.render(canvas, this, { x: 0, y: 0, w: this.size.width, h: this.size.height });
         }
         _super.prototype.render.call(this, context, renderLocator);
     };

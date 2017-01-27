@@ -26,7 +26,7 @@ var Chart = (function (_super) {
             var canvas = context.getCanvas(this.target);
             var render = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
             var dataIterator = this.dataSource.getData(this.timeAxis.range, this.timeAxis.interval);
-            render.render(canvas, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+            render.render(canvas, dataIterator, { x: 0, y: 0, w: this.size.width, h: this.size.height }, this.timeAxis, this.yAxis);
         }
         _super.prototype.render.call(this, context, renderLocator);
     };

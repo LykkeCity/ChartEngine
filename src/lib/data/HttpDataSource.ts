@@ -252,9 +252,9 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
     protected timeIntervalToString(interval: TimeInterval): string {
         switch (interval) {
             case TimeInterval.month: return '1mo';
-            case TimeInterval.week: return '1w';
+            case TimeInterval.day7: return '1w';
             case TimeInterval.day: return '1d';
-            case TimeInterval.hours4: return '4h';
+            case TimeInterval.hour4: return '4h';
             case TimeInterval.hour: return '1h';
             case TimeInterval.min30: return '30m';
             case TimeInterval.min15: return '15m';
@@ -268,9 +268,9 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
     protected stringToTimeInterval(interval: string): TimeInterval {
         switch (interval) {
             case '1mo': return TimeInterval.month;
-            case '1w': return TimeInterval.week;
+            case '1w': return TimeInterval.day7;
             case '1d': return TimeInterval.day;
-            case '4h': return TimeInterval.hours4;
+            case '4h': return TimeInterval.hour4;
             case '1h': return TimeInterval.hour;
             case '30m': return TimeInterval.min30;
             case '15m': return TimeInterval.min15;

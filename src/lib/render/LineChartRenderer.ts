@@ -8,7 +8,7 @@ import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
 import { IDataIterator } from '../data/index';
 import { Point } from '../model/index';
-import { IPoint, ISize } from '../shared/index';
+import { IPoint, IRect, ISize } from '../shared/index';
 import { IChartRender } from './Interfaces';
 
 export class LineChartRenderer implements IChartRender<Point> {
@@ -16,23 +16,32 @@ export class LineChartRenderer implements IChartRender<Point> {
     public render(
         canvas: ICanvas,
         dataIterator: IDataIterator<Point>,
-        offsetX: number,
-        offsetY: number,
+        frame: IRect,
         timeAxis: IAxis<Date>,
         yAxis: IAxis<number>): void {
 
-        // Calculate size of frame
-        const frameSize: ISize = {
-            width: canvas.w,
-            height: canvas.h
-        };
-
         // Render
+        //
+        // border lines
+        canvas.setStrokeStyle('#333333');
+        canvas.beginPath();
+        // ... bottom
+        canvas.moveTo(frame.x, frame.y + frame.h - 1);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        // ... left
+        canvas.moveTo(frame.x, frame.y);
+        canvas.lineTo(frame.x, frame.y + frame.h - 1);
+        // ... right
+        canvas.moveTo(frame.x + frame.w - 1, frame.y);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        canvas.stroke();
+        canvas.closePath();
+
         if (dataIterator.moveNext()) {
             let prevPoint: Point = dataIterator.current;
             while (dataIterator.moveNext()) {
                 if (dataIterator.current.value) {
-                    this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frameSize);
+                    this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frame);
                     prevPoint = dataIterator.current;
                 }
             }
@@ -42,8 +51,7 @@ export class LineChartRenderer implements IChartRender<Point> {
     public testHitArea(
         hitPoint: IPoint,
         dataIterator: IDataIterator<Point>,
-        offsetX: number,
-        offsetY: number,
+        frame: IRect,
         timeAxis: IAxis<Date>,
         yAxis: IAxis<number>): Point | undefined {
 
@@ -63,7 +71,7 @@ export class LineChartRenderer implements IChartRender<Point> {
 
     private renderPart(canvas: ICanvas,
                        timeAxis: IAxis<Date>,
-                       yAxis: IAxis<number>, pointFrom: Point, pointTo: Point, frameSize: ISize): void {
+                       yAxis: IAxis<number>, pointFrom: Point, pointTo: Point, frame: IRect): void {
 
         // Startin drawing
         canvas.setStrokeStyle('#555555');

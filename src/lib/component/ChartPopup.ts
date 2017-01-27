@@ -5,7 +5,7 @@ import { IAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { Candlestick, Point as MPoint } from '../model/index';
-import { IRenderLocator } from '../render/index';
+import { IChartRender, IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
 
 export class ChartPopup<T> extends VisualComponent {
@@ -45,8 +45,13 @@ export class ChartPopup<T> extends VisualComponent {
             const dateRange = this.timeAxis.getValuesRange(mouseX - 10, mouseX + 10);
             if (dateRange && dateRange.start && dateRange.end) {
                 const dataIterator = this.dataSource.getData(dateRange, this.timeAxis.interval);
-                const dataRender = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
-                const item: T = dataRender.testHitArea({ x: mouseX, y: mouseY }, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+                const dataRender = <IChartRender<T>>renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
+                const item = dataRender.testHitArea(
+                    { x: mouseX, y: mouseY },
+                    dataIterator,
+                    {x: 0, y: 0, w: this.size.width, h: this.size.height },
+                    this.timeAxis,
+                    this.yAxis);
 
                 if (item) {
                     const popupRender = renderLocator.getPopupRender<T>(this.dataSource.dataType);

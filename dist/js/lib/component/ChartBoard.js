@@ -32,7 +32,6 @@ var ChartBoard = (function (_super) {
         _this.chartStacks = [];
         _this.yAxisAreas = [];
         _this.yAxes = [];
-        //private timeAxisCanvas: ICanvas;
         _this.indicators = [];
         _this.eventHandlers = {};
         _this.mouseHandlers = [];
@@ -42,6 +41,8 @@ var ChartBoard = (function (_super) {
         _this.mouseY = null;
         _this.table = document.createElement('table');
         _this.table.style.setProperty('position', 'relative');
+        _this.table.style.setProperty('border-spacing', '0');
+        _this.table.style.setProperty('border-collapse', 'collapse');
         _this.container.appendChild(_this.table);
         _this.timeArea = _this.makeArea(w, 25);
         var now = new Date();
@@ -55,7 +56,7 @@ var ChartBoard = (function (_super) {
         //
         var chartArea = _this.makeArea(w, h);
         _this.chartAreas.push(chartArea);
-        var yAxisArea = _this.makeArea(15, h);
+        var yAxisArea = _this.makeArea(50, h);
         _this.yAxisAreas.push(yAxisArea);
         // create initial Y axis
         var yAxis = new index_1.PriceAxis({ x: chartArea.width, y: 0 }, // offset
@@ -96,6 +97,9 @@ var ChartBoard = (function (_super) {
         var cell1 = row.insertCell();
         var cell2 = row.insertCell();
         var cell3 = row.insertCell();
+        cell1.style.setProperty('padding', '0');
+        cell2.style.setProperty('padding', '0');
+        cell3.style.setProperty('padding', '0');
         var div1 = document.createElement('div');
         var div2 = document.createElement('div');
         var div3 = document.createElement('div');
@@ -152,10 +156,10 @@ var ChartBoard = (function (_super) {
     ChartBoard.prototype.addIndicator = function (indicatorDataSource) {
         this.indicators.push(indicatorDataSource);
         var yOffset = this.chartAreas.length * this.h;
-        // create new are
+        // create new area
         var chartArea = this.makeArea(this.w, this.h);
         this.chartAreas.push(chartArea);
-        var yAxisArea = this.makeArea(15, this.h);
+        var yAxisArea = this.makeArea(50, this.h);
         this.yAxisAreas.push(yAxisArea);
         // create Y axis
         var yAxis = new index_1.NumberAxis({ x: chartArea.width, y: yOffset }, // offset

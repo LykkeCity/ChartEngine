@@ -8,6 +8,7 @@ var index_1 = require("../core/index");
 var index_2 = require("../shared/index");
 var Chart_1 = require("./Chart");
 var Crosshair_1 = require("./Crosshair");
+var Grid_1 = require("./Grid");
 var ChartStack = (function (_super) {
     __extends(ChartStack, _super);
     function ChartStack(offset, size, timeAxis, yAxis) {
@@ -16,7 +17,11 @@ var ChartStack = (function (_super) {
         _this.yAxis = yAxis;
         _this.charts = [];
         // create crosshair
-        _this.crosshair = new Crosshair_1.Crosshair(offset, { width: size.width - 20, height: size.height });
+        _this.crosshair = new Crosshair_1.Crosshair({ x: 0, y: 0 }, { width: size.width, height: size.height });
+        _this.addChild(_this.crosshair);
+        // add grid
+        var grid = new Grid_1.Grid({ x: 0, y: 0 }, { width: size.width, height: size.height }, timeAxis, yAxis);
+        _this.addChild(grid);
         return _this;
     }
     ChartStack.prototype.addChart = function (chartType, dataSource) {
@@ -48,14 +53,14 @@ var ChartStack = (function (_super) {
                 this.yAxis.range = { start: 0, end: 100 }; // default values
             }
         }
-        // 2. Render children
-        for (var _b = 0, _c = this.charts; _b < _c.length; _b++) {
-            var chart = _c[_b];
-            chart.render(context, renderLocator);
-        }
-        // 3. Render additional objects
-        //
-        this.crosshair.render(context, renderLocator);
+        _super.prototype.render.call(this, context, renderLocator);
+        // // 2. Render charts
+        // for (const chart of this.charts) {
+        //     chart.render(context, renderLocator);
+        // }
+        // // 3. Render additional objects
+        // //
+        // this.crosshair.render(context, renderLocator);
     };
     return ChartStack;
 }(index_1.VisualComponent));

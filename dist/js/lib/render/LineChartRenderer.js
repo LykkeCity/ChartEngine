@@ -7,24 +7,34 @@
 var LineChartRenderer = (function () {
     function LineChartRenderer() {
     }
-    LineChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
-        // Calculate size of frame
-        var frameSize = {
-            width: canvas.w,
-            height: canvas.h
-        };
+    LineChartRenderer.prototype.render = function (canvas, dataIterator, frame, timeAxis, yAxis) {
         // Render
+        //
+        // border lines
+        canvas.setStrokeStyle('#333333');
+        canvas.beginPath();
+        // ... bottom
+        canvas.moveTo(frame.x, frame.y + frame.h - 1);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        // ... left
+        canvas.moveTo(frame.x, frame.y);
+        canvas.lineTo(frame.x, frame.y + frame.h - 1);
+        // ... right
+        canvas.moveTo(frame.x + frame.w - 1, frame.y);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        canvas.stroke();
+        canvas.closePath();
         if (dataIterator.moveNext()) {
             var prevPoint = dataIterator.current;
             while (dataIterator.moveNext()) {
                 if (dataIterator.current.value) {
-                    this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frameSize);
+                    this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frame);
                     prevPoint = dataIterator.current;
                 }
             }
         }
     };
-    LineChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
+    LineChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, frame, timeAxis, yAxis) {
         while (dataIterator.moveNext()) {
             if (dataIterator.current.value) {
                 var x = timeAxis.toX(dataIterator.current.date);
@@ -36,7 +46,7 @@ var LineChartRenderer = (function () {
             }
         }
     };
-    LineChartRenderer.prototype.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frameSize) {
+    LineChartRenderer.prototype.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frame) {
         // Startin drawing
         canvas.setStrokeStyle('#555555');
         canvas.beginPath();

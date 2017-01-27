@@ -6,6 +6,8 @@ var index_1 = require("../core/index");
 var index_2 = require("../model/index");
 var CandlestickChartRenderer_1 = require("./CandlestickChartRenderer");
 var CandlestickPopupRenderer_1 = require("./CandlestickPopupRenderer");
+var CrosshairRenderer_1 = require("./CrosshairRenderer");
+var GridRenderer_1 = require("./GridRenderer");
 var LineChartRenderer_1 = require("./LineChartRenderer");
 var LinePopupRenderer_1 = require("./LinePopupRenderer");
 var NumberAxisRenderer_1 = require("./NumberAxisRenderer");
@@ -24,6 +26,8 @@ var RenderLocator = (function () {
         this.linePopupRenderer = new LinePopupRenderer_1.LinePopupRenderer();
         this.timeMarkRender = new TimeMarkRenderer_1.TimeMarkRenderer();
         this.numberMarkRender = new NumberMarkRenderer_1.NumberMarkRenderer();
+        this.crosshairRenderer = new CrosshairRenderer_1.CrosshairRenderer();
+        this.gridRenderer = new GridRenderer_1.GridRenderer();
     }
     Object.defineProperty(RenderLocator, "Instance", {
         get: function () {
@@ -77,6 +81,12 @@ var RenderLocator = (function () {
             default:
                 throw new Error('Unexpected axes render uid: ' + uid);
         }
+    };
+    RenderLocator.prototype.getCrosshairRender = function () {
+        return this.crosshairRenderer;
+    };
+    RenderLocator.prototype.getGridRender = function () {
+        return this.gridRenderer;
     };
     return RenderLocator;
 }());

@@ -8,6 +8,7 @@ import { IRenderLocator, RenderType } from '../render/index';
 import { ISize, Point } from '../shared/index';
 import { Chart, IChart } from './Chart';
 import { Crosshair } from './Crosshair';
+import { Grid } from './Grid';
 
 export class ChartStack extends VisualComponent {
 
@@ -22,7 +23,12 @@ export class ChartStack extends VisualComponent {
             super(offset, size);
 
             // create crosshair
-            this.crosshair = new Crosshair(offset, { width: size.width - 20, height: size.height });
+            this.crosshair = new Crosshair({x: 0, y: 0}, { width: size.width, height: size.height });
+            this.addChild(this.crosshair);
+
+            // add grid
+            const grid = new Grid({x: 0, y: 0}, { width: size.width, height: size.height }, timeAxis, yAxis);
+            this.addChild(grid);
     }
 
     public addChart<T>(chartType: string, dataSource: IDataSource<T>): void {
@@ -61,13 +67,15 @@ export class ChartStack extends VisualComponent {
             }
         }
 
-        // 2. Render children
-        for (const chart of this.charts) {
-            chart.render(context, renderLocator);
-        }
+        super.render(context, renderLocator);
 
-        // 3. Render additional objects
-        //
-        this.crosshair.render(context, renderLocator);
+        // // 2. Render charts
+        // for (const chart of this.charts) {
+        //     chart.render(context, renderLocator);
+        // }
+
+        // // 3. Render additional objects
+        // //
+        // this.crosshair.render(context, renderLocator);
     }
 }

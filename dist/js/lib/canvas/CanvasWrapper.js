@@ -14,6 +14,16 @@ var CanvasWrapper = (function () {
         //this.dpr = window.devicePixelRatio || 1;
         this.dpr = 1;
     }
+    Object.defineProperty(CanvasWrapper.prototype, "font", {
+        get: function () {
+            return this.ctx.font;
+        },
+        set: function (font) {
+            this.ctx.font = font;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(CanvasWrapper.prototype, "lineWidth", {
         get: function () {
             return this.ctx.lineWidth;
@@ -33,6 +43,12 @@ var CanvasWrapper = (function () {
     };
     CanvasWrapper.prototype.lineTo = function (x, y) {
         this.ctx.lineTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
+    };
+    CanvasWrapper.prototype.getLineDash = function () {
+        return this.ctx.getLineDash();
+    };
+    CanvasWrapper.prototype.setLineDash = function (segments) {
+        this.ctx.setLineDash(segments);
     };
     CanvasWrapper.prototype.fillText = function (s, x, y) {
         this.ctx.fillText(s, Math.round(x * this.dpr), Math.round(y * this.dpr));

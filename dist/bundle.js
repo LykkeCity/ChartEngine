@@ -11010,6 +11010,289 @@ return jQuery;
 
 },{}],2:[function(require,module,exports){
 "use strict";
+/**
+ * Classes related to grid calculation.
+ */
+var index_1 = require("../core/index");
+var NumberAutoGrid = (function () {
+    function NumberAutoGrid(length, minInterval, range) {
+        if (!length || length <= 0) {
+            throw new Error("Argument \"length\" " + length + " is out of range.");
+        }
+        if (!minInterval || minInterval <= 0) {
+            throw new Error("Argument \"minInterval\" " + minInterval + " is out of range.");
+        }
+        if (!range || range.end === undefined || range.start === undefined) {
+            throw new Error('Argument "range" is not specified.');
+        }
+        this.length = length;
+        this.minInterval = minInterval;
+        this.range = range;
+    }
+    NumberAutoGrid.prototype.getGrid = function () {
+        var grid = [];
+        // 1. Define how many bars can be fitted
+        var _a = [1, Math.floor(this.length / 20)], minBars = _a[0], maxBars = _a[1];
+        // 2. Choose fitting scale
+        var rangeAbs = Math.abs(this.range.end - this.range.start);
+        var selectedScale = 0;
+        for (var _i = 0, _b = NumberAutoGrid.scales; _i < _b.length; _i++) {
+            var scale = _b[_i];
+            if (scale < this.minInterval) {
+                continue;
+            }
+            // how many bars does this scale require:
+            var barsRequired = Math.floor(rangeAbs / scale) + 1;
+            if (barsRequired >= minBars && barsRequired <= maxBars) {
+                selectedScale = scale;
+                break;
+            }
+        }
+        if (selectedScale === 0) {
+            return [];
+        }
+        // 3. Calculate first bar
+        //
+        // ... if start time is placed on bar use it, otherwise calculate where first bar lies
+        var bar = 0;
+        if (this.range.start % selectedScale === 0) {
+            bar = this.range.start;
+        }
+        else {
+            // ... add scale value and truncate 
+            var num = this.range.start + selectedScale;
+            bar = num - (num % selectedScale);
+        }
+        // 4. Calculate remaining bars
+        var t = bar;
+        while (t <= this.range.end) {
+            if (t >= this.range.start) {
+                grid.push(t);
+            }
+            t += selectedScale;
+        }
+        return grid;
+    };
+    return NumberAutoGrid;
+}());
+NumberAutoGrid.scales = [
+    0.0005,
+    0.0010,
+    0.0025,
+    0.0050,
+    0.0100,
+    0.0250,
+    0.0500,
+    0.1000,
+    0.2500,
+    0.5000,
+    1.0000,
+    5.0000,
+    10.0000,
+    25.0000,
+    50.0000
+];
+exports.NumberAutoGrid = NumberAutoGrid;
+var TimeAutoGrid = (function () {
+    function TimeAutoGrid(width, minInterval, range) {
+        if (!width || width <= 0) {
+            throw new Error("Argument \"width\" " + width + " is out of range.");
+        }
+        if (!minInterval || minInterval < 0) {
+            throw new Error("Argument \"minInterval\" " + minInterval + " is out of range.");
+        }
+        if (!range || range.end === undefined || range.start === undefined) {
+            throw new Error('Argument "range" is not specified.');
+        }
+        this.width = width;
+        this.minInterval = minInterval;
+        this.range = range;
+    }
+    TimeAutoGrid.prototype.getGrid = function () {
+        var grid = [];
+        // 1. Define how many bars can be fitted
+        var _a = [1, Math.floor(this.width / 75)], minBars = _a[0], maxBars = _a[1];
+        // 2. Choose fitting scale
+        var rangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime());
+        var selectedScale = 0;
+        for (var _i = 0, _b = TimeAutoGrid.scales; _i < _b.length; _i++) {
+            var scale = _b[_i];
+            if (scale < this.minInterval) {
+                continue;
+            }
+            // how many bars does this scale require:
+            var barsRequired = Math.floor(rangeInMs / scale) + 1;
+            if (barsRequired >= minBars && barsRequired <= maxBars) {
+                selectedScale = scale;
+                break;
+            }
+        }
+        if (selectedScale === 0) {
+            return [];
+        }
+        // 3. Calculate first bar
+        // ... truncate date to the nearest round date.
+        var startBar = this.truncateToInterval(this.range.start, selectedScale);
+        // 4. Calculate remaining bars
+        var t = startBar;
+        while (t <= this.range.end) {
+            if (t >= this.range.start) {
+                grid.push(t);
+            }
+            t = this.addInterval(t, selectedScale);
+        }
+        return grid;
+    };
+    TimeAutoGrid.prototype.truncateToInterval = function (date, interval) {
+        switch (interval) {
+            case index_1.TimeInterval.min: return this.truncateToTimeSpan(date, TimeSpan.FROM_MINUTES(1));
+            case index_1.TimeInterval.min5: return this.truncateToTimeSpan(date, TimeSpan.FROM_MINUTES(5));
+            case index_1.TimeInterval.min15: return this.truncateToTimeSpan(date, TimeSpan.FROM_MINUTES(15));
+            case index_1.TimeInterval.min30: return this.truncateToTimeSpan(date, TimeSpan.FROM_MINUTES(30));
+            case index_1.TimeInterval.hour: return this.truncateToTimeSpan(date, TimeSpan.FROM_HOURS(1));
+            case index_1.TimeInterval.hour4: return this.truncateToTimeSpan(date, TimeSpan.FROM_HOURS(4));
+            case index_1.TimeInterval.hour6: return this.truncateToTimeSpan(date, TimeSpan.FROM_HOURS(6));
+            case index_1.TimeInterval.hour12: return this.truncateToTimeSpan(date, TimeSpan.FROM_HOURS(12));
+            case index_1.TimeInterval.day: return this.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(1));
+            case index_1.TimeInterval.day3: return this.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(3));
+            case index_1.TimeInterval.day7:
+                var firstDay = date.getDate() - date.getDay();
+                return new Date(date.setDate(firstDay));
+            case index_1.TimeInterval.day10: return this.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(10));
+            case index_1.TimeInterval.month: return new Date(date.getFullYear(), date.getMonth(), 1);
+            default:
+                throw new Error("Unexpected interval " + interval);
+        }
+    };
+    TimeAutoGrid.prototype.truncateToTimeSpan = function (date, timeSpan) {
+        if (timeSpan.totalMilliseconds === 0) {
+            return date;
+        }
+        var dateMilliseconds = date.getTime();
+        return new Date(dateMilliseconds - (dateMilliseconds % timeSpan.totalMilliseconds));
+    };
+    TimeAutoGrid.prototype.addInterval = function (date, interval) {
+        var newDate = new Date(date.getTime());
+        switch (interval) {
+            case index_1.TimeInterval.min:
+                newDate.setMinutes(newDate.getMinutes() + 1);
+                break;
+            case index_1.TimeInterval.min5:
+                newDate.setMinutes(date.getMinutes() + 5);
+                break;
+            case index_1.TimeInterval.min15:
+                newDate.setMinutes(date.getMinutes() + 15);
+                break;
+            case index_1.TimeInterval.min30:
+                newDate.setMinutes(date.getMinutes() + 30);
+                break;
+            case index_1.TimeInterval.hour:
+                newDate.setHours(date.getHours() + 1);
+                break;
+            case index_1.TimeInterval.hour4:
+                newDate.setHours(date.getHours() + 4);
+                break;
+            case index_1.TimeInterval.hour6:
+                newDate.setHours(date.getHours() + 6);
+                break;
+            case index_1.TimeInterval.hour12:
+                newDate.setHours(date.getHours() + 12);
+                break;
+            case index_1.TimeInterval.day:
+                newDate.setDate(date.getDate() + 1);
+                break;
+            case index_1.TimeInterval.day3:
+                newDate.setDate(date.getDate() + 3);
+                break;
+            case index_1.TimeInterval.day7:
+                newDate.setDate(date.getDate() + 7);
+                break;
+            case index_1.TimeInterval.day10:
+                newDate.setDate(date.getDate() + 10);
+                break;
+            case index_1.TimeInterval.month:
+                newDate.setMonth(date.getMonth() + 1);
+                break;
+            default:
+                throw new Error("Unexpected interval " + interval);
+        }
+        return newDate;
+    };
+    return TimeAutoGrid;
+}());
+// private readonly convertToMsTable: IHashTable<number> = {
+//     min: 60000
+// };
+TimeAutoGrid.scales = [
+    index_1.TimeInterval.min,
+    index_1.TimeInterval.min5,
+    index_1.TimeInterval.min10,
+    index_1.TimeInterval.min15,
+    index_1.TimeInterval.min30,
+    index_1.TimeInterval.hour,
+    index_1.TimeInterval.hour4,
+    index_1.TimeInterval.hour6,
+    index_1.TimeInterval.hour12,
+    index_1.TimeInterval.day,
+    index_1.TimeInterval.day3,
+    index_1.TimeInterval.day7,
+    index_1.TimeInterval.day10,
+    index_1.TimeInterval.month
+];
+exports.TimeAutoGrid = TimeAutoGrid;
+var TimeUnit;
+(function (TimeUnit) {
+    TimeUnit[TimeUnit["Minutes"] = 0] = "Minutes";
+    TimeUnit[TimeUnit["Hours"] = 1] = "Hours";
+    TimeUnit[TimeUnit["Days"] = 2] = "Days";
+    TimeUnit[TimeUnit["Months"] = 3] = "Months";
+})(TimeUnit || (TimeUnit = {}));
+var TimeSpan = (function () {
+    function TimeSpan(value, unit) {
+        switch (unit) {
+            case TimeUnit.Minutes:
+                this._totalMilliseconds = value * 60000;
+                //this.minutes = value;
+                break;
+            case TimeUnit.Hours:
+                this._totalMilliseconds = value * 3600000;
+                //this.hours = value;
+                break;
+            case TimeUnit.Days:
+                this._totalMilliseconds = value * 86400000;
+                //this.days = value;
+                break;
+            default:
+                throw new Error("Unexpected TimeUnit value " + unit);
+        }
+    }
+    Object.defineProperty(TimeSpan.prototype, "totalMilliseconds", {
+        // private minutes: number = 0;
+        // private hours: number = 0;
+        // private days: number = 0;
+        // private months: number = 0;
+        get: function () {
+            return this._totalMilliseconds;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    TimeSpan.FROM_DAYS = function (value) {
+        return new TimeSpan(value, TimeUnit.Days);
+    };
+    TimeSpan.FROM_HOURS = function (value) {
+        return new TimeSpan(value, TimeUnit.Hours);
+    };
+    TimeSpan.FROM_MINUTES = function (value) {
+        return new TimeSpan(value, TimeUnit.Minutes);
+    };
+    TimeSpan.COMPARE = function (l, r) {
+        return l._totalMilliseconds - r._totalMilliseconds;
+    };
+    return TimeSpan;
+}());
+},{"../core/index":25}],3:[function(require,module,exports){
+"use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -11019,6 +11302,7 @@ var __extends = (this && this.__extends) || function (d, b) {
  * NumberAxis class.
  */
 var index_1 = require("../core/index");
+var AutoGrid_1 = require("./AutoGrid");
 var NumberAxis = (function (_super) {
     __extends(NumberAxis, _super);
     function NumberAxis(offset, size, interval, // Defines maximum zoom
@@ -11045,6 +11329,10 @@ var NumberAxis = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    NumberAxis.prototype.getGrid = function () {
+        var autoGrid = new AutoGrid_1.NumberAutoGrid(this.size.height, this.interval, this.range);
+        return autoGrid.getGrid();
+    };
     NumberAxis.prototype.getValuesRange = function (x1, x2) {
         if (x1 > 0 && x2 > 0 && x1 < this.size.height && x2 < this.size.height) {
             return {
@@ -11073,14 +11361,14 @@ var NumberAxis = (function (_super) {
         if (context.renderBase) {
             var canvas = context.getCanvas(this.target);
             var render = renderLocator.getAxesRender('number');
-            render.render(canvas, this, { x: 0, y: 0 }, this.size);
+            render.render(canvas, this, { x: 0, y: 0, w: this.size.width, h: this.size.height });
         }
         _super.prototype.render.call(this, context, renderLocator);
     };
     return NumberAxis;
 }(index_1.VisualComponent));
 exports.NumberAxis = NumberAxis;
-},{"../core/index":23}],3:[function(require,module,exports){
+},{"../core/index":25,"./AutoGrid":2}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11091,10 +11379,10 @@ var __extends = (this && this.__extends) || function (d, b) {
  * PriceAxis class.
  */
 var index_1 = require("../core/index");
+var AutoGrid_1 = require("./AutoGrid");
 var PriceAxis = (function (_super) {
     __extends(PriceAxis, _super);
-    //private marker: PriceMarker;
-    function PriceAxis(offset, size, interval, // Defines maximum zoom
+    function PriceAxis(offset, size, interval, // defines maximum zoom
         initialRange) {
         var _this = _super.call(this, offset, size) || this;
         _this._interval = interval;
@@ -11118,6 +11406,10 @@ var PriceAxis = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    PriceAxis.prototype.getGrid = function () {
+        var autoGrid = new AutoGrid_1.NumberAutoGrid(this.size.height, this.interval, this.range);
+        return autoGrid.getGrid();
+    };
     PriceAxis.prototype.getValuesRange = function (x1, x2) {
         if (x1 > 0 && x2 > 0 && x1 < this.size.height && x2 < this.size.height) {
             return {
@@ -11146,14 +11438,14 @@ var PriceAxis = (function (_super) {
         if (context.renderBase) {
             var canvas = context.getCanvas(this.target);
             var render = renderLocator.getAxesRender('price');
-            render.render(canvas, this, { x: 0, y: 0 }, this.size);
+            render.render(canvas, this, { x: 0, y: 0, w: this.size.width, h: this.size.height });
         }
         _super.prototype.render.call(this, context, renderLocator);
     };
     return PriceAxis;
 }(index_1.VisualComponent));
 exports.PriceAxis = PriceAxis;
-},{"../core/index":23}],4:[function(require,module,exports){
+},{"../core/index":25,"./AutoGrid":2}],5:[function(require,module,exports){
 /**
 * TimeAxis class
 *
@@ -11166,6 +11458,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var index_1 = require("../core/index");
+var AutoGrid_1 = require("./AutoGrid");
 var TimeAxis = (function (_super) {
     __extends(TimeAxis, _super);
     function TimeAxis(offset, size, interval, // Defines maximum zoom
@@ -11189,6 +11482,10 @@ var TimeAxis = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    TimeAxis.prototype.getGrid = function () {
+        var autoGrid = new AutoGrid_1.TimeAutoGrid(this.size.width, this.interval, this.range);
+        return autoGrid.getGrid();
+    };
     TimeAxis.prototype.getValuesRange = function (x1, x2) {
         if (x1 > 0 && x2 > 0 && x1 < this.size.width && x2 < this.size.width) {
             return {
@@ -11249,14 +11546,14 @@ var TimeAxis = (function (_super) {
         if (context.renderBase) {
             var canvas = context.getCanvas(this.target);
             var render = renderLocator.getAxesRender('date');
-            render.render(canvas, this, this.offset, this.size);
+            render.render(canvas, this, { x: 0, y: 0, w: this.size.width, h: this.size.height });
         }
         _super.prototype.render.call(this, context, renderLocator);
     };
     return TimeAxis;
 }(index_1.VisualComponent));
 exports.TimeAxis = TimeAxis;
-},{"../core/index":23}],5:[function(require,module,exports){
+},{"../core/index":25,"./AutoGrid":2}],6:[function(require,module,exports){
 "use strict";
 var NumberAxis_1 = require("./NumberAxis");
 exports.NumberAxis = NumberAxis_1.NumberAxis;
@@ -11264,7 +11561,7 @@ var PriceAxis_1 = require("./PriceAxis");
 exports.PriceAxis = PriceAxis_1.PriceAxis;
 var TimeAxis_1 = require("./TimeAxis");
 exports.TimeAxis = TimeAxis_1.TimeAxis;
-},{"./NumberAxis":2,"./PriceAxis":3,"./TimeAxis":4}],6:[function(require,module,exports){
+},{"./NumberAxis":3,"./PriceAxis":4,"./TimeAxis":5}],7:[function(require,module,exports){
 /**
 * CanvasWrapper class.
 *
@@ -11281,6 +11578,16 @@ var CanvasWrapper = (function () {
         //this.dpr = window.devicePixelRatio || 1;
         this.dpr = 1;
     }
+    Object.defineProperty(CanvasWrapper.prototype, "font", {
+        get: function () {
+            return this.ctx.font;
+        },
+        set: function (font) {
+            this.ctx.font = font;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(CanvasWrapper.prototype, "lineWidth", {
         get: function () {
             return this.ctx.lineWidth;
@@ -11300,6 +11607,12 @@ var CanvasWrapper = (function () {
     };
     CanvasWrapper.prototype.lineTo = function (x, y) {
         this.ctx.lineTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
+    };
+    CanvasWrapper.prototype.getLineDash = function () {
+        return this.ctx.getLineDash();
+    };
+    CanvasWrapper.prototype.setLineDash = function (segments) {
+        this.ctx.setLineDash(segments);
     };
     CanvasWrapper.prototype.fillText = function (s, x, y) {
         this.ctx.fillText(s, Math.round(x * this.dpr), Math.round(y * this.dpr));
@@ -11352,7 +11665,7 @@ var CanvasWrapper = (function () {
     return CanvasWrapper;
 }());
 exports.CanvasWrapper = CanvasWrapper;
-},{"./Enums":7}],7:[function(require,module,exports){
+},{"./Enums":8}],8:[function(require,module,exports){
 /**
 * Canvas related enumerations.
 */
@@ -11369,7 +11682,7 @@ var CanvasTextBaseLine;
     CanvasTextBaseLine[CanvasTextBaseLine["Middle"] = 1] = "Middle";
     CanvasTextBaseLine[CanvasTextBaseLine["Bottom"] = 2] = "Bottom";
 })(CanvasTextBaseLine = exports.CanvasTextBaseLine || (exports.CanvasTextBaseLine = {}));
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -11379,7 +11692,7 @@ exports.CanvasWrapper = CanvasWrapper_1.CanvasWrapper;
 var Enums_1 = require("./Enums");
 exports.CanvasTextAlign = Enums_1.CanvasTextAlign;
 exports.CanvasTextBaseLine = Enums_1.CanvasTextBaseLine;
-},{"./CanvasWrapper":6,"./Enums":7}],9:[function(require,module,exports){
+},{"./CanvasWrapper":7,"./Enums":8}],10:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11408,14 +11721,14 @@ var Chart = (function (_super) {
             var canvas = context.getCanvas(this.target);
             var render = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
             var dataIterator = this.dataSource.getData(this.timeAxis.range, this.timeAxis.interval);
-            render.render(canvas, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+            render.render(canvas, dataIterator, { x: 0, y: 0, w: this.size.width, h: this.size.height }, this.timeAxis, this.yAxis);
         }
         _super.prototype.render.call(this, context, renderLocator);
     };
     return Chart;
 }(index_1.VisualComponent));
 exports.Chart = Chart;
-},{"../core/index":23,"./ChartPopup":12}],10:[function(require,module,exports){
+},{"../core/index":25,"./ChartPopup":13}],11:[function(require,module,exports){
 "use strict";
 /**
  * ChartArea class.
@@ -11482,7 +11795,7 @@ var ChartArea = (function () {
     return ChartArea;
 }());
 exports.ChartArea = ChartArea;
-},{"../canvas/index":8}],11:[function(require,module,exports){
+},{"../canvas/index":9}],12:[function(require,module,exports){
 /**
  * ChartBoard class.
  *
@@ -11517,7 +11830,6 @@ var ChartBoard = (function (_super) {
         _this.chartStacks = [];
         _this.yAxisAreas = [];
         _this.yAxes = [];
-        //private timeAxisCanvas: ICanvas;
         _this.indicators = [];
         _this.eventHandlers = {};
         _this.mouseHandlers = [];
@@ -11527,6 +11839,8 @@ var ChartBoard = (function (_super) {
         _this.mouseY = null;
         _this.table = document.createElement('table');
         _this.table.style.setProperty('position', 'relative');
+        _this.table.style.setProperty('border-spacing', '0');
+        _this.table.style.setProperty('border-collapse', 'collapse');
         _this.container.appendChild(_this.table);
         _this.timeArea = _this.makeArea(w, 25);
         var now = new Date();
@@ -11540,7 +11854,7 @@ var ChartBoard = (function (_super) {
         //
         var chartArea = _this.makeArea(w, h);
         _this.chartAreas.push(chartArea);
-        var yAxisArea = _this.makeArea(15, h);
+        var yAxisArea = _this.makeArea(50, h);
         _this.yAxisAreas.push(yAxisArea);
         // create initial Y axis
         var yAxis = new index_1.PriceAxis({ x: chartArea.width, y: 0 }, // offset
@@ -11581,6 +11895,9 @@ var ChartBoard = (function (_super) {
         var cell1 = row.insertCell();
         var cell2 = row.insertCell();
         var cell3 = row.insertCell();
+        cell1.style.setProperty('padding', '0');
+        cell2.style.setProperty('padding', '0');
+        cell3.style.setProperty('padding', '0');
         var div1 = document.createElement('div');
         var div2 = document.createElement('div');
         var div3 = document.createElement('div');
@@ -11637,10 +11954,10 @@ var ChartBoard = (function (_super) {
     ChartBoard.prototype.addIndicator = function (indicatorDataSource) {
         this.indicators.push(indicatorDataSource);
         var yOffset = this.chartAreas.length * this.h;
-        // create new are
+        // create new area
         var chartArea = this.makeArea(this.w, this.h);
         this.chartAreas.push(chartArea);
-        var yAxisArea = this.makeArea(15, this.h);
+        var yAxisArea = this.makeArea(50, this.h);
         this.yAxisAreas.push(yAxisArea);
         // create Y axis
         var yAxis = new index_1.NumberAxis({ x: chartArea.width, y: yOffset }, // offset
@@ -11786,7 +12103,7 @@ var ChartBoard = (function (_super) {
     return ChartBoard;
 }(index_2.VisualComponent));
 exports.ChartBoard = ChartBoard;
-},{"../axes/index":5,"../core/index":23,"../render/index":51,"../shared/index":54,"./ChartArea":10,"./ChartStack":13,"./NumberMarker":15,"./PriceMarker":16,"./TimeMarker":17,"jquery":1}],12:[function(require,module,exports){
+},{"../axes/index":6,"../core/index":25,"../render/index":55,"../shared/index":58,"./ChartArea":11,"./ChartStack":14,"./NumberMarker":17,"./PriceMarker":18,"./TimeMarker":19,"jquery":1}],13:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11832,7 +12149,7 @@ var ChartPopup = (function (_super) {
             if (dateRange && dateRange.start && dateRange.end) {
                 var dataIterator = this.dataSource.getData(dateRange, this.timeAxis.interval);
                 var dataRender = renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
-                var item = dataRender.testHitArea({ x: mouseX, y: mouseY }, dataIterator, 0, 0, this.timeAxis, this.yAxis);
+                var item = dataRender.testHitArea({ x: mouseX, y: mouseY }, dataIterator, { x: 0, y: 0, w: this.size.width, h: this.size.height }, this.timeAxis, this.yAxis);
                 if (item) {
                     var popupRender = renderLocator.getPopupRender(this.dataSource.dataType);
                     popupRender.render(canvas, item, { x: mouseX, y: mouseY }, this.size);
@@ -11843,7 +12160,7 @@ var ChartPopup = (function (_super) {
     return ChartPopup;
 }(index_1.VisualComponent));
 exports.ChartPopup = ChartPopup;
-},{"../core/index":23}],13:[function(require,module,exports){
+},{"../core/index":25}],14:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11854,6 +12171,7 @@ var index_1 = require("../core/index");
 var index_2 = require("../shared/index");
 var Chart_1 = require("./Chart");
 var Crosshair_1 = require("./Crosshair");
+var Grid_1 = require("./Grid");
 var ChartStack = (function (_super) {
     __extends(ChartStack, _super);
     function ChartStack(offset, size, timeAxis, yAxis) {
@@ -11862,7 +12180,11 @@ var ChartStack = (function (_super) {
         _this.yAxis = yAxis;
         _this.charts = [];
         // create crosshair
-        _this.crosshair = new Crosshair_1.Crosshair(offset, { width: size.width - 20, height: size.height });
+        _this.crosshair = new Crosshair_1.Crosshair({ x: 0, y: 0 }, { width: size.width, height: size.height });
+        _this.addChild(_this.crosshair);
+        // add grid
+        var grid = new Grid_1.Grid({ x: 0, y: 0 }, { width: size.width, height: size.height }, timeAxis, yAxis);
+        _this.addChild(grid);
         return _this;
     }
     ChartStack.prototype.addChart = function (chartType, dataSource) {
@@ -11894,19 +12216,19 @@ var ChartStack = (function (_super) {
                 this.yAxis.range = { start: 0, end: 100 }; // default values
             }
         }
-        // 2. Render children
-        for (var _b = 0, _c = this.charts; _b < _c.length; _b++) {
-            var chart = _c[_b];
-            chart.render(context, renderLocator);
-        }
-        // 3. Render additional objects
-        //
-        this.crosshair.render(context, renderLocator);
+        _super.prototype.render.call(this, context, renderLocator);
+        // // 2. Render charts
+        // for (const chart of this.charts) {
+        //     chart.render(context, renderLocator);
+        // }
+        // // 3. Render additional objects
+        // //
+        // this.crosshair.render(context, renderLocator);
     };
     return ChartStack;
 }(index_1.VisualComponent));
 exports.ChartStack = ChartStack;
-},{"../core/index":23,"../shared/index":54,"./Chart":9,"./Crosshair":14}],14:[function(require,module,exports){
+},{"../core/index":25,"../shared/index":58,"./Chart":10,"./Crosshair":15,"./Grid":16}],15:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11933,41 +12255,44 @@ var Crosshair = (function (_super) {
         }
         if (context.mousePosition) {
             // ... calculate mouse position related to this element
-            var mouseX = context.mousePosition.x; // - this.offset.x;
-            var mouseY = context.mousePosition.y; // - this.offset.y;
-            // TODO: move to specific renderer
+            var mouseX = context.mousePosition.x;
+            var mouseY = context.mousePosition.y;
             var canvas = context.getCanvas(this.target);
-            canvas.setStrokeStyle('black');
-            canvas.beginPath();
-            var text = "[" + mouseX + " " + mouseY + "]";
-            //let w = canvas.measureText(text).width;
-            canvas.strokeText(text, 0, 50);
-            canvas.stroke();
-            canvas.closePath();
-            // Draw crosshair
-            //
-            if (mouseX > 0 && mouseX < this.size.width) {
-                // draw vertical line
-                canvas.beginPath();
-                canvas.moveTo(mouseX, 0);
-                canvas.lineTo(mouseX, this.size.height);
-                canvas.stroke();
-                canvas.closePath();
-            }
-            if (mouseY > 0 && mouseY < this.size.height) {
-                // draw horizontal line
-                canvas.beginPath();
-                canvas.moveTo(0, mouseY);
-                canvas.lineTo(this.size.width, mouseY);
-                canvas.stroke();
-                canvas.closePath();
-            }
+            var render = renderLocator.getCrosshairRender();
+            render.render(canvas, { x: mouseX, y: mouseY }, this.size);
         }
     };
     return Crosshair;
 }(index_1.VisualComponent));
 exports.Crosshair = Crosshair;
-},{"../core/index":23}],15:[function(require,module,exports){
+},{"../core/index":25}],16:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var index_1 = require("../core/index");
+var Grid = (function (_super) {
+    __extends(Grid, _super);
+    function Grid(offset, size, timeAxis, yAxis) {
+        var _this = _super.call(this, offset, size) || this;
+        _this.timeAxis = timeAxis;
+        _this.yAxis = yAxis;
+        return _this;
+    }
+    Grid.prototype.render = function (context, renderLocator) {
+        if (context.renderBase) {
+            var canvas = context.getCanvas(this.target);
+            var render = renderLocator.getGridRender();
+            render.render(canvas, { x: 0, y: 0, w: this.size.width, h: this.size.height }, this.timeAxis, this.yAxis);
+        }
+        _super.prototype.render.call(this, context, renderLocator);
+    };
+    return Grid;
+}(index_1.VisualComponent));
+exports.Grid = Grid;
+},{"../core/index":25}],17:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12012,7 +12337,7 @@ var NumberMarker = (function (_super) {
     return NumberMarker;
 }(index_1.VisualComponent));
 exports.NumberMarker = NumberMarker;
-},{"../core/index":23}],16:[function(require,module,exports){
+},{"../core/index":25}],18:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12053,7 +12378,7 @@ var PriceMarker = (function (_super) {
     return PriceMarker;
 }(index_1.VisualComponent));
 exports.PriceMarker = PriceMarker;
-},{"../core/index":23}],17:[function(require,module,exports){
+},{"../core/index":25}],19:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12094,7 +12419,7 @@ var TimeMarker = (function (_super) {
     return TimeMarker;
 }(index_1.VisualComponent));
 exports.TimeMarker = TimeMarker;
-},{"../core/index":23}],18:[function(require,module,exports){
+},{"../core/index":25}],20:[function(require,module,exports){
 /**
  *
  */
@@ -12107,7 +12432,7 @@ var ChartBoard_1 = require("./ChartBoard");
 exports.ChartBoard = ChartBoard_1.ChartBoard;
 var ChartStack_1 = require("./ChartStack");
 exports.ChartStack = ChartStack_1.ChartStack;
-},{"./Chart":9,"./ChartArea":10,"./ChartBoard":11,"./ChartStack":13}],19:[function(require,module,exports){
+},{"./Chart":10,"./ChartArea":11,"./ChartBoard":12,"./ChartStack":14}],21:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -12120,30 +12445,54 @@ var ChartType = (function () {
 ChartType.candle = 'candle';
 ChartType.line = 'line';
 exports.ChartType = ChartType;
-},{}],20:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 "use strict";
 /**
 * Core enumerations.
 */
 var TimeInterval;
 (function (TimeInterval) {
+    // month = 2592000000, // amount of milliseconds
+    // week = 604800000,
+    // day = 86400000,
+    // hours4 = 14400000,
+    // hour = 3600000,
+    // min30 = 1800000,
+    // min15 = 900000,
+    // min5 = 300000,
+    // min = 60000
     TimeInterval[TimeInterval["notSet"] = 0] = "notSet";
-    // TODO: Number can vary.
-    TimeInterval[TimeInterval["month"] = 2592000000] = "month";
-    TimeInterval[TimeInterval["week"] = 604800000] = "week";
-    TimeInterval[TimeInterval["day"] = 86400000] = "day";
-    TimeInterval[TimeInterval["hours4"] = 14400000] = "hours4";
-    TimeInterval[TimeInterval["hour"] = 3600000] = "hour";
-    TimeInterval[TimeInterval["min30"] = 1800000] = "min30";
-    TimeInterval[TimeInterval["min15"] = 900000] = "min15";
-    TimeInterval[TimeInterval["min5"] = 300000] = "min5";
     TimeInterval[TimeInterval["min"] = 60000] = "min";
+    TimeInterval[TimeInterval["min5"] = 300000] = "min5";
+    TimeInterval[TimeInterval["min10"] = 3000000] = "min10";
+    TimeInterval[TimeInterval["min15"] = 900000] = "min15";
+    TimeInterval[TimeInterval["min30"] = 1800000] = "min30";
+    TimeInterval[TimeInterval["hour"] = 3600000] = "hour";
+    TimeInterval[TimeInterval["hour4"] = 14400000] = "hour4";
+    TimeInterval[TimeInterval["hour6"] = 21600000] = "hour6";
+    TimeInterval[TimeInterval["hour12"] = 43200000] = "hour12";
+    TimeInterval[TimeInterval["day"] = 86400000] = "day";
+    TimeInterval[TimeInterval["day3"] = 259200000] = "day3";
+    TimeInterval[TimeInterval["day7"] = 604800000] = "day7";
+    TimeInterval[TimeInterval["day10"] = 864000000] = "day10";
+    TimeInterval[TimeInterval["month"] = 2678400000] = "month"; // 31 days
+    // notSet = 0,
+    // min = 1,
+    // min5 = 2,
+    // min10 = 3,
+    // min15 = 4,
+    // min30 = 5,
+    // hour = 6,
+    // hour4 = 7,
+    // hour6 = 8,
+    // hour12 = 9,
+    // day = 10,
+    // day3 = 11,
+    // day7 = 12,
+    // day10 = 13,
+    // month = 14
 })(TimeInterval = exports.TimeInterval || (exports.TimeInterval = {}));
-var Unit;
-(function (Unit) {
-    Unit[Unit["Price"] = 0] = "Price";
-})(Unit = exports.Unit || (exports.Unit = {}));
-},{}],21:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 "use strict";
 var index_1 = require("../shared/index");
 var VisualComponent = (function () {
@@ -12204,7 +12553,7 @@ var VisualComponent = (function () {
     return VisualComponent;
 }());
 exports.VisualComponent = VisualComponent;
-},{"../shared/index":54}],22:[function(require,module,exports){
+},{"../shared/index":58}],24:[function(require,module,exports){
 "use strict";
 var VisualContext = (function () {
     function VisualContext(renderBase, renderFront, baseCanvas, frontCanvas, mousePosition) {
@@ -12238,7 +12587,7 @@ var VisualContext = (function () {
     return VisualContext;
 }());
 exports.VisualContext = VisualContext;
-},{}],23:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -12247,12 +12596,11 @@ var ChartType_1 = require("./ChartType");
 exports.ChartType = ChartType_1.ChartType;
 var Enums_1 = require("./Enums");
 exports.TimeInterval = Enums_1.TimeInterval;
-exports.Unit = Enums_1.Unit;
 var VisualComponent_1 = require("./VisualComponent");
 exports.VisualComponent = VisualComponent_1.VisualComponent;
 var VisualContext_1 = require("./VisualContext");
 exports.VisualContext = VisualContext_1.VisualContext;
-},{"./ChartType":19,"./Enums":20,"./VisualComponent":21,"./VisualContext":22}],24:[function(require,module,exports){
+},{"./ChartType":21,"./Enums":22,"./VisualComponent":23,"./VisualContext":24}],26:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12327,7 +12675,7 @@ var ArrayDataSource = (function (_super) {
     return ArrayDataSource;
 }(DataSource_1.DataSource));
 exports.ArrayDataSource = ArrayDataSource;
-},{"./ArrayIterator":25,"./DataSource":27,"./DataSourceConfig":28}],25:[function(require,module,exports){
+},{"./ArrayIterator":27,"./DataSource":29,"./DataSourceConfig":30}],27:[function(require,module,exports){
 "use strict";
 var ArrayIterator = (function () {
     function ArrayIterator(dataSnapshot, indexFirst, indexLast, timestamp) {
@@ -12370,7 +12718,7 @@ var ArrayIterator = (function () {
     return ArrayIterator;
 }());
 exports.ArrayIterator = ArrayIterator;
-},{}],26:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12392,7 +12740,7 @@ var DataChangedEvent = (function (_super) {
     return DataChangedEvent;
 }(index_1.Event));
 exports.DataChangedEvent = DataChangedEvent;
-},{"../shared/index":54}],27:[function(require,module,exports){
+},{"../shared/index":58}],29:[function(require,module,exports){
 "use strict";
 var DataChangedEvent_1 = require("./DataChangedEvent");
 var DataSource = (function () {
@@ -12448,7 +12796,7 @@ var DataSource = (function () {
     return DataSource;
 }());
 exports.DataSource = DataSource;
-},{"./DataChangedEvent":26}],28:[function(require,module,exports){
+},{"./DataChangedEvent":28}],30:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -12459,7 +12807,7 @@ var DataSourceConfig = (function () {
     return DataSourceConfig;
 }());
 exports.DataSourceConfig = DataSourceConfig;
-},{}],29:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -12472,7 +12820,7 @@ var DataType = (function () {
 DataType.point = 'point';
 DataType.candle = 'candle';
 exports.DataType = DataType;
-},{}],30:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12691,9 +13039,9 @@ var HttpDataSource = (function (_super) {
     HttpDataSource.prototype.timeIntervalToString = function (interval) {
         switch (interval) {
             case index_1.TimeInterval.month: return '1mo';
-            case index_1.TimeInterval.week: return '1w';
+            case index_1.TimeInterval.day7: return '1w';
             case index_1.TimeInterval.day: return '1d';
-            case index_1.TimeInterval.hours4: return '4h';
+            case index_1.TimeInterval.hour4: return '4h';
             case index_1.TimeInterval.hour: return '1h';
             case index_1.TimeInterval.min30: return '30m';
             case index_1.TimeInterval.min15: return '15m';
@@ -12706,9 +13054,9 @@ var HttpDataSource = (function (_super) {
     HttpDataSource.prototype.stringToTimeInterval = function (interval) {
         switch (interval) {
             case '1mo': return index_1.TimeInterval.month;
-            case '1w': return index_1.TimeInterval.week;
+            case '1w': return index_1.TimeInterval.day7;
             case '1d': return index_1.TimeInterval.day;
-            case '4h': return index_1.TimeInterval.hours4;
+            case '4h': return index_1.TimeInterval.hour4;
             case '1h': return index_1.TimeInterval.hour;
             case '30m': return index_1.TimeInterval.min30;
             case '15m': return index_1.TimeInterval.min15;
@@ -12721,7 +13069,7 @@ var HttpDataSource = (function (_super) {
     return HttpDataSource;
 }(DataSource_1.DataSource));
 exports.HttpDataSource = HttpDataSource;
-},{"../core/index":23,"../utils/index":56,"./ArrayIterator":25,"./DataSource":27,"./DataSourceConfig":28,"./Interfaces":32,"jquery":1}],31:[function(require,module,exports){
+},{"../core/index":25,"../utils/index":60,"./ArrayIterator":27,"./DataSource":29,"./DataSourceConfig":30,"./Interfaces":34,"jquery":1}],33:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12743,7 +13091,7 @@ var HttpDataSourceConfig = (function (_super) {
     return HttpDataSourceConfig;
 }(DataSourceConfig_1.DataSourceConfig));
 exports.HttpDataSourceConfig = HttpDataSourceConfig;
-},{"./DataSourceConfig":28}],32:[function(require,module,exports){
+},{"./DataSourceConfig":30}],34:[function(require,module,exports){
 "use strict";
 var DataChangedArgument = (function () {
     function DataChangedArgument(range, interval) {
@@ -12767,7 +13115,7 @@ var DataChangedArgument = (function () {
     return DataChangedArgument;
 }());
 exports.DataChangedArgument = DataChangedArgument;
-},{}],33:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -12790,7 +13138,7 @@ var HttpDataSourceConfig_1 = require("./HttpDataSourceConfig");
 exports.HttpDataSourceConfig = HttpDataSourceConfig_1.HttpDataSourceConfig;
 var Interfaces_1 = require("./Interfaces");
 exports.DataChangedArgument = Interfaces_1.DataChangedArgument;
-},{"./ArrayDataSource":24,"./ArrayIterator":25,"./DataChangedEvent":26,"./DataSource":27,"./DataSourceConfig":28,"./DataType":29,"./HttpDataSource":30,"./HttpDataSourceConfig":31,"./Interfaces":32}],34:[function(require,module,exports){
+},{"./ArrayDataSource":26,"./ArrayIterator":27,"./DataChangedEvent":28,"./DataSource":29,"./DataSourceConfig":30,"./DataType":31,"./HttpDataSource":32,"./HttpDataSourceConfig":33,"./Interfaces":34}],36:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12877,16 +13225,16 @@ var SimpleIndicator = (function (_super) {
     return SimpleIndicator;
 }(index_1.DataSource));
 exports.SimpleIndicator = SimpleIndicator;
-},{"../data/index":33,"../model/index":39}],35:[function(require,module,exports){
+},{"../data/index":35,"../model/index":41}],37:[function(require,module,exports){
 "use strict";
 /**
  *
  */
 var SimpleIndicator_1 = require("./SimpleIndicator");
 exports.SimpleIndicator = SimpleIndicator_1.SimpleIndicator;
-},{"./SimpleIndicator":34}],36:[function(require,module,exports){
+},{"./SimpleIndicator":36}],38:[function(require,module,exports){
 "use strict";
-},{}],37:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 "use strict";
 var Candlestick = (function () {
     function Candlestick(date, c, o, h, l) {
@@ -12931,7 +13279,7 @@ var Candlestick = (function () {
     return Candlestick;
 }());
 exports.Candlestick = Candlestick;
-},{}],38:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 "use strict";
 var Point = (function () {
     function Point(d, v) {
@@ -12954,7 +13302,7 @@ var Point = (function () {
     return Point;
 }());
 exports.Point = Point;
-},{}],39:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 /**
  *
  */
@@ -12963,7 +13311,7 @@ var Candlestick_1 = require("./Candlestick");
 exports.Candlestick = Candlestick_1.Candlestick;
 var Point_1 = require("./Point");
 exports.Point = Point_1.Point;
-},{"./Candlestick":37,"./Point":38}],40:[function(require,module,exports){
+},{"./Candlestick":39,"./Point":40}],42:[function(require,module,exports){
 /**
 * CandlestickChartRenderer
 *
@@ -12973,22 +13321,28 @@ exports.Point = Point_1.Point;
 var CandlestickChartRenderer = (function () {
     function CandlestickChartRenderer() {
     }
-    CandlestickChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
-        console.debug("[CandlestickChartRenderer] start rendering...");
-        // Calculate size of frame
-        var frameSize = {
-            width: canvas.w,
-            height: canvas.h
-        };
+    CandlestickChartRenderer.prototype.render = function (canvas, dataIterator, frame, timeAxis, yAxis) {
         // Render
         //
-        this.startRender(canvas);
+        // border lines
+        canvas.setStrokeStyle('#333333');
+        canvas.beginPath();
+        // ... bottom
+        canvas.moveTo(frame.x, frame.y + frame.h - 1);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        // ... left
+        canvas.moveTo(frame.x, frame.y);
+        canvas.lineTo(frame.x, frame.y + frame.h - 1);
+        // ... right
+        canvas.moveTo(frame.x + frame.w - 1, frame.y);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        canvas.stroke();
+        canvas.closePath();
         while (dataIterator.moveNext()) {
-            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frameSize);
+            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frame);
         }
-        this.finishRender(canvas);
     };
-    CandlestickChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
+    CandlestickChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, frame, timeAxis, yAxis) {
         var candleHit = undefined;
         while (dataIterator.moveNext()) {
             if (this.testHitAreaCandle(hitPoint, timeAxis, yAxis, dataIterator.current)) {
@@ -12997,10 +13351,6 @@ var CandlestickChartRenderer = (function () {
             }
         }
         return candleHit;
-    };
-    CandlestickChartRenderer.prototype.startRender = function (canvas) {
-    };
-    CandlestickChartRenderer.prototype.finishRender = function (canvas) {
     };
     CandlestickChartRenderer.prototype.testHitAreaCandle = function (hitPoint, timeAxis, yAxis, candle) {
         if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
@@ -13011,7 +13361,7 @@ var CandlestickChartRenderer = (function () {
         return (hitPoint.x >= body.x && hitPoint.x <= (body.x + body.w)
             && hitPoint.y >= body.y && hitPoint.y <= (body.y + body.h));
     };
-    CandlestickChartRenderer.prototype.renderCandle = function (canvas, timeAxis, yAxis, candle, frameSize) {
+    CandlestickChartRenderer.prototype.renderCandle = function (canvas, timeAxis, yAxis, candle, frame) {
         if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
             return;
         }
@@ -13051,7 +13401,7 @@ var CandlestickChartRenderer = (function () {
     return CandlestickChartRenderer;
 }());
 exports.CandlestickChartRenderer = CandlestickChartRenderer;
-},{}],41:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 "use strict";
 var CandlestickPopupRenderer = (function () {
     function CandlestickPopupRenderer() {
@@ -13067,7 +13417,36 @@ var CandlestickPopupRenderer = (function () {
     return CandlestickPopupRenderer;
 }());
 exports.CandlestickPopupRenderer = CandlestickPopupRenderer;
-},{}],42:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
+"use strict";
+var CrosshairRenderer = (function () {
+    function CrosshairRenderer() {
+    }
+    CrosshairRenderer.prototype.render = function (canvas, point, frameSize) {
+        // Draw crosshair
+        //
+        canvas.setStrokeStyle('black');
+        var curDash = canvas.getLineDash();
+        canvas.setLineDash([5, 5]);
+        canvas.beginPath();
+        if (point.x > 0 && point.x < frameSize.width) {
+            // draw vertical line
+            canvas.moveTo(point.x, 0);
+            canvas.lineTo(point.x, frameSize.height);
+        }
+        if (point.y > 0 && point.y < frameSize.height) {
+            // draw horizontal line
+            canvas.moveTo(0, point.y);
+            canvas.lineTo(frameSize.width, point.y);
+        }
+        canvas.stroke();
+        canvas.closePath();
+        canvas.setLineDash(curDash);
+    };
+    return CrosshairRenderer;
+}());
+exports.CrosshairRenderer = CrosshairRenderer;
+},{}],45:[function(require,module,exports){
 "use strict";
 /**
  * Render related enums.
@@ -13077,7 +13456,42 @@ var RenderType;
     RenderType[RenderType["Candlestick"] = 0] = "Candlestick";
     RenderType[RenderType["Line"] = 1] = "Line";
 })(RenderType = exports.RenderType || (exports.RenderType = {}));
-},{}],43:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
+/**
+ * AxisRenderer
+ *
+ * @classdesc Contains methods for rendering axes.
+ */
+"use strict";
+var GridRenderer = (function () {
+    function GridRenderer() {
+    }
+    GridRenderer.prototype.render = function (canvas, frame, xAxis, yAxis) {
+        canvas.setStrokeStyle('#DBDBDB');
+        canvas.beginPath();
+        // Vertical lines
+        var gridX = xAxis.getGrid();
+        for (var _i = 0, gridX_1 = gridX; _i < gridX_1.length; _i++) {
+            var bar = gridX_1[_i];
+            var x = xAxis.toX(bar);
+            canvas.moveTo(x, frame.y);
+            canvas.lineTo(x, frame.y + frame.h);
+        }
+        // Horizontal lines
+        var gridY = yAxis.getGrid();
+        for (var _a = 0, gridY_1 = gridY; _a < gridY_1.length; _a++) {
+            var bar = gridY_1[_a];
+            var y = yAxis.toX(bar);
+            canvas.moveTo(frame.x, y);
+            canvas.lineTo(frame.x + frame.w, y);
+        }
+        canvas.stroke();
+        canvas.closePath();
+    };
+    return GridRenderer;
+}());
+exports.GridRenderer = GridRenderer;
+},{}],47:[function(require,module,exports){
 /**
 * LineChartRenderer
 *
@@ -13087,24 +13501,34 @@ var RenderType;
 var LineChartRenderer = (function () {
     function LineChartRenderer() {
     }
-    LineChartRenderer.prototype.render = function (canvas, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
-        // Calculate size of frame
-        var frameSize = {
-            width: canvas.w,
-            height: canvas.h
-        };
+    LineChartRenderer.prototype.render = function (canvas, dataIterator, frame, timeAxis, yAxis) {
         // Render
+        //
+        // border lines
+        canvas.setStrokeStyle('#333333');
+        canvas.beginPath();
+        // ... bottom
+        canvas.moveTo(frame.x, frame.y + frame.h - 1);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        // ... left
+        canvas.moveTo(frame.x, frame.y);
+        canvas.lineTo(frame.x, frame.y + frame.h - 1);
+        // ... right
+        canvas.moveTo(frame.x + frame.w - 1, frame.y);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        canvas.stroke();
+        canvas.closePath();
         if (dataIterator.moveNext()) {
             var prevPoint = dataIterator.current;
             while (dataIterator.moveNext()) {
                 if (dataIterator.current.value) {
-                    this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frameSize);
+                    this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frame);
                     prevPoint = dataIterator.current;
                 }
             }
         }
     };
-    LineChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, offsetX, offsetY, timeAxis, yAxis) {
+    LineChartRenderer.prototype.testHitArea = function (hitPoint, dataIterator, frame, timeAxis, yAxis) {
         while (dataIterator.moveNext()) {
             if (dataIterator.current.value) {
                 var x = timeAxis.toX(dataIterator.current.date);
@@ -13116,7 +13540,7 @@ var LineChartRenderer = (function () {
             }
         }
     };
-    LineChartRenderer.prototype.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frameSize) {
+    LineChartRenderer.prototype.renderPart = function (canvas, timeAxis, yAxis, pointFrom, pointTo, frame) {
         // Startin drawing
         canvas.setStrokeStyle('#555555');
         canvas.beginPath();
@@ -13136,7 +13560,7 @@ var LineChartRenderer = (function () {
     return LineChartRenderer;
 }());
 exports.LineChartRenderer = LineChartRenderer;
-},{}],44:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 "use strict";
 var LinePopupRenderer = (function () {
     function LinePopupRenderer() {
@@ -13152,7 +13576,7 @@ var LinePopupRenderer = (function () {
     return LinePopupRenderer;
 }());
 exports.LinePopupRenderer = LinePopupRenderer;
-},{}],45:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 /**
  * NumberAxisRenderer
  *
@@ -13162,17 +13586,32 @@ exports.LinePopupRenderer = LinePopupRenderer;
 var NumberAxisRenderer = (function () {
     function NumberAxisRenderer() {
     }
-    NumberAxisRenderer.prototype.render = function (canvas, axis, offset, size) {
+    NumberAxisRenderer.prototype.render = function (canvas, axis, frame) {
+        var bars = axis.getGrid();
+        canvas.font = '10px Courier New';
         canvas.setStrokeStyle('black');
         canvas.beginPath();
-        canvas.strokeRect(offset.x, offset.y, size.width, size.height);
+        for (var _i = 0, bars_1 = bars; _i < bars_1.length; _i++) {
+            var bar = bars_1[_i];
+            var y = axis.toX(bar);
+            if (y !== undefined) {
+                this.drawBar(canvas, bar, y);
+            }
+        }
         canvas.stroke();
         canvas.closePath();
+    };
+    NumberAxisRenderer.prototype.drawBar = function (canvas, value, y) {
+        canvas.moveTo(0, y);
+        canvas.lineTo(3, y);
+        // draw time mark
+        var markText = value.toFixed(4);
+        canvas.strokeText(markText, 4, y + 3);
     };
     return NumberAxisRenderer;
 }());
 exports.NumberAxisRenderer = NumberAxisRenderer;
-},{}],46:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 "use strict";
 var NumberMarkRenderer = (function () {
     function NumberMarkRenderer() {
@@ -13188,7 +13627,7 @@ var NumberMarkRenderer = (function () {
     return NumberMarkRenderer;
 }());
 exports.NumberMarkRenderer = NumberMarkRenderer;
-},{}],47:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 /**
  * AxisRenderer
  *
@@ -13198,17 +13637,32 @@ exports.NumberMarkRenderer = NumberMarkRenderer;
 var PriceAxisRenderer = (function () {
     function PriceAxisRenderer() {
     }
-    PriceAxisRenderer.prototype.render = function (canvas, axis, offset, size) {
+    PriceAxisRenderer.prototype.render = function (canvas, axis, frame) {
+        var bars = axis.getGrid();
+        canvas.font = '10px Courier New';
         canvas.setStrokeStyle('black');
         canvas.beginPath();
-        canvas.strokeRect(offset.x, offset.y, size.width, size.height);
+        for (var _i = 0, bars_1 = bars; _i < bars_1.length; _i++) {
+            var bar = bars_1[_i];
+            var y = axis.toX(bar);
+            if (y !== undefined) {
+                this.drawBar(canvas, bar, y);
+            }
+        }
         canvas.stroke();
         canvas.closePath();
+    };
+    PriceAxisRenderer.prototype.drawBar = function (canvas, value, y) {
+        canvas.moveTo(0, y);
+        canvas.lineTo(3, y);
+        // draw time mark
+        var markText = value.toFixed(4);
+        canvas.strokeText(markText, 4, y + 3);
     };
     return PriceAxisRenderer;
 }());
 exports.PriceAxisRenderer = PriceAxisRenderer;
-},{}],48:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 "use strict";
 /**
  * RenderLocator singleton.
@@ -13217,6 +13671,8 @@ var index_1 = require("../core/index");
 var index_2 = require("../model/index");
 var CandlestickChartRenderer_1 = require("./CandlestickChartRenderer");
 var CandlestickPopupRenderer_1 = require("./CandlestickPopupRenderer");
+var CrosshairRenderer_1 = require("./CrosshairRenderer");
+var GridRenderer_1 = require("./GridRenderer");
 var LineChartRenderer_1 = require("./LineChartRenderer");
 var LinePopupRenderer_1 = require("./LinePopupRenderer");
 var NumberAxisRenderer_1 = require("./NumberAxisRenderer");
@@ -13235,6 +13691,8 @@ var RenderLocator = (function () {
         this.linePopupRenderer = new LinePopupRenderer_1.LinePopupRenderer();
         this.timeMarkRender = new TimeMarkRenderer_1.TimeMarkRenderer();
         this.numberMarkRender = new NumberMarkRenderer_1.NumberMarkRenderer();
+        this.crosshairRenderer = new CrosshairRenderer_1.CrosshairRenderer();
+        this.gridRenderer = new GridRenderer_1.GridRenderer();
     }
     Object.defineProperty(RenderLocator, "Instance", {
         get: function () {
@@ -13289,10 +13747,16 @@ var RenderLocator = (function () {
                 throw new Error('Unexpected axes render uid: ' + uid);
         }
     };
+    RenderLocator.prototype.getCrosshairRender = function () {
+        return this.crosshairRenderer;
+    };
+    RenderLocator.prototype.getGridRender = function () {
+        return this.gridRenderer;
+    };
     return RenderLocator;
 }());
 exports.RenderLocator = RenderLocator;
-},{"../core/index":23,"../model/index":39,"./CandlestickChartRenderer":40,"./CandlestickPopupRenderer":41,"./LineChartRenderer":43,"./LinePopupRenderer":44,"./NumberAxisRenderer":45,"./NumberMarkRenderer":46,"./PriceAxisRenderer":47,"./TimeAxisRenderer":49,"./TimeMarkRenderer":50}],49:[function(require,module,exports){
+},{"../core/index":25,"../model/index":41,"./CandlestickChartRenderer":42,"./CandlestickPopupRenderer":43,"./CrosshairRenderer":44,"./GridRenderer":46,"./LineChartRenderer":47,"./LinePopupRenderer":48,"./NumberAxisRenderer":49,"./NumberMarkRenderer":50,"./PriceAxisRenderer":51,"./TimeAxisRenderer":53,"./TimeMarkRenderer":54}],53:[function(require,module,exports){
 /**
  * AxisRenderer
  *
@@ -13301,110 +13765,53 @@ exports.RenderLocator = RenderLocator;
 "use strict";
 var TimeAxisRenderer = (function () {
     function TimeAxisRenderer() {
+        this.monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     }
-    TimeAxisRenderer.prototype.render = function (canvas, axis, offset, frameSize) {
-        var scaleFit = new ScaleFit(frameSize.width, axis.interval, axis.range);
-        var bars = scaleFit.getBars();
+    TimeAxisRenderer.prototype.render = function (canvas, axis, frame) {
+        var bars = axis.getGrid();
+        canvas.font = '10px Courier New';
         canvas.setStrokeStyle('black');
         canvas.beginPath();
         for (var _i = 0, bars_1 = bars; _i < bars_1.length; _i++) {
             var bar = bars_1[_i];
-            var x = axis.toX(bar);
-            this.drawBar(canvas, bar, x);
+            if (bar) {
+                var x = axis.toX(bar);
+                this.drawBar(canvas, bar, x);
+            }
         }
         canvas.stroke();
         canvas.closePath();
     };
     TimeAxisRenderer.prototype.drawBar = function (canvas, date, x) {
-        // draw bar
-        canvas.moveTo(x, 7);
-        canvas.lineTo(x, 10);
+        canvas.moveTo(x, 0);
+        canvas.lineTo(x, 3);
         // draw time mark
-        // TODO: Use toString("yyyy-mm...")
-        var markText = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes();
+        var markText = this.formatDate(date);
         var w = canvas.measureText(markText).width;
-        canvas.strokeText(markText, x - w / 2, 25);
-        //console.debug(`bar line: {${x},${7}} - {${x},${10}}`);
+        canvas.strokeText(markText, x - w / 2, 10);
+    };
+    TimeAxisRenderer.prototype.formatDate = function (date) {
+        var text = '';
+        if (date.getUTCHours() !== 0 || date.getUTCMinutes() !== 0) {
+            var hh = date.getUTCHours();
+            var mm = date.getUTCMinutes();
+            text = ('0' + hh.toFixed(0)).slice(-2) + ':' + ('0' + mm.toFixed(0)).slice(-2);
+        }
+        else if (date.getUTCDate() === 1 && date.getUTCMonth() === 0) {
+            text = "" + date.getUTCFullYear();
+        }
+        else if (date.getUTCDate() === 1) {
+            text = "" + this.monthNames[date.getUTCMonth()];
+        }
+        else {
+            text = "" + date.getUTCDate();
+        }
+        return text;
     };
     return TimeAxisRenderer;
 }());
 exports.TimeAxisRenderer = TimeAxisRenderer;
-// Calculates how many bars should be placed on the chart and where it should be placed.
-var ScaleFit = (function () {
-    function ScaleFit(width, interval, range) {
-        this.scales = [
-            60000,
-            300000,
-            600000,
-            900000,
-            1800000,
-            3600000,
-            14000000,
-            21600000,
-            43200000,
-            86400000,
-            259200000,
-            604800000,
-            864000000,
-            2678400000,
-        ];
-        this.selectedScale = 0;
-        this.interval = interval;
-        this.range = range;
-        // Calculate min and max count of bars that can be placed on the chart
-        _a = this.getMinMaxBars(width), this.minBars = _a[0], this.maxBars = _a[1];
-        // Choose fitting scale
-        var dateRange = Math.abs(range.end.getTime() - range.start.getTime());
-        this.selectedScale = 0;
-        for (var _i = 0, _b = this.scales; _i < _b.length; _i++) {
-            var scale = _b[_i];
-            if (scale < interval) {
-                continue;
-            }
-            // how many bars require this scale:
-            var barsRequired = Math.ceil(dateRange / scale + 1);
-            if (barsRequired >= this.minBars && barsRequired <= this.maxBars) {
-                this.selectedScale = scale;
-                break;
-            }
-        }
-        var _a;
-    }
-    ScaleFit.prototype.getBars = function () {
-        if (this.selectedScale == 0) {
-            return [];
-        }
-        var bars = [];
-        // Calculate first bar
-        var bar;
-        // ... if start time is placed on bar use it, otherwise calculate where first bar lays
-        if (this.range.start.getTime() % this.selectedScale == 0) {
-            bar = this.range.start;
-        }
-        else {
-            // ... add scale value and truncate 
-            var time = this.range.start.getTime() + this.selectedScale;
-            bar = new Date(time - (time % this.selectedScale));
-        }
-        // Calculate remaining bars
-        var t = bar.getTime();
-        var end = this.range.end.getTime();
-        while (t <= end) {
-            bars.push(new Date(t));
-            t += this.selectedScale;
-        }
-        return bars;
-    };
-    ScaleFit.prototype.getMinMaxBars = function (w) {
-        // TODO: what if width does not allow any bars
-        return [
-            3,
-            Math.max(w / 50) // maximum bars
-        ];
-    };
-    return ScaleFit;
-}());
-},{}],50:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 "use strict";
 var TimeMarkRenderer = (function () {
     function TimeMarkRenderer() {
@@ -13420,7 +13827,7 @@ var TimeMarkRenderer = (function () {
     return TimeMarkRenderer;
 }());
 exports.TimeMarkRenderer = TimeMarkRenderer;
-},{}],51:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -13437,7 +13844,7 @@ var RenderLocator_1 = require("./RenderLocator");
 exports.RenderLocator = RenderLocator_1.RenderLocator;
 var TimeAxisRenderer_1 = require("./TimeAxisRenderer");
 exports.TimeAxisRenderer = TimeAxisRenderer_1.TimeAxisRenderer;
-},{"./CandlestickChartRenderer":40,"./Enums":42,"./LineChartRenderer":43,"./PriceAxisRenderer":47,"./RenderLocator":48,"./TimeAxisRenderer":49}],52:[function(require,module,exports){
+},{"./CandlestickChartRenderer":42,"./Enums":45,"./LineChartRenderer":47,"./PriceAxisRenderer":51,"./RenderLocator":52,"./TimeAxisRenderer":53}],56:[function(require,module,exports){
 /**
 * Typed events for TypeScript.
 */
@@ -13460,7 +13867,7 @@ var Event = (function () {
     return Event;
 }());
 exports.Event = Event;
-},{}],53:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 /**
 * Commonly used interfaces, that can be used in other projects.
 */
@@ -13473,7 +13880,7 @@ var Point = (function () {
     return Point;
 }());
 exports.Point = Point;
-},{}],54:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 "use strict";
 /**
  *
@@ -13482,7 +13889,7 @@ var Event_1 = require("./Event");
 exports.Event = Event_1.Event;
 var Interfaces_1 = require("./Interfaces");
 exports.Point = Interfaces_1.Point;
-},{"./Event":52,"./Interfaces":53}],55:[function(require,module,exports){
+},{"./Event":56,"./Interfaces":57}],59:[function(require,module,exports){
 "use strict";
 var ArrayUtils = (function () {
     function ArrayUtils() {
@@ -13529,14 +13936,14 @@ var ArrayUtils = (function () {
     return ArrayUtils;
 }());
 exports.ArrayUtils = ArrayUtils;
-},{}],56:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 "use strict";
 /**
  *
  */
 var ArrayUtils_1 = require("./ArrayUtils");
 exports.ArrayUtils = ArrayUtils_1.ArrayUtils;
-},{"./ArrayUtils":55}],57:[function(require,module,exports){
+},{"./ArrayUtils":59}],61:[function(require,module,exports){
 /**
  *
  */
@@ -13572,7 +13979,7 @@ window.lychart = {
     shared: shared,
     utils: utils
 };
-},{"./lib/axes":5,"./lib/canvas":8,"./lib/component":18,"./lib/core":23,"./lib/data":33,"./lib/indicator":35,"./lib/interaction":36,"./lib/model":39,"./lib/render":51,"./lib/shared":54,"./lib/utils":56}]},{},[57])(57)
+},{"./lib/axes":6,"./lib/canvas":9,"./lib/component":20,"./lib/core":25,"./lib/data":35,"./lib/indicator":37,"./lib/interaction":38,"./lib/model":41,"./lib/render":55,"./lib/shared":58,"./lib/utils":60}]},{},[61])(61)
 });
 
 

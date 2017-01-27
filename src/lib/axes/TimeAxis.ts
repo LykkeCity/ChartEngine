@@ -5,9 +5,10 @@
  */
 
 import { ICanvas } from '../canvas/index';
-import { VisualComponent, VisualContext } from '../core/index';
-import { IRenderLocator } from '../render/index';
+import { TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { IAxesRender, IRenderLocator } from '../render/index';
 import { IRange, ISize, Point } from '../shared/index';
+import { TimeAutoGrid } from './AutoGrid';
 import { IAxis } from './IAxis';
 
 export class TimeAxis extends VisualComponent implements IAxis<Date> {
@@ -31,6 +32,11 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
 
     public get interval(): number {
         return this._interval;
+    }
+
+    public getGrid(): Date[] {
+        const autoGrid = new TimeAutoGrid(this.size.width, this.interval, this.range);
+        return autoGrid.getGrid();
     }
 
     public getValuesRange(x1: number, x2: number): IRange<Date> | undefined {
@@ -103,9 +109,11 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
     public render(context: VisualContext, renderLocator: IRenderLocator) {
         if (context.renderBase) {
             const canvas = context.getCanvas(this.target);
-            const render = renderLocator.getAxesRender('date');
-            render.render(canvas, this, this.offset, this.size);
+            const render = <IAxesRender<Date>>renderLocator.getAxesRender('date');
+            render.render(canvas, this, { x: 0, y: 0, w: this.size.width, h: this.size.height});
         }
         super.render(context, renderLocator);
     }
 }
+
+

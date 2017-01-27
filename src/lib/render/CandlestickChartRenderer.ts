@@ -18,33 +18,37 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
     public render(
         canvas: ICanvas,
         dataIterator: IDataIterator<Candlestick>,
-        offsetX: number,
-        offsetY: number,
+        frame: IRect,
         timeAxis: IAxis<Date>,
         yAxis: IAxis<number>): void {
 
-        console.debug(`[CandlestickChartRenderer] start rendering...`);
-
-        // Calculate size of frame
-        let frameSize: ISize = {
-            width: canvas.w,
-            height: canvas.h
-        };
-
         // Render
         //
-        this.startRender(canvas);
+
+        // border lines
+        canvas.setStrokeStyle('#333333');
+        canvas.beginPath();
+        // ... bottom
+        canvas.moveTo(frame.x, frame.y + frame.h - 1);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        // ... left
+        canvas.moveTo(frame.x, frame.y);
+        canvas.lineTo(frame.x, frame.y + frame.h - 1);
+        // ... right
+        canvas.moveTo(frame.x + frame.w - 1, frame.y);
+        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        canvas.stroke();
+        canvas.closePath();
+
         while (dataIterator.moveNext()) {
-            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frameSize);
+            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frame);
         }
-        this.finishRender(canvas);
     }
 
     public testHitArea(
             hitPoint: IPoint,
             dataIterator: IDataIterator<Candlestick>,
-            offsetX: number,
-            offsetY: number,
+            frame: IRect,
             timeAxis: IAxis<Date>,
             yAxis: IAxis<number>): Candlestick | undefined {
 
@@ -60,12 +64,6 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         return candleHit;
     }
 
-    private startRender(canvas: ICanvas): void {
-    }
-
-    private finishRender(canvas: ICanvas): void {
-    }
-
     private testHitAreaCandle(hitPoint: IPoint, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick): boolean {
         if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
             return false;
@@ -76,7 +74,7 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
                 && hitPoint.y >= body.y && hitPoint.y <= (body.y + body.h));
     }
 
-    private renderCandle(canvas: ICanvas, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick, frameSize: ISize): void {
+    private renderCandle(canvas: ICanvas, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick, frame: IRect): void {
 
         if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
             return;

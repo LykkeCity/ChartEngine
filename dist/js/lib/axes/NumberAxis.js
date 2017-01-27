@@ -8,6 +8,7 @@ var __extends = (this && this.__extends) || function (d, b) {
  * NumberAxis class.
  */
 var index_1 = require("../core/index");
+var AutoGrid_1 = require("./AutoGrid");
 var NumberAxis = (function (_super) {
     __extends(NumberAxis, _super);
     function NumberAxis(offset, size, interval, // Defines maximum zoom
@@ -34,6 +35,10 @@ var NumberAxis = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    NumberAxis.prototype.getGrid = function () {
+        var autoGrid = new AutoGrid_1.NumberAutoGrid(this.size.height, this.interval, this.range);
+        return autoGrid.getGrid();
+    };
     NumberAxis.prototype.getValuesRange = function (x1, x2) {
         if (x1 > 0 && x2 > 0 && x1 < this.size.height && x2 < this.size.height) {
             return {
@@ -62,7 +67,7 @@ var NumberAxis = (function (_super) {
         if (context.renderBase) {
             var canvas = context.getCanvas(this.target);
             var render = renderLocator.getAxesRender('number');
-            render.render(canvas, this, { x: 0, y: 0 }, this.size);
+            render.render(canvas, this, { x: 0, y: 0, w: this.size.width, h: this.size.height });
         }
         _super.prototype.render.call(this, context, renderLocator);
     };

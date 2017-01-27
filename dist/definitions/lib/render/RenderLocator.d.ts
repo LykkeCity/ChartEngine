@@ -9,6 +9,8 @@ export declare class RenderLocator implements IRenderLocator {
     private linePopupRenderer;
     private timeMarkRender;
     private numberMarkRender;
+    private crosshairRenderer;
+    private gridRenderer;
     private static instance;
     static readonly Instance: RenderLocator;
     getChartRender<T>(dataType: {
@@ -19,4 +21,6 @@ export declare class RenderLocator implements IRenderLocator {
         new (d: Date): T;
     }): any;
     getMarkRender<T>(uid: string): any;
+    getCrosshairRender(): any;
+    getGridRender(): any;
 }

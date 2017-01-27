@@ -11,11 +11,14 @@ export declare class CanvasWrapper implements ICanvas {
     readonly w: number;
     readonly h: number;
     readonly dpr: number;
+    font: string;
     lineWidth: number;
     constructor(context: CanvasRenderingContext2D, width: number, height: number);
     clear(): void;
     moveTo(x: number, y: number): void;
     lineTo(x: number, y: number): void;
+    getLineDash(): number[];
+    setLineDash(segments: number[]): void;
     fillText(s: string, x: number, y: number): void;
     fillRect(x: number, y: number, w: number, h: number): void;
     strokeRect(x: number, y: number, w: number, h: number): void;
