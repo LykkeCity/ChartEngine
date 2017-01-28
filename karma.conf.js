@@ -9,26 +9,19 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    //frameworks: ['jasmine', 'requirejs', 'karma-typescript'],
     frameworks: ['jasmine', 'requirejs'],
 
     // list of files / patterns to load in the browser
     files: [
-      
       {pattern: 'src/**/*.ts', included: false},
       {pattern: 'test/lib/**/*.js', included: false},
-      //{pattern: 'test/lib/**/*.js', included: false},
-      {pattern: 'test/**/*Spec.ts', included: false}
-      //{pattern: 'test/**/*Spec.js', included: false}
-      ,'test-main.js',
+      {pattern: 'test/**/*Spec.ts', included: false},
+      'test-main.js',
     ],
-
 
     // list of files to exclude
     exclude: [
-      //'test/test-main.js'
     ],
-
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
@@ -40,7 +33,6 @@ module.exports = function(config) {
       options: {
         // sourceMap: true, // generate source maps
         // noResolve: false // enforce type resolution
-
         sourceMap: false, // (optional) Generates corresponding .map file.
         target: 'ES5', // (optional) Specify ECMAScript target version: 'ES3' (default), or 'ES5'
         module: 'amd', // (optional) Specify module code generation: 'commonjs' or 'amd'
@@ -48,7 +40,6 @@ module.exports = function(config) {
         noResolve: true, // (optional) Skip resolution and preprocessing.
         removeComments: true, // (optional) Do not emit comments to output.
         concatenateOutput: false // (optional) Concatenate and emit output to single file. By default true if module option is omited, otherwise false.
-              
       },
       transformPath: function(path) {
         return path.replace(/\.ts$/, '.js');

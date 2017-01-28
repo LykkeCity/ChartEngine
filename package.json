@@ -44,5 +44,13 @@
   },
   "dependencies": {
     "jquery": "^1.12"
-  } 
+  },
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
+  },  
+  "browserify-shim": {
+    "jquery": "global:$"
+  }
 }

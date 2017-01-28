@@ -2,7 +2,6 @@ var gulp = require('gulp');
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var tsify = require('tsify');
-var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var buffer = require('vinyl-buffer');
@@ -10,7 +9,6 @@ var del = require('del');
 var ts = require('gulp-typescript');
 var tsProject = ts.createProject('tsconfig.json');
 var gulpTslint = require('gulp-tslint');
-var tslint = require('tslint');
 var merge = require('merge2');
 
 //delete the output file(s)
@@ -58,15 +56,14 @@ gulp.task('build-bundle', ['clean', 'build-js'], function () {
         //     }            
         // }
     })
-    //.ignore('jquery')
+    .ignore('jquery')
     .plugin(tsify)  // tsify plugin instead of gulp-typescript
     .bundle()
     .pipe(source('bundle.js'))
-    //-- minify
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: true}))
+    //.pipe(uglify())
     .pipe(sourcemaps.write('./'))
-    // ---
     .pipe(gulp.dest('dist'));     
 });
 
