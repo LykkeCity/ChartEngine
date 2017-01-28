@@ -2,9 +2,7 @@
  * CrosshairRenderer class.
  */
 import { ICanvas } from '../canvas/index';
-import { Point } from '../model/index';
 import { IPoint, ISize } from '../shared/index';
-import { IPopupRender } from './Interfaces';
 
 export class CrosshairRenderer {
     public render(canvas: ICanvas, point: IPoint, frameSize: ISize): void {

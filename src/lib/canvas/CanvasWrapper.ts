@@ -3,7 +3,6 @@
  * 
  * @classdesc Incapsulates usage of canvas.
  */
-
 import { CanvasTextAlign, CanvasTextBaseLine } from './Enums';
 import { ICanvas } from './ICanvas';
 
@@ -12,9 +11,9 @@ export class CanvasWrapper implements ICanvas {
     private ctx: CanvasRenderingContext2D;
     private adj: number = 0.5; // Adjusment to remove blury lines.
 
-    readonly w: number;
-    readonly h: number;
-    readonly dpr: number;
+    public readonly w: number;
+    public readonly h: number;
+    private readonly dpr: number;
 
     public get font(): string {
         return this.ctx.font;
@@ -47,15 +46,15 @@ export class CanvasWrapper implements ICanvas {
     }
 
     public clear() {
-        this.ctx.clearRect(0, 0, Math.round(this.w), Math.round(this.h));
+        this.ctx.clearRect(0, 0, this.round(this.w), this.round(this.h));
     }
 
     public moveTo(x: number, y: number) {
-        this.ctx.moveTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
+        this.ctx.moveTo(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj);
     }
 
     public lineTo(x: number, y: number) {
-        this.ctx.lineTo(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj);
+        this.ctx.lineTo(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj);
     }
 
     public getLineDash(): number[] {
@@ -67,23 +66,23 @@ export class CanvasWrapper implements ICanvas {
     }
 
     public fillText(s: string, x: number, y: number) {
-        this.ctx.fillText(s, Math.round(x * this.dpr), Math.round(y * this.dpr));
+        this.ctx.fillText(s, this.round(x * this.dpr), this.round(y * this.dpr));
     }
 
     public fillRect(x: number, y: number, w: number, h: number) {
-        this.ctx.fillRect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj,
-                          Math.round(w * this.dpr), Math.round(h * this.dpr));
+        this.ctx.fillRect(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj,
+                          this.round(w * this.dpr), this.round(h * this.dpr));
     }
 
     public strokeRect(x: number, y: number, w: number, h: number) {
-        this.ctx.strokeRect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj,
-                            Math.round(w * this.dpr), Math.round(h * this.dpr));
+        this.ctx.strokeRect(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj,
+                            this.round(w * this.dpr), this.round(h * this.dpr));
     }
 
     // Used with beginPath() / stroke() / strokeStyle / fill()
     public rect(x: number, y: number, w: number, h: number) {
-        this.ctx.rect(Math.round(x * this.dpr) + this.adj, Math.round(y * this.dpr) + this.adj,
-                      Math.round(w * this.dpr), Math.round(h * this.dpr));
+        this.ctx.rect(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj,
+                      this.round(w * this.dpr), this.round(h * this.dpr));
     }
 
     public beginPath() {
@@ -119,15 +118,10 @@ export class CanvasWrapper implements ICanvas {
     }
 
     public strokeText(text: string, x: number, y: number, maxWidth?: number): void {
-        this.ctx.strokeText(text, Math.round(x), Math.round(y), maxWidth);
+        this.ctx.strokeText(text, this.round(x), this.round(y), maxWidth);
     }
 
     private round(n: number): number {
-        // With a bitwise or.
         return (0.5 + n) | 0;
-        // // A double bitwise not.
-        // rounded = ~~ (0.5 + n);
-        // // Finally, a left bitwise shift.
-        // rounded = (0.5 + n) << 0;
     }
 }

@@ -2,13 +2,12 @@
  * RenderLocator singleton.
  */
 import { ChartType } from '../core/index';
-import { DataType } from '../data/index';
 import { Candlestick, Point } from '../model/index';
 import { CandlestickChartRenderer } from './CandlestickChartRenderer';
 import { CandlestickPopupRenderer } from './CandlestickPopupRenderer';
 import { CrosshairRenderer } from './CrosshairRenderer';
 import { GridRenderer } from './GridRenderer';
-import { IAxesRender, IChartRender, IMarkRender, IPopupRender, IRenderLocator } from './Interfaces';
+import { IRenderLocator } from './Interfaces';
 import { LineChartRenderer } from './LineChartRenderer';
 import { LinePopupRenderer } from './LinePopupRenderer';
 import { NumberAxisRenderer } from './NumberAxisRenderer';
@@ -57,7 +56,7 @@ export class RenderLocator implements IRenderLocator {
         throw new Error('Unexpected chart type ' + chartType);
     }
 
-    public getAxesRender<T>(uid: string): any {
+    public getAxesRender(uid: string): any {
         switch (uid) {
             case 'date': return this.timeAxisRender;
             case 'number': return this.numberAxisRender;
@@ -78,7 +77,7 @@ export class RenderLocator implements IRenderLocator {
         }
     }
 
-    public getMarkRender<T>(uid: string): any {
+    public getMarkRender(uid: string): any {
         switch (uid) {
             case 'date': return this.timeMarkRender;
             case 'number': return this.numberMarkRender;

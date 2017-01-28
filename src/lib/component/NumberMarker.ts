@@ -1,7 +1,7 @@
 /**
  * NumberMarker class.
  */
-import { IAxis, NumberAxis, PriceAxis } from '../axes/index';
+import { NumberAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
 import { IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
@@ -26,7 +26,6 @@ export class NumberMarker extends VisualComponent {
         }
 
         if (context.mousePosition) {
-            const mouseX = context.mousePosition.x;
             const mouseY = context.mousePosition.y;
 
             if (mouseY > 0 && mouseY < this.size.height) {

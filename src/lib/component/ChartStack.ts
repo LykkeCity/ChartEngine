@@ -1,10 +1,10 @@
 /**
  * ChartStack class.
  */
-import { IAxis, NumberAxis } from '../axes/index';
+import { IAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
-import { IRenderLocator, RenderType } from '../render/index';
+import { IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
 import { Chart, IChart } from './Chart';
 import { Crosshair } from './Crosshair';
@@ -43,8 +43,6 @@ export class ChartStack extends VisualComponent {
     public render(context: VisualContext, renderLocator: IRenderLocator) {
 
         if (context.renderBase)  {
-            const canvas = context.getCanvas(this.target);
-
             // 1. Update y axis before rendering charts
             //
             // TODO: Make DataSource.DefaultYRange or take last known data:
@@ -68,14 +66,5 @@ export class ChartStack extends VisualComponent {
         }
 
         super.render(context, renderLocator);
-
-        // // 2. Render charts
-        // for (const chart of this.charts) {
-        //     chart.render(context, renderLocator);
-        // }
-
-        // // 3. Render additional objects
-        // //
-        // this.crosshair.render(context, renderLocator);
     }
 }

@@ -3,17 +3,15 @@
  * 
  * @classdesc Data source with dynamic data loading.
  */
-import { ChartType, TimeInterval } from '../core/index';
-import { Candlestick, ITimeValue } from '../model/index';
-import { Event, IEvent, IRange } from '../shared/index';
-import { ArrayUtils, IComparer } from '../utils/index';
+import { TimeInterval } from '../core/index';
+import { ITimeValue } from '../model/index';
+import { IRange } from '../shared/index';
+import { ArrayUtils } from '../utils/index';
 import { ArrayIterator } from './ArrayIterator';
-import { DataChangedEvent } from './DataChangedEvent';
 import { DataSource } from './DataSource';
 import { DataSourceConfig } from './DataSourceConfig';
-import { DataType } from './DataType';
 import { HttpDataSourceConfig } from './HttpDataSourceConfig';
-import { DataChangedArgument, IDataIterator, IDataSnapshot, IDataSource, IPendingRequest, IResponse } from './Interfaces';
+import { DataChangedArgument, IDataIterator, IDataSnapshot, IPendingRequest, IResponse } from './Interfaces';
 
 import * as $ from 'jquery';
 
@@ -22,11 +20,10 @@ type dataReaderFunc<T> = (timeStart: Date, timeEnd: Date, interval: string) => J
 export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
 
     protected dataSnapshot: IDataSnapshot<T>;
-    private readonly defaultMinDate = new Date(2000, 0, 1);
+    //private readonly defaultMinDate = new Date(2000, 0, 1);
     private readonly defaultMinValue = 0;
     private readonly defaultMaxValue = 100;
-    private readonly defaultMaxItemsRequested = 100;
-    private requestedRange: IRange<Date>;
+    //private readonly defaultMaxItemsRequested = 100;
 
     protected pendingRequests: IPendingRequest<T>[] = [];
 

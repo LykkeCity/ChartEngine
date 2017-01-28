@@ -1,15 +1,13 @@
 ﻿/**
  * CandleArrayDataSource class.
  */
-import { ChartType, TimeInterval } from '../core/index';
-import { Candlestick, ITimeValue } from '../model/index';
-import { Event, IEvent, IRange } from '../shared/index';
+import { TimeInterval } from '../core/index';
+import { ITimeValue } from '../model/index';
+import { IRange } from '../shared/index';
 import { ArrayIterator } from './ArrayIterator';
-import { DataChangedEvent } from './DataChangedEvent';
 import { DataSource } from './DataSource';
 import { DataSourceConfig } from './DataSourceConfig';
-import { DataType } from './DataType';
-import { DataChangedArgument, IDataIterator, IDataSnapshot, IDataSource } from './Interfaces';
+import { IDataIterator, IDataSnapshot } from './Interfaces';
 
 export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
 

@@ -3,11 +3,9 @@
  * 
  * @classdesc Contains methods for rendering axes.
  */
-
 import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
-import { TimeInterval } from '../core/index';
-import { IRange, IRect } from '../shared/index';
+import { IRect } from '../shared/index';
 import { IAxesRender } from './Interfaces';
 
 export class TimeAxisRenderer implements IAxesRender<Date> {

@@ -1,12 +1,11 @@
 /**
  * 
  */
-import { ChartType, TimeInterval } from '../core/index';
+import { TimeInterval } from '../core/index';
 import { ITimeValue } from '../model/index';
 import { IEvent, IRange } from '../shared/index';
 import { DataChangedEvent } from './DataChangedEvent';
 import { DataSourceConfig } from './DataSourceConfig';
-import { DataType } from './DataType';
 import { DataChangedArgument, IDataIterator, IDataSource } from './Interfaces';
 
 export abstract class DataSource<T extends ITimeValue> implements IDataSource<T> {

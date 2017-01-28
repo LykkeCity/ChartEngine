@@ -1,11 +1,11 @@
 /**
  * SimpleIndicator class.
  */
-import { ChartType, TimeInterval } from '../core/index';
-import { ArrayIterator, DataChangedArgument, DataChangedEvent, DataSource,
-    DataSourceConfig, DataType, IDataIterator, IDataSnapshot, IDataSource } from '../data/index';
+import { TimeInterval } from '../core/index';
+import { ArrayIterator, DataChangedArgument, DataSource,
+    DataSourceConfig, IDataIterator, IDataSnapshot, IDataSource } from '../data/index';
 import { Candlestick, Point } from '../model/index';
-import { Event, IEvent, IRange } from '../shared/index';
+import { IRange } from '../shared/index';
 
 export class SimpleIndicator extends DataSource<Point> {
 

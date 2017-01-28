@@ -4,13 +4,12 @@
  * @classdesc Facade for the chart library.
  */
 
-import { IAxis, NumberAxis, PriceAxis, TimeAxis } from '../axes/index';
-import { CanvasWrapper, ICanvas } from '../canvas/index';
+import { NumberAxis, PriceAxis, TimeAxis } from '../axes/index';
 import { ChartType, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, IDataSource } from '../data/index';
 import { IMouseHandler } from '../interaction/index';
-import { Candlestick, Point } from '../model/index';
-import { IRenderLocator, RenderLocator, RenderType } from '../render/index';
+import { Point } from '../model/index';
+import { RenderLocator } from '../render/index';
 import { IEventHandler, IHashTable, Point as IPoint } from '../shared/index';
 import { ChartArea } from './ChartArea';
 import { ChartStack } from './ChartStack';
@@ -328,7 +327,6 @@ export class ChartBoard extends VisualComponent {
 
         if (this.isMouseDown && this.mouseX && this.mouseY) {
             let diffX = event.pageX - this.mouseX;
-            let diffY = event.pageY - this.mouseY;
 
             if (this.timeAxis) {
                 this.timeAxis.move(diffX);

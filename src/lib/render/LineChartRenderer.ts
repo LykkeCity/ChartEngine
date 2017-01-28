@@ -8,7 +8,7 @@ import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
 import { IDataIterator } from '../data/index';
 import { Point } from '../model/index';
-import { IPoint, IRect, ISize } from '../shared/index';
+import { IPoint, IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
 
 export class LineChartRenderer implements IChartRender<Point> {

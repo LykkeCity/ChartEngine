@@ -2,7 +2,7 @@
  * Classes related to grid calculation.
  */
 import { TimeInterval } from '../core/index';
-import { IHashTable, IRange } from '../shared/index';
+import { IRange } from '../shared/index';
 
 export class NumberAutoGrid {
 

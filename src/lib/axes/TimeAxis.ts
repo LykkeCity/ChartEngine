@@ -3,9 +3,7 @@
  * 
  * @classdesc Represents a chart's axis of numbers
  */
-
-import { ICanvas } from '../canvas/index';
-import { TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { VisualComponent, VisualContext } from '../core/index';
 import { IAxesRender, IRenderLocator } from '../render/index';
 import { IRange, ISize, Point } from '../shared/index';
 import { TimeAutoGrid } from './AutoGrid';

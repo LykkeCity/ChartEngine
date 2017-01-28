@@ -4,14 +4,13 @@
 import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
 import { IDataIterator } from '../data/index';
-import { Candlestick } from '../model/index';
 import { IPoint, IRect, ISize } from '../shared/index';
 
 export interface IRenderLocator {
     getChartRender<T>(dataType: { new(d: Date): T}, chartType: string): any;
-    getAxesRender<T>(uid: string): any;
+    getAxesRender(uid: string): any;
     getPopupRender<T>(dataType: { new(d: Date): T}): any;
-    getMarkRender<T>(uid: string): any;
+    getMarkRender(uid: string): any;
     getCrosshairRender(): any;
     getGridRender(): any;
 }

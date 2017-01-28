@@ -1,16 +1,16 @@
-var gulp = require("gulp");
-var browserify = require("browserify");
+var gulp = require('gulp');
+var browserify = require('browserify');
 var source = require('vinyl-source-stream');
-var tsify = require("tsify");
+var tsify = require('tsify');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var buffer = require('vinyl-buffer');
 var del = require('del');
-var ts = require("gulp-typescript");
-var tsProject = ts.createProject("tsconfig.json");
-var gulpTslint = require("gulp-tslint");
-var tslint = require("tslint");
+var ts = require('gulp-typescript');
+var tsProject = ts.createProject('tsconfig.json');
+var gulpTslint = require('gulp-tslint');
+var tslint = require('tslint');
 var merge = require('merge2');
 
 //delete the output file(s)
@@ -21,29 +21,29 @@ gulp.task('clean', function () {
     return del(['dist/**/*']);
 });
 
-gulp.task("tslint", () => {
+gulp.task('tslint', () => {
     // https://github.com/panuhorsmalahti/gulp-tslint
-    //var program = tslint.Linter.createProgram("./tsconfig.json");
+    //var program = tslint.Linter.createProgram('./tsconfig.json');
 
     tsProject.src()
         .pipe(gulpTslint({
-            formatter: "verbose"
+            formatter: 'verbose'
         }))
         //.pipe(gulpTslint({ program }))    
         .pipe(gulpTslint.report())
 });
 
-gulp.task("build-js", function () {
+gulp.task('build-js', ['clean'], function () {
     var tsResult = tsProject.src()
         .pipe(tsProject())
 
     return merge([
         tsResult.dts.pipe(gulp.dest('dist/definitions')),
         tsResult.js.pipe(gulp.dest('dist/js'))
-    ]);        
+    ]);
 });
 
-gulp.task("build-bundle", ['clean'], function () {
+gulp.task('build-bundle', ['clean', 'build-js'], function () {
     return browserify({
         basedir: '.',
         debug: true,
@@ -52,7 +52,7 @@ gulp.task("build-bundle", ['clean'], function () {
         packageCache: {},
         standalone: 'Bundle'
         // ,shim: {
-        //     "jquery": {
+        //     'jquery': {
         //         path: './node_modules/jquery/dist/jquery.min.js',
         //         exports: '$'
         //     }            
@@ -65,10 +65,9 @@ gulp.task("build-bundle", ['clean'], function () {
     //-- minify
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: true}))
-    //.pipe(uglify())
     .pipe(sourcemaps.write('./'))
     // ---
-    .pipe(gulp.dest("dist"));     
+    .pipe(gulp.dest('dist'));     
 });
 
-gulp.task("build", ['clean', 'build-js', 'build-bundle']);
+gulp.task('build', ['clean', 'build-js', 'build-bundle']);

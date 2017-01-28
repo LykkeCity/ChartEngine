@@ -1,7 +1,6 @@
 /**
  * Crosshair class.
  */
-import { IAxis, NumberAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
 import { IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';

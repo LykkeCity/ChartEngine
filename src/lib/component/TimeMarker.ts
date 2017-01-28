@@ -26,8 +26,7 @@ export class TimeMarker extends VisualComponent {
         }
 
         if (context.mousePosition) {
-            const mouseX = context.mousePosition.x;// - this.offset.x;
-            const mouseY = context.mousePosition.y;// - this.offset.y;
+            const mouseX = context.mousePosition.x;
 
             if (mouseX > 0 && mouseX < this.size.width) {
 

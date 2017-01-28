@@ -4,7 +4,6 @@
 import { IAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
-import { Candlestick, Point as MPoint } from '../model/index';
 import { IChartRender, IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
 

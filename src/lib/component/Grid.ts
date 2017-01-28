@@ -4,7 +4,7 @@
 import { IAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
 import { IRenderLocator } from '../render/index';
-import { IRange, ISize, Point } from '../shared/index';
+import { ISize, Point } from '../shared/index';
 
 export class Grid extends VisualComponent {
     constructor(

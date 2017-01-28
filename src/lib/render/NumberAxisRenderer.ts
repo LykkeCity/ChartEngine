@@ -6,8 +6,7 @@
 
 import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
-import { TimeInterval } from '../core/index';
-import { IPoint, IRange, IRect, ISize } from '../shared/index';
+import { IRect } from '../shared/index';
 import { IAxesRender } from './Interfaces';
 
 export class NumberAxisRenderer implements IAxesRender<number> {

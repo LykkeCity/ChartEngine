@@ -2,7 +2,6 @@
  * TimeMarkRenderer class.
  */
 import { ICanvas } from '../canvas/index';
-import { Candlestick } from '../model/index';
 import { IPoint, ISize } from '../shared/index';
 import { IMarkRender } from './Interfaces';
 

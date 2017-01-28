@@ -6,8 +6,7 @@
 
 import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
-import { TimeInterval } from '../core/index';
-import { IRange, IRect } from '../shared/index';
+import { IRect } from '../shared/index';
 
 export class GridRenderer {
 

@@ -2,7 +2,6 @@
  * 
  */
 import { CandlestickChartRenderer } from './CandlestickChartRenderer';
-import { RenderType } from './Enums';
 import { IAxesRender, IChartRender, IMarkRender, IPopupRender, IRenderLocator } from './Interfaces';
 import { LineChartRenderer } from './LineChartRenderer';
 import { PriceAxisRenderer } from './PriceAxisRenderer';
@@ -18,7 +17,6 @@ export {
     IRenderLocator,
     LineChartRenderer,
     PriceAxisRenderer,
-    RenderType,
     RenderLocator,
     TimeAxisRenderer
  };
