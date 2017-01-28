@@ -34,7 +34,7 @@ export class ArrayUtils {
             } else if (ib < update.length) {
                 // only B left
                 merged[actualSize] = update[ib];
-                ib++;``
+                ib++;
             }
             actualSize++;
         }

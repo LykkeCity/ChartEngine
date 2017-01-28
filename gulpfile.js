@@ -8,6 +8,7 @@ var buffer = require('vinyl-buffer');
 var del = require('del');
 var ts = require('gulp-typescript');
 var tsProject = ts.createProject('tsconfig.json');
+var tslint = require("tslint");
 var gulpTslint = require('gulp-tslint');
 var merge = require('merge2');
 
@@ -19,16 +20,14 @@ gulp.task('clean', function () {
     return del(['dist/**/*']);
 });
 
-gulp.task('tslint', () => {
-    // https://github.com/panuhorsmalahti/gulp-tslint
-    //var program = tslint.Linter.createProgram('./tsconfig.json');
-
+gulp.task('tslint', (cb) => {
+    var program = tslint.Linter.createProgram('./tsconfig.json');
     tsProject.src()
         .pipe(gulpTslint({
             formatter: 'verbose'
         }))
-        //.pipe(gulpTslint({ program }))    
         .pipe(gulpTslint.report())
+    cb();
 });
 
 gulp.task('build-js', ['clean'], function () {
