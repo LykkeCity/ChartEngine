@@ -9,7 +9,7 @@ export interface IAxis<T> {
     toX(value: T): number;
     toValue(x: number): T;
     getGrid(): T[];
-    getValuesRange(x1: number, x2: number): IRange<T> | undefined;
+    getValuesRange(fromX: number, toX: number): IRange<T> | undefined;
     move(direction: number): void;
     scale(direction: number): void;
 }

@@ -39,11 +39,11 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
         return autoGrid.getGrid();
     }
 
-    public getValuesRange(x1: number, x2: number): IRange<Date> | undefined {
-        if (x1 > 0 && x2 > 0 && x1 < this.size.width && x2 < this.size.width) {
+    public getValuesRange(fromX: number, toX: number): IRange<Date> | undefined {
+        if (fromX > 0 && toX > 0 && fromX < this.size.width && toX < this.size.width) {
             return {
-                start: this.toValue(Math.min(x1, x2)),
-                end: this.toValue(Math.max(x1, x2)) };
+                start: this.toValue(Math.min(fromX, toX)),
+                end: this.toValue(Math.max(fromX, toX)) };
         }
     }
 

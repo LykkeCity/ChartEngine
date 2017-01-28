@@ -39,11 +39,11 @@ export class PriceAxis extends VisualComponent implements IAxis<number> {
         return autoGrid.getGrid();
     }
 
-    public getValuesRange(x1: number, x2: number): IRange<number> | undefined {
-        if (x1 > 0 && x2 > 0 && x1 < this.size.height && x2 < this.size.height) {
+    public getValuesRange(fromX: number, toX: number): IRange<number> | undefined {
+        if (fromX > 0 && toX > 0 && fromX < this.size.height && toX < this.size.height) {
             return {
-                start: this.toValue(Math.min(x1, x2)),
-                end: this.toValue(Math.max(x1, x2)) };
+                start: this.toValue(Math.min(fromX, toX)),
+                end: this.toValue(Math.max(fromX, toX)) };
         }
     }
 
