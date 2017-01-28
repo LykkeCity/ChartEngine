@@ -7,8 +7,8 @@ import { VisualContext } from './VisualContext';
 
 export abstract class VisualComponent { //implements IMouseHandler {
 
-    private _offset: Point;
-    private _size: ISize;
+    protected _offset: Point;
+    protected _size: ISize;
     protected children: VisualComponent[] = [];
     // protected childrenDesc: VisualComponentDesc[] = [];
 
@@ -53,6 +53,13 @@ export abstract class VisualComponent { //implements IMouseHandler {
 
             // restore mousePosition
             context.mousePosition = origMousePos;
+        }
+    }
+
+    public resize(w: number, h: number): void {
+        this._size = { width: w, height: h};
+        for (const child of this.children) {
+            child.resize(w, h);
         }
     }
 

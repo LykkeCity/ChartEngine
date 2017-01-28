@@ -11,8 +11,8 @@ export class CanvasWrapper implements ICanvas {
     private ctx: CanvasRenderingContext2D;
     private adj: number = 0.5; // Adjusment to remove blury lines.
 
-    public readonly w: number;
-    public readonly h: number;
+    public w: number;
+    public h: number;
     private readonly dpr: number;
 
     public get font(): string {
@@ -83,6 +83,11 @@ export class CanvasWrapper implements ICanvas {
     public rect(x: number, y: number, w: number, h: number) {
         this.ctx.rect(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj,
                       this.round(w * this.dpr), this.round(h * this.dpr));
+    }
+
+    public resize(w: number, h: number): void {
+        this.w = w;
+        this.h = h;
     }
 
     public beginPath() {

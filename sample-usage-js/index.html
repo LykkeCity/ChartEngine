@@ -6,7 +6,7 @@
 </head>
 <body>
 
-    <div>
+    <div style="margin-top: 20px; margin-left: 20px;">
         <div id="chart-container1" style="float: left">
         </div>                
         <div id="chart-container2" style="float: left">
@@ -46,6 +46,13 @@
     <script type="text/javascript">
         console.debug("starting app...");
 
+        let minChartWidth = 100;
+        let minChartHeight = 100;
+        let border = 20;
+
+        let w = Math.max(window.innerWidth - border * 2, minChartWidth);
+        let h = Math.max(window.innerHeight - border * 2, minChartHeight);        
+
         let candles = [];
         for(let item of sampleData) {
             let c = new lychart.model.Candlestick(item.date, item.c, item.o, item.h, item.l);
@@ -66,20 +73,25 @@
             });
 
         var container1 = document.getElementById("chart-container1");
-        var chart1 = new lychart.ChartBoard(container1, 8,8, 500, 150);
+        var chart1 = new lychart.ChartBoard(container1, border, border, w, h);
         chart1.addChart(lychart.core.ChartType.candle, httpDataSource);
-        chart1.render();
 
+        // Add indicator
         var indicator = new lychart.indicator.SimpleIndicator(
             {
             },
             httpDataSource);
         chart1.addIndicator(indicator);
 
-        // var container2 = document.getElementById("chart-container2");
-        // var chart2 = new lychart.ChartBoard(container2, 500, 150);
-        // chart2.addChart(lychart.core.ChartType.candle, arrayDataSource);
-        // chart2.render();
+        // Render
+        chart1.render();
+
+        window.onresize = function(event) {
+            let w = Math.max(window.innerWidth - border * 2, minChartWidth);
+            let h = Math.max(window.innerHeight - border * 2, minChartHeight);
+            chart1.resize(w, h);
+            chart1.render();
+        };
     </script>
 </body>
 </html>

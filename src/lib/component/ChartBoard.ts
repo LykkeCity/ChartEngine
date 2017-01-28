@@ -36,14 +36,20 @@ export class ChartBoard extends VisualComponent {
     private eventHandlers: IHashTable<IEventHandler<any>> = {};
     private readonly mouseHandlers: IMouseHandler[] = [];
 
+    private readonly yAxisWidth = 50;
+    private readonly xAxisHeight = 25;
+
     constructor(
         private readonly container: HTMLElement,
         private readonly offsetLeft: number,
         private readonly offsetTop: number,
-        private readonly w: number,
-        private readonly h: number
+        w: number,
+        h: number
     ) {
-        super({ x: 0, y: 0}, { width: w, height: h});
+        super({ x: 0, y: 0}, { width: Math.max(w, 100), height: Math.max(h, 50)});
+
+        const chartWidth = this._size.width - this.yAxisWidth;
+        const chartHeight = this._size.height - this.xAxisHeight;
 
         this.table = document.createElement('table');
         this.table.style.setProperty('position', 'relative');
@@ -51,7 +57,7 @@ export class ChartBoard extends VisualComponent {
         this.table.style.setProperty('border-collapse', 'collapse');
         this.container.appendChild(this.table);
 
-        this.timeArea = this.makeArea(w, 25);
+        this.timeArea = this.makeArea(chartWidth, this.xAxisHeight);
 
         const now = new Date();
         this.timeAxis = new TimeAxis(
@@ -65,10 +71,10 @@ export class ChartBoard extends VisualComponent {
 
         // Create main chart area
         //
-        const chartArea = this.makeArea(w, h);
+        const chartArea = this.makeArea(chartWidth, chartHeight);
         this.chartAreas.push(chartArea);
 
-        const yAxisArea = this.makeArea(50, h);
+        const yAxisArea = this.makeArea(this.yAxisWidth, chartHeight);
         this.yAxisAreas.push(yAxisArea);
 
         // create initial Y axis
@@ -83,7 +89,7 @@ export class ChartBoard extends VisualComponent {
         yAxis.addChild(priceMarker);
 
         // Add main chart stack
-        const chartStack = new ChartStack(new IPoint(0, 0), { width: w, height: h }, this.timeAxis, yAxis);
+        const chartStack = new ChartStack(new IPoint(0, 0), { width: chartWidth, height: chartHeight }, this.timeAxis, yAxis);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
 
@@ -145,24 +151,7 @@ export class ChartBoard extends VisualComponent {
     }
 
     private makeArea(w: number, h: number) : ChartArea {
-
-        let baseCanvas = document.createElement('canvas');
-        baseCanvas.width = w;
-        baseCanvas.height = h;
-        baseCanvas.style.setProperty('left', '0');
-        baseCanvas.style.setProperty('top', '0');
-        baseCanvas.style.setProperty('z-index', '0');
-        baseCanvas.style.setProperty('position', 'absolute');
-
-        let frontCanvas = document.createElement('canvas');
-        frontCanvas.width = w;
-        frontCanvas.height = h;
-        frontCanvas.style.setProperty('left', '0');
-        frontCanvas.style.setProperty('top', '0');
-        frontCanvas.style.setProperty('z-index', '1');
-        frontCanvas.style.setProperty('position', 'absolute');
-
-        return new ChartArea(w, h, baseCanvas, frontCanvas);
+        return new ChartArea(w, h);
     }
 
     public addChart<T>(chartType: string, dataSource: IDataSource<T>) {
@@ -180,13 +169,16 @@ export class ChartBoard extends VisualComponent {
     public addIndicator(indicatorDataSource: IDataSource<Point>) {
         this.indicators.push(indicatorDataSource);
 
-        const yOffset = this.chartAreas.length * this.h;
+        const dh = Math.floor((this._size.height - this.xAxisHeight) / (this.chartStacks.length + 2));
+        const dw = this._size.width - this.yAxisWidth;
+
+        const yOffset = (this.chartStacks.length + 1) * dh;
 
         // create new area
-        const chartArea = this.makeArea(this.w, this.h);
+        const chartArea = this.makeArea(dw, dh);
         this.chartAreas.push(chartArea);
 
-        const yAxisArea = this.makeArea(50, this.h);
+        const yAxisArea = this.makeArea(this.yAxisWidth, dh);
         this.yAxisAreas.push(yAxisArea);
 
         // create Y axis
@@ -200,7 +192,7 @@ export class ChartBoard extends VisualComponent {
         const numberMarker = new NumberMarker({x: 0, y: 0}, yAxis.size, yAxis);
         yAxis.addChild(numberMarker);
 
-        const chartStack = new ChartStack(new IPoint(0, yOffset), { width: this.w, height: this.h }, this.timeAxis, yAxis);
+        const chartStack = new ChartStack(new IPoint(0, yOffset), { width: dw, height: dh }, this.timeAxis, yAxis);
         chartStack.addChart(ChartType.line, indicatorDataSource);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
@@ -209,7 +201,10 @@ export class ChartBoard extends VisualComponent {
 
         // change timeAxisOffset
         const curOffset = this.timeAxis.offset;
-        this.timeAxis.offset = new IPoint(curOffset.x, curOffset.y + this.h);
+        this.timeAxis.offset = new IPoint(curOffset.x, curOffset.y + (this._size.height - this.xAxisHeight));
+
+        // recalculate size of all elements
+        this.resize(this._size.width, this._size.height);
     }
 
     public render(): void {
@@ -296,6 +291,48 @@ export class ChartBoard extends VisualComponent {
             relativeMouse);
 
         this.timeAxis.render(context, RenderLocator.Instance);
+    }
+
+    public resize(w: number, h: number): void {
+        w = Math.max(w, 100);
+        h = Math.max(h, 50);
+
+        this._size = { width: w, height: h };
+
+        // resize inner components
+        const dh = Math.floor((h - this.xAxisHeight) / (this.chartStacks.length + 1));
+        const dw = w - this.yAxisWidth;
+        let yOffset = 0;
+        let i = 0;
+        for (; i < this.chartStacks.length; i += 1) {
+            // resize charts
+            this.chartStacks[i].resize(dw, i === 0 ? dh * 2 : dh);
+            this.chartAreas[i].resize(dw, i === 0 ? dh * 2 : dh);
+            this.yAxes[i].resize(this.yAxisWidth, i === 0 ? dh * 2 : dh);
+            this.yAxisAreas[i].resize(this.yAxisWidth, i === 0 ? dh * 2 : dh);
+
+            // resize HTML elements
+            for (let j = 0; j < 3; j += 1) {
+                const div = this.table.rows[i].cells[j].getElementsByTagName('div')[0];
+                div.style.setProperty('height', (i === 0 ? dh * 2 : dh) + 'px');
+                if (j === 1) { div.style.setProperty('width', dw + 'px'); }
+            }
+
+            // update vertical and horizontal offset
+            this.chartStacks[i].offset = { x: this.chartStacks[i].offset.x, y: yOffset };
+            this.yAxes[i].offset = { x: dw, y: yOffset };
+            yOffset += (i === 0 ? dh * 2 : dh);
+        }
+        // resize time axis
+        this.timeAxis.resize(dw, this.xAxisHeight);
+        this.timeArea.resize(dw, this.xAxisHeight);
+
+        // resize HTML element
+        const div = this.table.rows[i].cells[1].getElementsByTagName('div')[0];
+        div.style.setProperty('width', dw + 'px');
+
+        // update vertical offset
+        this.timeAxis.offset = { x: this.timeAxis.offset.x, y: yOffset };
     }
 
     private onDataChanged(arg: DataChangedArgument): void {
