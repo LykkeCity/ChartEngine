@@ -24,6 +24,10 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.font = font;
     }
 
+    public set fillStyle(fillStyle: string) {
+        this.ctx.fillStyle = fillStyle;
+    }
+
     public get lineWidth(): number {
         return this.ctx.lineWidth;
     }

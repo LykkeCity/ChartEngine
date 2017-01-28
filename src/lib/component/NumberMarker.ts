@@ -32,16 +32,9 @@ export class NumberMarker extends VisualComponent {
             if (mouseY > 0 && mouseY < this.size.height) {
 
                 const canvas = context.getCanvas(this.target);
-
-                // TODO: move to specific renderer
-                canvas.setStrokeStyle('black');
-                canvas.beginPath();
-
-                const text = this.axis.toValue(mouseY).toString();
-
-                canvas.strokeText(text, 0, mouseY);
-                canvas.stroke();
-                canvas.closePath();
+                const render = renderLocator.getMarkRender('number');
+                const num = this.axis.toValue(mouseY);
+                render.render(canvas, num, { x: 2, y: mouseY }, this.size);
             }
         }
     }

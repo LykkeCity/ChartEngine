@@ -18,7 +18,8 @@ export class TimeAxisRenderer implements IAxesRender<Date> {
 
         const bars: Date[] = axis.getGrid();
 
-        canvas.font = '10px Courier New';
+        canvas.font = '10px Arial';
+        canvas.fillStyle = '#000000';
         canvas.setStrokeStyle('black');
         canvas.beginPath();
 
@@ -40,7 +41,7 @@ export class TimeAxisRenderer implements IAxesRender<Date> {
         // draw time mark
         const markText = this.formatDate(date);
         const w = canvas.measureText(markText).width;
-        canvas.strokeText(markText, x - w / 2, 10);
+        canvas.fillText(markText, x - w / 2, 10);
     }
 
     private formatDate(date: Date): string {

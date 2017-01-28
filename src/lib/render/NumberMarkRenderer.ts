@@ -8,11 +8,9 @@ import { IMarkRender } from './Interfaces';
 
 export class NumberMarkRenderer implements IMarkRender<number> {
     public render(canvas: ICanvas, data: number, point: IPoint, frameSize: ISize): void {
-        canvas.setStrokeStyle('black');
-        canvas.beginPath();
-        const text = data.toString();
-        canvas.strokeText(text, point.x, point.y);
-        canvas.stroke();
-        canvas.closePath();
+        const text = data.toFixed(4).toString();
+        canvas.font = '10px Arial';
+        canvas.fillStyle = '#000000';
+        canvas.fillText(text, point.x, point.y);
     }
 }

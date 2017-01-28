@@ -8,6 +8,7 @@ export interface ICanvas {
     readonly h: number;
 
     font: string;
+    fillStyle: string;
     lineWidth: number;
 
     beginPath(): void;

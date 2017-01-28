@@ -16,7 +16,8 @@ export class NumberAxisRenderer implements IAxesRender<number> {
 
         const bars: number[] = axis.getGrid();
 
-        canvas.font = '10px Courier New';
+        canvas.font = '10px Arial';
+        canvas.fillStyle = '#000000';
         canvas.setStrokeStyle('black');
         canvas.beginPath();
 
@@ -37,6 +38,6 @@ export class NumberAxisRenderer implements IAxesRender<number> {
 
         // draw time mark
         const markText = value.toFixed(4);
-        canvas.strokeText(markText, 4, y + 3);
+        canvas.fillText(markText, 4, y + 3);
     }
 }
