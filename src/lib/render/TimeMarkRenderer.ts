@@ -1,15 +1,29 @@
 /**
  * TimeMarkRenderer class.
  */
-import { ICanvas } from '../canvas/index';
+import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
 import { IPoint, ISize } from '../shared/index';
 import { IMarkRender } from './Interfaces';
 
 export class TimeMarkRenderer implements IMarkRender<Date> {
+    private readonly paddingLeft = 3;
+    private readonly paddingTop  = 5;
+
     public render(canvas: ICanvas, data: Date, point: IPoint, frameSize: ISize): void {
-        const text = data.toString();
-        canvas.font = '10px Arial';
-        canvas.fillStyle = '#000000';
-        canvas.fillText(text, point.x, point.y);
+        if (data && data instanceof Date) {
+            const hh = data.getUTCHours();
+            const mm = data.getUTCMinutes();
+            const hhmm = ('0' + hh.toFixed(0)).slice(-2) + ':' + ('0' + mm.toFixed(0)).slice(-2);
+            const text = `${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate()} ${hhmm}`;
+
+            const textWidth = canvas.measureText(text).width;
+            canvas.fillStyle = '#3F3F3F';
+            canvas.fillRect(point.x - textWidth / 2 - this.paddingLeft, point.y, textWidth + this.paddingLeft * 2, 18);
+
+            canvas.font = '11px Arial';
+            canvas.fillStyle = '#EAEAEA';
+            canvas.setTextBaseLine(CanvasTextBaseLine.Top);
+            canvas.fillText(text, point.x - textWidth / 2, point.y + this.paddingTop);
+        }
     }
 }

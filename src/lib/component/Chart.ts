@@ -25,7 +25,7 @@ export class Chart<T> extends VisualComponent implements IChart {
         private yAxis: IAxis<number>) {
             super(offset, size);
 
-            this.popup = new ChartPopup<T>(chartType, offset, size, dataSource, timeAxis, yAxis);
+            this.popup = new ChartPopup<T>(chartType, { x: 0, y: 0 }, size, dataSource, timeAxis, yAxis);
             this.addChild(this.popup);
     }
 

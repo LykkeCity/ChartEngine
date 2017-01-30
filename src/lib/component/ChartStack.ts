@@ -33,7 +33,7 @@ export class ChartStack extends VisualComponent {
 
     public addChart<T>(chartType: string, dataSource: IDataSource<T>): void {
         const newChart = new Chart(chartType,
-                                   new Point(this.offset.x, this.offset.y),
+                                   new Point(0, 0),
                                    { width: this.size.width, height: this.size.height },
                                    dataSource, this.timeAxis, this.yAxis);
         this.charts.push(newChart);

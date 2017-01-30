@@ -5,7 +5,7 @@
  */
 
 import { IAxis } from '../axes/index';
-import { ICanvas } from '../canvas/index';
+import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
 import { IRect } from '../shared/index';
 import { IAxesRender } from './Interfaces';
 
@@ -15,7 +15,7 @@ export class NumberAxisRenderer implements IAxesRender<number> {
 
         const bars: number[] = axis.getGrid();
 
-        canvas.font = '10px Arial';
+        canvas.font = '11px Arial';
         canvas.fillStyle = '#000000';
         canvas.setStrokeStyle('black');
         canvas.beginPath();
@@ -37,6 +37,7 @@ export class NumberAxisRenderer implements IAxesRender<number> {
 
         // draw time mark
         const markText = value.toFixed(4);
-        canvas.fillText(markText, 4, y + 3);
+        canvas.setTextBaseLine(CanvasTextBaseLine.Middle);
+        canvas.fillText(markText, 4, y);
     }
 }

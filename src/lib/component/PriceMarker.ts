@@ -33,7 +33,7 @@ export class PriceMarker extends VisualComponent {
                 const canvas = context.getCanvas(this.target);
                 const render = renderLocator.getMarkRender('number');
                 const num = this.axis.toValue(mouseY);
-                render.render(canvas, num, { x: 2, y: mouseY }, this.size);
+                render.render(canvas, num, { x: 0, y: mouseY }, this.size);
             }
         }
     }

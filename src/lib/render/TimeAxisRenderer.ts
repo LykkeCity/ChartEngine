@@ -4,7 +4,7 @@
  * @classdesc Contains methods for rendering axes.
  */
 import { IAxis } from '../axes/index';
-import { ICanvas } from '../canvas/index';
+import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
 import { IRect } from '../shared/index';
 import { IAxesRender } from './Interfaces';
 
@@ -16,7 +16,7 @@ export class TimeAxisRenderer implements IAxesRender<Date> {
 
         const bars: Date[] = axis.getGrid();
 
-        canvas.font = '10px Arial';
+        canvas.font = '11px Arial';
         canvas.fillStyle = '#000000';
         canvas.setStrokeStyle('black');
         canvas.beginPath();
@@ -39,7 +39,8 @@ export class TimeAxisRenderer implements IAxesRender<Date> {
         // draw time mark
         const markText = this.formatDate(date);
         const w = canvas.measureText(markText).width;
-        canvas.fillText(markText, x - w / 2, 10);
+        canvas.setTextBaseLine(CanvasTextBaseLine.Top);
+        canvas.fillText(markText, x - w / 2, 5);
     }
 
     private formatDate(date: Date): string {

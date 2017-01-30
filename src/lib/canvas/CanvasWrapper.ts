@@ -27,6 +27,14 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.fillStyle = fillStyle;
     }
 
+    public get globalAlpha(): number {
+        return this.ctx.globalAlpha;
+    }
+
+    public set globalAlpha(alpha: number) {
+        this.ctx.globalAlpha = alpha;
+    }
+
     public get lineWidth(): number {
         return this.ctx.lineWidth;
     }
@@ -70,7 +78,7 @@ export class CanvasWrapper implements ICanvas {
     }
 
     public fillRect(x: number, y: number, w: number, h: number) {
-        this.ctx.fillRect(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj,
+        this.ctx.fillRect(this.round(x * this.dpr), this.round(y * this.dpr),
                           this.round(w * this.dpr), this.round(h * this.dpr));
     }
 

@@ -33,7 +33,7 @@ export class TimeMarker extends VisualComponent {
                 const canvas = context.getCanvas(this.target);
                 const render = renderLocator.getMarkRender('date');
                 const date = this.axis.toValue(mouseX);
-                render.render(canvas, date, { x: mouseX, y: 10 }, this.size);
+                render.render(canvas, date, { x: mouseX, y: 0 }, this.size);
             }
         }
     }
