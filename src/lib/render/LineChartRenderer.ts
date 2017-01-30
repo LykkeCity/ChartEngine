@@ -37,6 +37,10 @@ export class LineChartRenderer implements IChartRender<Point> {
         canvas.stroke();
         canvas.closePath();
 
+        // Start drawing
+        canvas.setStrokeStyle('#555555');
+        canvas.beginPath();
+
         if (dataIterator.moveNext()) {
             let prevPoint: Point = dataIterator.current;
             while (dataIterator.moveNext()) {
@@ -46,6 +50,9 @@ export class LineChartRenderer implements IChartRender<Point> {
                 }
             }
         }
+
+        canvas.stroke();
+        canvas.closePath();
     }
 
     public testHitArea(
@@ -73,24 +80,11 @@ export class LineChartRenderer implements IChartRender<Point> {
                        timeAxis: IAxis<Date>,
                        yAxis: IAxis<number>, pointFrom: Point, pointTo: Point, frame: IRect): void {
 
-        // Startin drawing
-        canvas.setStrokeStyle('#555555');
-        canvas.beginPath();
-
         const x1 = timeAxis.toX(pointFrom.date);
         const y1 = yAxis.toX(<number>pointFrom.value);
-
         const x2 = timeAxis.toX(pointTo.date);
         const y2 = yAxis.toX(<number>pointTo.value);
 
-        // Drawing upper shadow
-        this.line(canvas, x1, y1, x2, y2);
-
-        canvas.stroke();
-        canvas.closePath();
-    }
-
-    private line(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {
         canvas.moveTo(x1, y1);
         canvas.lineTo(x2, y2);
     }

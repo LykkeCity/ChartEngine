@@ -13,6 +13,9 @@ import { IChartRender } from './Interfaces';
 
 export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
 
+    private readonly minCandleWidth = 3;
+    private readonly maxCandleWidth = 20;
+
     public constructor() { }
 
     public render(
@@ -40,8 +43,9 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         canvas.stroke();
         canvas.closePath();
 
+        const candleW = this.calculateBodyWidth(timeAxis, frame.w);
         while (dataIterator.moveNext()) {
-            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frame);
+            this.renderCandle(canvas, timeAxis, yAxis, dataIterator.current, frame, candleW);
         }
     }
 
@@ -54,8 +58,9 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
 
         let candleHit: Candlestick | undefined = undefined;
 
+        const candleW = this.calculateBodyWidth(timeAxis, frame.w);
         while (dataIterator.moveNext()) {
-            if (this.testHitAreaCandle(hitPoint, timeAxis, yAxis, dataIterator.current)) {
+            if (this.testHitAreaCandle(hitPoint, timeAxis, yAxis, dataIterator.current, candleW)) {
                 candleHit = dataIterator.current;
                 break;
             }
@@ -64,17 +69,19 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         return candleHit;
     }
 
-    private testHitAreaCandle(hitPoint: IPoint, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick): boolean {
+    private testHitAreaCandle(
+        hitPoint: IPoint, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick, candleW: number): boolean {
         if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
             return false;
         }
         const x = timeAxis.toX(candle.date);
-        const body = this.calculateBody(x, yAxis, candle.o, candle.c);
+        const body = this.calculateBody(x, yAxis, candle.o, candle.c, candleW);
         return (hitPoint.x >= body.x && hitPoint.x <= (body.x + body.w)
                 && hitPoint.y >= body.y && hitPoint.y <= (body.y + body.h));
     }
 
-    private renderCandle(canvas: ICanvas, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick, frame: IRect): void {
+    private renderCandle(
+        canvas: ICanvas, timeAxis: IAxis<Date>, yAxis: IAxis<number>, candle: Candlestick, frame: IRect, candleW: number): void {
 
         if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
             return;
@@ -86,7 +93,7 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         canvas.beginPath();
 
         const x = timeAxis.toX(candle.date);
-        const body = this.calculateBody(x, yAxis, candle.o, candle.c);
+        const body = this.calculateBody(x, yAxis, candle.o, candle.c, candleW);
         const h = yAxis.toX(candle.h);
         const l = yAxis.toX(candle.l);
 
@@ -110,10 +117,21 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         canvas.strokeRect(body.x, body.y, body.w, body.h);
     }
 
-    private calculateBody(x: number, yAxis: IAxis<number>, o: number, c: number): IRect {
+    private calculateBody(x: number, yAxis: IAxis<number>, o: number, c: number, candleW: number): IRect {
         const ocMin = yAxis.toX(Math.min(o, c));
         const ocMax = yAxis.toX(Math.max(o, c));
-        return { x: x - 1, y: ocMin, w: 2, h: ocMax - ocMin };
+        return { x: x - (candleW / 2), y: ocMin, w: candleW, h: ocMax - ocMin };
+    }
+
+    private calculateBodyWidth(timeAxis: IAxis<Date>, frameWidth: number): number {
+        const range = timeAxis.range.end.getTime() - timeAxis.range.start.getTime();
+        if (range === 0 || timeAxis.interval === 0) {
+            return this.minCandleWidth;
+        }
+        const candlesCount = range / timeAxis.interval;
+        const width = Math.floor(frameWidth / (3 * candlesCount));
+        // between minCandleWidth and maxCandleWidth
+        return Math.min(this.maxCandleWidth, Math.max(this.minCandleWidth, width));
     }
 
     private line(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {
