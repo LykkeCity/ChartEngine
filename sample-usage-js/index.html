@@ -74,7 +74,7 @@
 
         var container1 = document.getElementById("chart-container1");
         var chart1 = new lychart.ChartBoard(container1, border, border, w, h);
-        chart1.addChart(lychart.core.ChartType.candle, httpDataSource);
+        chart1.addChart(lychart.core.ChartType.candle, arrayDataSource);
 
         // Add indicator
         var indicator = new lychart.indicator.SimpleIndicator(
