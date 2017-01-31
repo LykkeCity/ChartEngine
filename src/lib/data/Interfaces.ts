@@ -3,6 +3,8 @@
  */
 import { TimeInterval } from '../core/index';
 import { IEvent, IRange } from '../shared/index';
+import { IComparer } from '../utils/index';
+import { DataChangedArgument } from './DataChangedEvent';
 
 export interface IDataSource<T> {
     getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number>;
@@ -17,27 +19,21 @@ export interface IDataIterator<T> {
     current: T;
 }
 
+export interface IDataReaderDelegate<T> {
+    (timeStart: Date, timeEnd: Date, interval: string): JQueryPromise<IResponse<T>>;
+}
+
 export interface IDataSnapshot<T> {
     timestamp: number;
     data: T[];
 }
 
-export class DataChangedArgument {
-    private _range: IRange<Date>;
-    private _interval: TimeInterval;
-
-    constructor(range: IRange<Date>, interval: TimeInterval) {
-        this._range = range;
-        this._interval = interval;
-    }
-
-    public get range() {
-        return this._range;
-    }
-
-    public get interval() {
-        return this._interval;
-    }
+export interface IDataStorage<T> {
+    first: T | undefined;
+    last: T | undefined;
+    isEmpty: boolean;
+    getIterator(filter?: (item: T) => boolean): IDataIterator<T>;
+    merge(update: T[], comparer: IComparer<T>): void;
 }
 
 export interface IPendingRequest<T> {

@@ -4,14 +4,14 @@
 import { TimeInterval } from '../core/index';
 import { ITimeValue } from '../model/index';
 import { IRange } from '../shared/index';
-import { ArrayIterator } from './ArrayIterator';
+import { ArrayDataStorage } from './ArrayDataStorage';
 import { DataSource } from './DataSource';
 import { DataSourceConfig } from './DataSourceConfig';
-import { IDataIterator, IDataSnapshot } from './Interfaces';
+import { IDataIterator } from './Interfaces';
 
 export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
 
-    protected dataSnapshot: IDataSnapshot<T>;
+    protected dataStorage: ArrayDataStorage<T>;
     private readonly defaultMinValue = 0;
     private readonly defaultMaxValue = 100;
 
@@ -20,10 +20,8 @@ export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
         config: DataSourceConfig,
         data: T[]) {
             super(dataType, config);
-            this.dataSnapshot = {
-                data: data,
-                timestamp: 0
-            };
+
+            this.dataStorage = new ArrayDataStorage<T>(data);
     }
 
     public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {
@@ -31,28 +29,13 @@ export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
         this.validateRange(range);
         this.validateInterval(interval);
 
-        const data = this.dataSnapshot.data;
+        const startTime = range.start.getTime();
+        const endTime = range.end.getTime();
 
-        // Find first and last indexes.
-        //
-        let startIndex = 0;
-        for (startIndex = 0; startIndex < data.length; startIndex += 1) {
-            if (data[startIndex].date.getTime() >= range.start.getTime()) {
-                break;
-            }
-        }
-        let lastIndex = data.length - 1;
-        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
-            if (data[lastIndex].date.getTime() <= range.end.getTime()) {
-                break;
-            }
-        }
-
-        return new ArrayIterator<T>(
-            this.dataSnapshot,
-            startIndex,
-            lastIndex,
-            this.dataSnapshot.timestamp);
+        return this.dataStorage.getIterator((item: T) => {
+                const itemTime = item.date.getTime();
+                return (itemTime >= startTime && itemTime <= endTime);
+            });
     }
 
     public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
@@ -60,9 +43,7 @@ export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
         this.validateRange(range);
         this.validateInterval(interval);
 
-        const data = this.dataSnapshot.data;
-
-        if (data.length === 0) {
+        if (this.dataStorage.isEmpty) {
             return { start: this.defaultMinValue, end: this.defaultMaxValue };
         }
 
@@ -71,24 +52,27 @@ export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
 
         // Filter data by date and find min/max price
         //
-        data.forEach(item => {
-                if (item.date >= range.start && item.date <= range.end) {
-                    // update min / max values
-                    const values = item.getValues();
-                    const min = Math.min(...values);
-                    const max = Math.max(...values);
-                    if (min < minValue) { minValue = min; }
-                    if (max > maxValue) { maxValue = max; }
-                }
-            });
+        const startTime = range.start.getTime();
+        const endTime = range.end.getTime();
+        const iterator = this.dataStorage.getIterator((item: T) => {
+            const itemTime = item.date.getTime();
+            return (itemTime >= startTime && itemTime <= endTime);
+        });
+
+        while (iterator.moveNext()) {
+            // update min / max values
+            const values = iterator.current.getValues();
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            if (min < minValue) { minValue = min; }
+            if (max > maxValue) { maxValue = max; }
+        }
 
         return { start: minValue, end: maxValue };
     }
 
     protected getDefaultConfig(): DataSourceConfig {
         return new DataSourceConfig(
-            // ChartType.candle,
-            // DataType.candle
         );
     }
 }

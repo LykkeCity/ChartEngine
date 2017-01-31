@@ -6,20 +6,17 @@
 import { TimeInterval } from '../core/index';
 import { ITimeValue } from '../model/index';
 import { IRange } from '../shared/index';
-import { ArrayUtils } from '../utils/index';
-import { ArrayIterator } from './ArrayIterator';
+import { ArrayDataStorage } from './ArrayDataStorage';
+import { DataChangedArgument } from './DataChangedEvent';
 import { DataSource } from './DataSource';
 import { DataSourceConfig } from './DataSourceConfig';
 import { HttpDataSourceConfig } from './HttpDataSourceConfig';
-import { DataChangedArgument, IDataIterator, IDataSnapshot, IPendingRequest, IResponse } from './Interfaces';
+import { IDataIterator, IDataReaderDelegate, IDataStorage, IPendingRequest, IResponse } from './Interfaces';
 
 import * as $ from 'jquery';
 
-type dataReaderFunc<T> = (timeStart: Date, timeEnd: Date, interval: string) => JQueryPromise<IResponse<T>>;
-
 export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
-
-    protected dataSnapshot: IDataSnapshot<T>;
+    protected dataStorage: IDataStorage<T>;
     //private readonly defaultMinDate = new Date(2000, 0, 1);
     private readonly defaultMinValue = 0;
     private readonly defaultMaxValue = 100;
@@ -31,20 +28,15 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         dataType: { new(d: Date): T },
         config: HttpDataSourceConfig<T>) {
             super(dataType, config);
-            this.dataSnapshot = {
-                data: [],
-                timestamp: 0
-            };
 
             if (!config || !config.url) {
                 throw new Error('Url is not initialized.');
             }
-
+            this.dataStorage = new ArrayDataStorage<T>();
             this.config.readData = config.readData || this.makeDefaultReader();
     }
 
     public get config(): HttpDataSourceConfig<T> {
-        // TODO: Correct this:
         return <HttpDataSourceConfig<T>>this._config;
     }
 
@@ -53,14 +45,14 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         this.validateRange(range);
         this.validateInterval(interval);
 
-        const data = this.dataSnapshot.data;
-
         const rangesToRequest: IRange<Date>[] = [];
-        // 1. Check existing data and define what we need to request
-        //
-        if (data.length > 0) {
-            const curRange = { start: data[0].date, end: data[data.length - 1].date };
-            // Define range to request
+
+        // 1. Check existing data and define what range needs to be requested
+        if (!this.dataStorage.isEmpty) {
+            const first = <T>this.dataStorage.first;
+            const last = <T>this.dataStorage.last;
+            const curRange = { start: first.date, end: last.date };
+            // Define ranges to request
             if (range.start < curRange.start) {
                 rangesToRequest.push({ start: range.start, end: curRange.start });
             }
@@ -68,44 +60,23 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
                 rangesToRequest.push({ start: curRange.end, end: range.end });
             }
         } else {
-            // Make request for whole range
+            // Make request for the whole range
             rangesToRequest.push(range);
         }
 
-        // 2. If the data is not enough - make request and returns what's here.
-        //
-        if (rangesToRequest.length > 0) {
-            for (const r of rangesToRequest) {
-                // make request
-                this.makeRequest(r, interval);
-            }
-        } else {
-            // If data is enough return it.
+        // 2. If any requests need to be made.
+        for (const r of rangesToRequest) {
+            this.makeRequest(r, interval);
         }
 
         // 3. So far return what we have
-        //
+        const startTime = range.start.getTime();
+        const endTime = range.end.getTime();
 
-        // ... find first and last indexes.
-        // TODO: Remove duplicated code
-        let startIndex = 0;
-        for (startIndex = 0; startIndex < data.length; startIndex += 1) {
-            if (data[startIndex].date.getTime() >= range.start.getTime()) {
-                break;
-            }
-        }
-        let lastIndex = data.length - 1;
-        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
-            if (data[lastIndex].date.getTime() <= range.end.getTime()) {
-                break;
-            }
-        }
-
-        return new ArrayIterator<T>(
-            this.dataSnapshot,
-            startIndex,
-            lastIndex,
-            this.dataSnapshot.timestamp);
+        return this.dataStorage.getIterator((item: T) => {
+            const itemTime = item.date.getTime();
+            return (itemTime >= startTime && itemTime <= endTime);
+        });
    }
 
     public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
@@ -113,9 +84,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         this.validateRange(range);
         this.validateInterval(interval);
 
-        const data = this.dataSnapshot.data;
-
-        if (data.length === 0) {
+        if (this.dataStorage.isEmpty) {
             return { start: this.defaultMinValue, end: this.defaultMaxValue };
         }
 
@@ -124,16 +93,21 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
 
         // Filter data by date and find min/max price
         //
-        data.forEach(item => {
-                if (item.date >= range.start && item.date <= range.end) {
-                    // update min / max values
-                    const values = item.getValues();
-                    const min = Math.min(...values);
-                    const max = Math.max(...values);
-                    if (min < minValue) { minValue = min; }
-                    if (max > maxValue) { maxValue = max; }
-                }
-            });
+        const startTime = range.start.getTime();
+        const endTime = range.end.getTime();
+        const iterator = this.dataStorage.getIterator((item: T) => {
+            const itemTime = item.date.getTime();
+            return (itemTime >= startTime && itemTime <= endTime);
+        });
+
+        while (iterator.moveNext()) {
+            // update min / max values
+            const values = iterator.current.getValues();
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            if (min < minValue) { minValue = min; }
+            if (max > maxValue) { maxValue = max; }
+        }
 
         return { start: minValue, end: maxValue };
     }
@@ -192,7 +166,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         });
     }
 
-    private makeDefaultReader(): dataReaderFunc<T> {
+    protected makeDefaultReader(): IDataReaderDelegate<T> {
         const url = this.config.url;
 
         return (timeStart: Date, timeEnd: Date, interval: string) => {
@@ -223,13 +197,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
                 return obj;
             });
 
-        // update current timestamp
-        this.dataSnapshot.timestamp = this.dataSnapshot.timestamp + 1;
-
-        // Import incoming data to the array
-        this.dataSnapshot.data = ArrayUtils.merge(this.dataSnapshot.data,
-                                                  objects,
-                                                  (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
+        this.dataStorage.merge(objects, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
     }
 
     protected getDefaultConfig(): DataSourceConfig {

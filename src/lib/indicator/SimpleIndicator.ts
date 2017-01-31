@@ -2,21 +2,25 @@
  * SimpleIndicator class.
  */
 import { TimeInterval } from '../core/index';
-import { ArrayIterator, DataChangedArgument, DataSource,
-    DataSourceConfig, IDataIterator, IDataSnapshot, IDataSource } from '../data/index';
+import { ArrayDataStorage, DataChangedArgument, DataSource,
+    DataSourceConfig, IDataIterator, IDataSource } from '../data/index';
 import { Candlestick, Point } from '../model/index';
 import { IRange } from '../shared/index';
 
 export class SimpleIndicator extends DataSource<Point> {
 
-    private dataSnapshot: IDataSnapshot<Point>;
+    private dataSource: IDataSource<Candlestick>;
+    private dataStorage: ArrayDataStorage<Point>;
     private dataInitialized = false;
 
     constructor(
         config: DataSourceConfig,
-        private dataSource: IDataSource<Candlestick>) {
+        dataSource: IDataSource<Candlestick>) {
             super(Point, config);
-            this.dataSnapshot = { data: [], timestamp: 0 };
+
+            this.dataSource = dataSource;
+            this.dataStorage = new ArrayDataStorage<Point>();
+            // subscribe to source events
             const self = this;
             dataSource.dateChanged.on((arg) => { self.onDataSourceChanged(arg); });
     }
@@ -33,34 +37,17 @@ export class SimpleIndicator extends DataSource<Point> {
             this.update(range, interval);
         }
 
-        const data = this.dataSnapshot.data;
-        // Find first and last indexes.
-        //
-        let startIndex = 0;
-        for (startIndex = 0; startIndex < data.length; startIndex += 1) {
-            if (data[startIndex].date.getTime() >= range.start.getTime()) {
-                break;
-            }
-        }
-        let lastIndex = data.length - 1;
-        for (lastIndex = data.length - 1; lastIndex >= startIndex; lastIndex -= 1) {
-            if (data[startIndex].date.getTime() <= range.end.getTime()) {
-                break;
-            }
-        }
+        const startTime = range.start.getTime();
+        const endTime = range.end.getTime();
 
-        return new ArrayIterator<Point>(
-            this.dataSnapshot,
-            startIndex,
-            lastIndex,
-            this.dataSnapshot.timestamp
-        );
+        return this.dataStorage.getIterator((item: Point) => {
+            const itemTime = item.date.getTime();
+            return (itemTime >= startTime && itemTime <= endTime);
+        });
     }
 
     protected getDefaultConfig(): DataSourceConfig {
         return new DataSourceConfig(
-            // ChartType.line,
-            // DataType.point
         );
     }
 
@@ -73,10 +60,13 @@ export class SimpleIndicator extends DataSource<Point> {
     }
 
     protected update(range: IRange<Date>, interval: TimeInterval): void {
-        let prevValues: number[] = [0, 0];
-        let iterator = this.dataSource.getData(range, interval);
+        const prevValues: number[] = [0, 0];
+        const iterator = this.dataSource.getData(range, interval);
 
-        // Skip first values
+        // Recalculate whole range
+        //
+        const indicatorData: Point[] = [];
+        // ... skip first values
         let i = 0;
         while (i < 2 && iterator.moveNext()) {
             const candle = iterator.current;
@@ -89,12 +79,12 @@ export class SimpleIndicator extends DataSource<Point> {
         i = 0;
         while (iterator.moveNext()) {
             if (iterator.current.c) {
-                let curValue = iterator.current.c;
+                const curValue = iterator.current.c;
 
                 // calculate indicator value
-                let indicatorValue = (prevValues[0] + prevValues[1] + curValue) / 3;
+                const indicatorValue = (prevValues[0] + prevValues[1] + curValue) / 3;
 
-                this.dataSnapshot.data[i] = new Point(iterator.current.date, indicatorValue);
+                indicatorData[i] = new Point(iterator.current.date, indicatorValue);
 
                 // shift previous values
                 prevValues[0] = prevValues[1];
@@ -103,7 +93,7 @@ export class SimpleIndicator extends DataSource<Point> {
             i += 1;
         }
 
-        // update timestamp
-        this.dataSnapshot.timestamp = this.dataSnapshot.timestamp + 1;
+        // Update data storage
+        this.dataStorage.merge(indicatorData, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
     }
 }

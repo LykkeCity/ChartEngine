@@ -4,9 +4,9 @@
 import { TimeInterval } from '../core/index';
 import { ITimeValue } from '../model/index';
 import { IEvent, IRange } from '../shared/index';
-import { DataChangedEvent } from './DataChangedEvent';
+import { DataChangedArgument, DataChangedEvent } from './DataChangedEvent';
 import { DataSourceConfig } from './DataSourceConfig';
-import { DataChangedArgument, IDataIterator, IDataSource } from './Interfaces';
+import { IDataIterator, IDataSource } from './Interfaces';
 
 export abstract class DataSource<T extends ITimeValue> implements IDataSource<T> {
     protected _config: DataSourceConfig;

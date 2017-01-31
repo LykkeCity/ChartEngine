@@ -9,9 +9,9 @@ export class ArrayIterator<T> implements IDataIterator<T> {
 
     constructor(
         private dataSnapshot: IDataSnapshot<T>,
-        private indexFirst: number,
-        private indexLast: number,
-        private timestamp: number) {
+        private timestamp: number,
+        private filter?: (item: T) => boolean
+        ) {
             this.currentIndex = -1;
     }
 
@@ -21,14 +21,18 @@ export class ArrayIterator<T> implements IDataIterator<T> {
 
     public moveNext(): boolean {
         this.checkTimestamp();
-        if (this.currentIndex >= this.indexLast) {
+
+        if (this.dataSnapshot.data.length === 0) {
             return false;
-        } else if (this.currentIndex === -1 ) {
-            this.currentIndex = this.indexFirst;
-        } else {
+        }
+
+        do {
             this.currentIndex += 1;
         }
-        return true;
+        while (this.currentIndex < this.dataSnapshot.data.length
+               && this.filter && !this.filter(this.dataSnapshot.data[this.currentIndex])); // If filter is defined use it.
+
+        return (this.currentIndex < this.dataSnapshot.data.length);
     }
 
     public get current(): T {
