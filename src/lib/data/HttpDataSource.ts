@@ -113,50 +113,38 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
     }
 
     protected makeRequest(range: IRange<Date>, interval: TimeInterval) {
-        let reqStartDate = range.start;
-        let reqEndDate = range.end;
+        let reqStartTime = range.start.getTime();
+        let reqEndTime = range.end.getTime();
 
         // If there are pending requests, compare new request to them and exclude overlapping ranges.
-        if (this.pendingRequests.length > 0) {
-            for (const req of this.pendingRequests) {
-                if (reqStartDate.getTime() >= req.range.start.getTime() && reqEndDate.getTime() <= req.range.end.getTime()) {
-                    // Pending requests are overlapping new request. Just ignore.
-                    return;
-                } else if (reqStartDate.getTime() <= req.range.start.getTime() && reqEndDate.getTime() >= req.range.end.getTime()) {
-                    // This is a large request, so let it go
-                } else if (reqStartDate.getTime() <= req.range.start.getTime() && reqEndDate.getTime() <= req.range.start.getTime()) {
-                    // requests do not overlap
-                } else if (reqStartDate.getTime() >= req.range.end.getTime() && reqEndDate.getTime() >= req.range.end.getTime()) {
-                    // requests do not overlap
-                } else if (reqStartDate.getTime() < req.range.start.getTime() && reqEndDate.getTime() >= req.range.start.getTime()) {
-                    reqEndDate = req.range.start; // request older data
-                } else if (reqStartDate.getTime() < req.range.end.getTime() && reqEndDate.getTime() >= req.range.end.getTime()) {
-                    reqStartDate = req.range.end; // request new data
-                }
+        for (const req of this.pendingRequests) {
+            const pendingStart = req.range.start.getTime();
+            const pendingEnd = req.range.end.getTime();
+            if (reqStartTime >= pendingStart && reqEndTime <= pendingEnd) {
+                // Pending requests includes new request. Just ignore new request.
+                return;
+            } else if (reqStartTime < pendingStart && reqEndTime > pendingStart && reqEndTime <= pendingEnd) {
+                reqEndTime = pendingStart; // exclude overlapping end
+            } else if (reqEndTime > pendingEnd && reqStartTime >= pendingStart && reqStartTime < pendingEnd) {
+                reqStartTime = pendingEnd; // exclude overlapping start
             }
-        } else {
-            // just make a new request
         }
+
+        const reqStartDate = new Date(reqStartTime);
+        const reqEndDate = new Date(reqEndTime);
+
+        // Make request
         const request = this.config.readData(reqStartDate, reqEndDate, this.timeIntervalToString(interval));
 
-        // Add new request to pending requests
-        const uid = Date.now();
+        // Add new request to collection of pending requests
+        const uid = Date.now(); // unique id for request
         this.pendingRequests.push({ uid: uid, request: request, interval: interval, range: { start: reqStartDate, end: reqEndDate }});
 
         const self = this;
-        request.done((response: IResponse<T>) => {
-            if (response && response.data && response.data.length > 0) {
-                self.mergeData(response.data);
-                // Notify subscribers:
-                self.dateChangedEvent.trigger(new DataChangedArgument(
-                    { start: new Date(response.startDateTime), end: new Date(response.endDateTime) },
-                    self.stringToTimeInterval(response.interval)));
-            }
-        })
-        .fail((jqXHR, textStatus) => {
-            console.debug('request failed: ' + jqXHR + textStatus);
-        })
-        .always((jqXHR, textStatus, errorThrown) => {
+        request
+        .done((response: IResponse<T>) => { self.onRequestResolved(response); })
+        .fail((e: Error) => { self.onRequestFailed(e); })
+        .always(() => {
             // Remove request from pending requests
             for (let i = 0; i < this.pendingRequests.length; i += 1) {
                 if (this.pendingRequests[i].uid === uid) {
@@ -166,20 +154,36 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         });
     }
 
+    protected onRequestResolved(response: IResponse<T>) {
+        if (response && response.data && response.data.length > 0) {
+            // Update data
+            this.mergeData(response.data);
+            // Notify subscribers:
+            this.dateChangedEvent.trigger(
+                new DataChangedArgument({ start: new Date(response.startDateTime), end: new Date(response.endDateTime) },
+                                        this.stringToTimeInterval(response.interval)));
+        }
+    }
+
+    protected onRequestFailed(e: Error) {
+        console.debug('request failed: ' + e.message);
+    }
+
     protected makeDefaultReader(): IDataReaderDelegate<T> {
         const url = this.config.url;
 
         return (timeStart: Date, timeEnd: Date, interval: string) => {
-            return $.ajax({
-                        type: 'get',
-                        dataType: 'jsonp',
-                        url: url,
-                        data: {
-                            interval: interval,
-                            startDateTime: timeStart.toISOString(),
-                            endDateTime: timeEnd.toISOString()
-                        }
-                    });
+            const settings: JQueryAjaxSettings = {
+                type: 'GET',
+                dataType: 'jsonp',
+                url: url,
+                data: {
+                    interval: interval,
+                    startDateTime: timeStart.toISOString(),
+                    endDateTime: timeEnd.toISOString()
+                }
+            };
+            return $.ajax(settings);
         };
     }
 
@@ -192,7 +196,6 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
             .map((el: T) => {
                 const date = new Date(el.date);
                 const obj = new this.dataType(date);
-                // TODO: Make interface
                 (<any>obj).deserialize(el);
                 return obj;
             });
