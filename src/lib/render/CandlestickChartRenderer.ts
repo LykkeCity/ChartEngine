@@ -29,19 +29,16 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         //
 
         // border lines
-        canvas.setStrokeStyle('#333333');
         canvas.beginPath();
-        // ... bottom
-        canvas.moveTo(frame.x, frame.y + frame.h - 1);
-        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        canvas.setStrokeStyle('#333333');
         // ... left
         canvas.moveTo(frame.x, frame.y);
         canvas.lineTo(frame.x, frame.y + frame.h - 1);
-        // ... right
-        canvas.moveTo(frame.x + frame.w - 1, frame.y);
+        // ... bottom
         canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        // ... right
+        canvas.lineTo(frame.x + frame.w - 1, frame.y);
         canvas.stroke();
-        canvas.closePath();
 
         const candleW = this.calculateBodyWidth(timeAxis, frame.w);
         while (dataIterator.moveNext()) {
@@ -88,9 +85,9 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         }
 
         // Startin drawing
+        canvas.beginPath();
         canvas.lineWidth = 1;
         canvas.setStrokeStyle('#333333');
-        canvas.beginPath();
 
         const x = timeAxis.toX(candle.date);
         const body = this.calculateBody(x, yAxis, candle.o, candle.c, candleW);
@@ -104,7 +101,6 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         this.line(canvas, x, l, x, body.y + body.h);
 
         canvas.stroke();
-        canvas.closePath();
 
         // Drawing body
         if (candle.c > candle.o) {
@@ -118,8 +114,8 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
     }
 
     private calculateBody(x: number, yAxis: IAxis<number>, o: number, c: number, candleW: number): IRect {
-        const ocMin = yAxis.toX(Math.min(o, c));
-        const ocMax = yAxis.toX(Math.max(o, c));
+        const ocMin = yAxis.toX(Math.max(o, c)); // Inverted Y
+        const ocMax = yAxis.toX(Math.min(o, c));
         return { x: x - (candleW / 2), y: ocMin, w: candleW, h: ocMax - ocMin };
     }
 

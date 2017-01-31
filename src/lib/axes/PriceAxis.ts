@@ -42,22 +42,22 @@ export class PriceAxis extends VisualComponent implements IAxis<number> {
     public getValuesRange(fromX: number, toX: number): IRange<number> | undefined {
         if (fromX > 0 && toX > 0 && fromX < this.size.height && toX < this.size.height) {
             return {
-                start: this.toValue(Math.min(fromX, toX)),
-                end: this.toValue(Math.max(fromX, toX)) };
+                start: this.toValue(Math.max(fromX, toX)),
+                end: this.toValue(Math.min(fromX, toX)) };
         }
     }
 
     public toValue(x: number): number {
         const range = Math.abs(this.range.end - this.range.start);
-        const base = Math.min(this.range.end, this.range.start);
+        const max = Math.max(this.range.end, this.range.start);
         const d = x / this.size.height;
-        return d * range + base;
+        return max - d * range;
     }
 
     public toX(value: number): number {
         const range = Math.abs(this.range.end - this.range.start);
-        const base = Math.min(this.range.end, this.range.start);
-        const d = (value - base) / range;
+        const max = Math.max(this.range.end, this.range.start);
+        const d = (max - value) / range; // inverted Y
         return d * this.size.height;
     }
 

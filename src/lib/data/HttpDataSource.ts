@@ -60,7 +60,6 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         //
         if (data.length > 0) {
             const curRange = { start: data[0].date, end: data[data.length - 1].date };
-
             // Define range to request
             if (range.start < curRange.start) {
                 rangesToRequest.push({ start: range.start, end: curRange.start });
@@ -140,35 +139,30 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
     }
 
     protected makeRequest(range: IRange<Date>, interval: TimeInterval) {
-
         let reqStartDate = range.start;
         let reqEndDate = range.end;
 
-        // Check pending requests
+        // If there are pending requests, compare new request to them and exclude overlapping ranges.
         if (this.pendingRequests.length > 0) {
-            // Find pending requests' range
-            let pendingStartDate = new Date(2100, 0, 1);
-            let pendingEndDate = new Date(1900, 0, 1);
-
             for (const req of this.pendingRequests) {
-                if (req.range.start < pendingStartDate) { pendingStartDate = req.range.start; }
-                if (req.range.end > pendingEndDate) { pendingEndDate = req.range.end; }
-            }
-
-            // Correct new requested range
-            if (reqStartDate < pendingStartDate) {
-                reqEndDate = pendingStartDate; // request older data
-            } else if (reqEndDate > pendingEndDate) {
-                reqStartDate = pendingEndDate; // request new data
-            } else {
-                // Pending requests are overlapping new request. Just ignore.
-                console.debug('Ignoring new request');
-                return;
+                if (reqStartDate.getTime() >= req.range.start.getTime() && reqEndDate.getTime() <= req.range.end.getTime()) {
+                    // Pending requests are overlapping new request. Just ignore.
+                    return;
+                } else if (reqStartDate.getTime() <= req.range.start.getTime() && reqEndDate.getTime() >= req.range.end.getTime()) {
+                    // This is a large request, so let it go
+                } else if (reqStartDate.getTime() <= req.range.start.getTime() && reqEndDate.getTime() <= req.range.start.getTime()) {
+                    // requests do not overlap
+                } else if (reqStartDate.getTime() >= req.range.end.getTime() && reqEndDate.getTime() >= req.range.end.getTime()) {
+                    // requests do not overlap
+                } else if (reqStartDate.getTime() < req.range.start.getTime() && reqEndDate.getTime() >= req.range.start.getTime()) {
+                    reqEndDate = req.range.start; // request older data
+                } else if (reqStartDate.getTime() < req.range.end.getTime() && reqEndDate.getTime() >= req.range.end.getTime()) {
+                    reqStartDate = req.range.end; // request new data
+                }
             }
         } else {
             // just make a new request
         }
-
         const request = this.config.readData(reqStartDate, reqEndDate, this.timeIntervalToString(interval));
 
         // Add new request to pending requests
@@ -179,9 +173,6 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         request.done((response: IResponse<T>) => {
             if (response && response.data && response.data.length > 0) {
                 self.mergeData(response.data);
-
-
-
                 // Notify subscribers:
                 self.dateChangedEvent.trigger(new DataChangedArgument(
                     { start: new Date(response.startDateTime), end: new Date(response.endDateTime) },

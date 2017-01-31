@@ -23,36 +23,34 @@ export class LineChartRenderer implements IChartRender<Point> {
         // Render
         //
         // border lines
-        canvas.setStrokeStyle('#333333');
         canvas.beginPath();
-        // ... bottom
-        canvas.moveTo(frame.x, frame.y + frame.h - 1);
-        canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        canvas.setStrokeStyle('#333333');
         // ... left
         canvas.moveTo(frame.x, frame.y);
         canvas.lineTo(frame.x, frame.y + frame.h - 1);
-        // ... right
-        canvas.moveTo(frame.x + frame.w - 1, frame.y);
+        // ... bottom
         canvas.lineTo(frame.x + frame.w - 1, frame.y + frame.h - 1);
+        // ... right
+        canvas.lineTo(frame.x + frame.w - 1, frame.y);
         canvas.stroke();
-        canvas.closePath();
 
         // Start drawing
-        canvas.setStrokeStyle('#555555');
         canvas.beginPath();
+        canvas.setStrokeStyle('#555555');
 
         if (dataIterator.moveNext()) {
-            let prevPoint: Point = dataIterator.current;
+            let x = timeAxis.toX(dataIterator.current.date);
+            let y = yAxis.toX(<number>dataIterator.current.value);
+            canvas.moveTo(x, y);
             while (dataIterator.moveNext()) {
                 if (dataIterator.current.value) {
-                    this.renderPart(canvas, timeAxis, yAxis, prevPoint, dataIterator.current, frame);
-                    prevPoint = dataIterator.current;
+                    x = timeAxis.toX(dataIterator.current.date);
+                    y = yAxis.toX(<number>dataIterator.current.value);
+                    canvas.lineTo(x, y);
                 }
             }
         }
-
         canvas.stroke();
-        canvas.closePath();
     }
 
     public testHitArea(
@@ -74,18 +72,5 @@ export class LineChartRenderer implements IChartRender<Point> {
                 }
             }
         }
-    }
-
-    private renderPart(canvas: ICanvas,
-                       timeAxis: IAxis<Date>,
-                       yAxis: IAxis<number>, pointFrom: Point, pointTo: Point, frame: IRect): void {
-
-        const x1 = timeAxis.toX(pointFrom.date);
-        const y1 = yAxis.toX(<number>pointFrom.value);
-        const x2 = timeAxis.toX(pointTo.date);
-        const y2 = yAxis.toX(<number>pointTo.value);
-
-        canvas.moveTo(x1, y1);
-        canvas.lineTo(x2, y2);
     }
 }

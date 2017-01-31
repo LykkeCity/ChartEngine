@@ -51,6 +51,7 @@ export class CanvasWrapper implements ICanvas {
         this.h = height;
         //this.dpr = window.devicePixelRatio || 1;
         this.dpr = 1;
+        //this.ctx.lineWidth = 1 * this.dpr;
     }
 
     public clear() {

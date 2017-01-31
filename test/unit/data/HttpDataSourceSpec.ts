@@ -372,7 +372,7 @@ describe('HttpDataSource tests', () => {
             { start: makeUtcDate(2017, 0, 10, 10, 11, 58), end: makeUtcDate(2017, 0, 10, 10, 12, 6) },
             TimeInterval.min);
 
-        // Making second request. This request should trunc request rangle as some data already requested.
+        // Making second request. This request should trunc request range as some data already requested.
         iterator = ads.getData(
             { start: makeUtcDate(2017, 0, 10, 10, 12, 0), end: makeUtcDate(2017, 0, 10, 10, 12, 12) },
             TimeInterval.min);
@@ -408,5 +408,63 @@ describe('HttpDataSource tests', () => {
             count += 1;
         }
         expect(count).toEqual(15, 'Expected 15 intervals');
+    });
+
+    it('Test "getData" with normal dataset. Selecting two ranges with not overlapping dates. Expected two requests.', () => {
+        const $def = $.Deferred();
+        const dataReader = makeDataReader(testCandlesSet['1m'], $def);
+        spyOn(dataReader, 'readData').and.callThrough();
+
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
+
+        // Hooking up event on data update
+        let firedEventsCount = 0;
+        ads.dateChanged.on((arg: DataChangedArgument) => {
+            // Check on events count.
+            firedEventsCount += 1;
+        });
+
+        // Making first request
+        let iterator = ads.getData(
+            { start: makeUtcDate(2017, 0, 10, 10, 12, 3), end: makeUtcDate(2017, 0, 10, 10, 12, 7) },
+            TimeInterval.min);
+
+        // Making second request. This request tries to get a large range then previous. It should be splitted to two requests.
+        iterator = ads.getData(
+            { start: makeUtcDate(2017, 0, 10, 10, 12, 9), end: makeUtcDate(2017, 0, 10, 10, 12, 12) },
+            TimeInterval.min);
+
+        expect(dataReader.readData).toHaveBeenCalledTimes(2);
+        //timeStart: Date, timeEnd: Date, interval: string
+        expect(dataReader.readData.calls.argsFor(0))
+            .toEqual([makeUtcDate(2017, 0, 10, 10, 12, 3), makeUtcDate(2017, 0, 10, 10, 12, 7), '1m' ]);
+        expect(dataReader.readData.calls.argsFor(1))
+            .toEqual([makeUtcDate(2017, 0, 10, 10, 12, 9), makeUtcDate(2017, 0, 10, 10, 12, 12), '1m' ]);
+
+        // Signal that data request is finished
+        $def.resolve();
+
+        // Try to read iterator. Iterator should be expired.
+        try {
+            iterator.moveNext();
+            fail('Expecting moveNext to throw as the iterator has become invalid.');
+        } catch (e) {
+            expect(e.message).toEqual('Data iterator is expired.');
+        }
+
+        // refresh iterator
+        iterator = ads.getData(
+            { start: makeUtcDate(2017, 0, 10, 10, 12, 3), end: makeUtcDate(2017, 0, 10, 10, 12, 12) },
+            TimeInterval.min);
+
+        expect(firedEventsCount).toEqual(2, 'Should be 2 data requests.');
+
+        expect(iterator).toBeDefined();
+        let count = 0;
+        while (iterator.moveNext()) {
+            count += 1;
+        }
+        expect(count).toEqual(9, 'Expected 9 intervals'); // One interval is missing as it was not requested.
     });
 });

@@ -177,9 +177,9 @@ export class TimeAutoGrid {
             case TimeInterval.day3: return this.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(3));
             case TimeInterval.day7:
                 const firstDay = date.getDate() - date.getDay();
-                return new Date(date.setDate(firstDay));
+                return new Date(date.getFullYear(), date.getMonth(), firstDay, 0, - ((new Date()).getTimezoneOffset()));
             case TimeInterval.day10: return this.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(10));
-            case TimeInterval.month: return new Date(date.getFullYear(), date.getMonth(), 1);
+            case TimeInterval.month: return new Date(date.getFullYear(), date.getMonth(), 1, 0, - ((new Date()).getTimezoneOffset()));
             default:
                 throw new Error(`Unexpected interval ${ interval }`);
         }
