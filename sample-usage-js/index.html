@@ -54,7 +54,8 @@
         let h = Math.max(window.innerHeight - border * 2, minChartHeight);        
 
         let candles = [];
-        for(let item of sampleData) {
+        for(let i = 0; i < sampleData.length; i++) {
+            let item = sampleData[i];
             let c = new lychart.model.Candlestick(item.date, item.c, item.o, item.h, item.l);
             candles.push(c);
         }
@@ -69,18 +70,18 @@
         var httpDataSource = new lychart.data.HttpDataSource(
             lychart.model.Candlestick,
             {
-                url: 'http://localhost:2226/api/random'
+                url: 'http://localhost/api/random'
             });
 
         var container1 = document.getElementById("chart-container1");
         var chart1 = new lychart.ChartBoard(container1, border, border, w, h);
-        chart1.addChart(lychart.core.ChartType.candle, httpDataSource);
+        chart1.addChart(lychart.core.ChartType.candle, arrayDataSource);
 
         // Add indicator
         var indicator = new lychart.indicator.SimpleIndicator(
             {
             },
-            httpDataSource);
+            arrayDataSource);
         chart1.addIndicator(indicator);
 
         // Additional chart

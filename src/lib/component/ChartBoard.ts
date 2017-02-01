@@ -94,7 +94,7 @@ export class ChartBoard extends VisualComponent {
         this.addChild(chartStack);
 
         this.insertRow(this.table, 0, undefined, chartArea, yAxisArea);
-        this.insertRow(this.table, undefined, undefined, this.timeArea, undefined);
+        this.insertRow(this.table, 1, undefined, this.timeArea, undefined);
 
         // Hook up event handlers
         //
@@ -120,9 +120,9 @@ export class ChartBoard extends VisualComponent {
 
     private insertRow(table: HTMLTableElement, index?: number, el1?: ChartArea, el2?: ChartArea, el3?: ChartArea) {
         const row = table.insertRow(index);
-        const cell1 = row.insertCell();
-        const cell2 = row.insertCell();
-        const cell3 = row.insertCell();
+        const cell1 = row.insertCell(0);
+        const cell2 = row.insertCell(1);
+        const cell3 = row.insertCell(2);
         cell1.style.setProperty('padding', '0');
         cell2.style.setProperty('padding', '0');
         cell3.style.setProperty('padding', '0');

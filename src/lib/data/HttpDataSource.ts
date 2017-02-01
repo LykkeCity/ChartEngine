@@ -143,7 +143,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         const self = this;
         request
         .done((response: IResponse<T>) => { self.onRequestResolved(response); })
-        .fail((e: Error) => { self.onRequestFailed(e); })
+        .fail((jqXhr: JQueryXHR, textStatus: string, errorThrown: string) => { self.onRequestFailed(jqXhr, textStatus, errorThrown); })
         .always(() => {
             // Remove request from pending requests
             for (let i = 0; i < this.pendingRequests.length; i += 1) {
@@ -165,8 +165,8 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         }
     }
 
-    protected onRequestFailed(e: Error) {
-        console.debug('request failed: ' + e.message);
+    protected onRequestFailed(jqXhr: JQueryXHR, textStatus: string, errorThrown: string) {
+        console.debug('request failed: ' + textStatus);
     }
 
     protected makeDefaultReader(): IDataReaderDelegate<T> {
