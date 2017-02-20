@@ -3,6 +3,12 @@
 <head>
     <title>Usage sample 1</title>
 	<meta charset="utf-8" />
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
 </head>
 <body>
 
@@ -70,22 +76,23 @@
         var httpDataSource = new lychart.data.HttpDataSource(
             lychart.model.Candlestick,
             {
-                url: 'http://localhost/api/random'
+                url: 'http://localhost:2226/api/random',
+                autoupdate: true
             });
 
         var container1 = document.getElementById("chart-container1");
         var chart1 = new lychart.ChartBoard(container1, border, border, w, h);
-        chart1.addChart(lychart.core.ChartType.candle, arrayDataSource);
+        chart1.addChart(lychart.core.ChartType.candle, httpDataSource);
 
-        // Add indicator
-        var indicator = new lychart.indicator.SimpleIndicator(
-            {
-            },
-            arrayDataSource);
-        chart1.addIndicator(indicator);
+        // // Add indicator
+        // var indicator = new lychart.indicator.SimpleIndicator(
+        //     {
+        //     },
+        //     arrayDataSource);
+        // chart1.addIndicator(indicator);
 
-        // Additional chart
-        chart1.addChart(lychart.core.ChartType.line, indicator);
+        // // Additional chart
+        // chart1.addChart(lychart.core.ChartType.line, indicator);
 
         // Render
         chart1.render();

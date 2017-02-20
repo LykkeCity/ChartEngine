@@ -59,11 +59,13 @@ export class ChartBoard extends VisualComponent {
 
         this.timeArea = this.makeArea(chartWidth, this.xAxisHeight);
 
+        const start = new Date();
+        start.setUTCHours(start.getUTCHours() - 4);
         const now = new Date();
         this.timeAxis = new TimeAxis(
             { x: 0, y: h}, // offset
             { width: this.timeArea.width, height: this.timeArea.height}, // size
-            TimeInterval.day, { start: new Date(2017, 0, 1), end: now });
+            TimeInterval.min, { start: start, end: now });
         this.addChild(this.timeAxis);
 
         const timeMarker = new TimeMarker({ x: 0, y: 0 }, this.timeAxis.size, this.timeAxis);
@@ -99,7 +101,6 @@ export class ChartBoard extends VisualComponent {
         // Hook up event handlers
         //
         let self = this;
-
         this.eventHandlers['mousewheel'] = function (event: any) { self.onMouseWheel(event); };
         this.eventHandlers['mouseup'] = function (event: any) { self.onMouseUp(event); };
         this.eventHandlers['mousedown'] = function (event: any) { self.onMouseDown(event); };
@@ -112,7 +113,6 @@ export class ChartBoard extends VisualComponent {
         this.container.addEventListener('mouseup', this.eventHandlers['mouseup'], false);
         this.container.addEventListener('mousedown', this.eventHandlers['mousedown'], false);
         //this.container.addEventListener('mousemove', this.eventHandlers['mousemove'], false);
-        // TODO: Check if jQuery needed:
         $(this.container).mousemove(this.eventHandlers['mousemove']);
         this.container.addEventListener('mouseenter', this.eventHandlers['mouseenter'], false);
         this.container.addEventListener('mouseleave', this.eventHandlers['mouseleave'], false);
@@ -137,6 +137,7 @@ export class ChartBoard extends VisualComponent {
         div2.style.setProperty('position', 'relative');
         div2.style.setProperty('height', el2 ? el2.height + 'px' : '');
         div2.style.setProperty('width', el2 ? el2.width + 'px' : '');
+        div2.style.setProperty('cursor', 'crosshair');
         div3.style.setProperty('position', 'relative');
         div3.style.setProperty('height', el3 ? el3.height + 'px' : '');
         div3.style.setProperty('width', el3 ? el3.width + 'px' : '');
@@ -218,8 +219,8 @@ export class ChartBoard extends VisualComponent {
         let mouse = undefined;
         if (this.isMouseEntered && this.mouseX && this.mouseY) {
             mouse = new IPoint(
-                this.mouseX - this.offsetLeft - this.container.offsetLeft,
-                this.mouseY - this.offsetTop - this.container.offsetTop);
+                this.mouseX - this.offsetLeft, // - this.container.offsetLeft,
+                this.mouseY - this.offsetTop); // - this.container.offsetTop);
         }
 
         for (let i = 0; i < this.chartStacks.length; i += 1) {

@@ -6,6 +6,7 @@
 import { TimeInterval } from '../core/index';
 import { ITimeValue } from '../model/index';
 import { IRange } from '../shared/index';
+import { DateUtils } from '../utils/index';
 import { ArrayDataStorage } from './ArrayDataStorage';
 import { DataChangedArgument } from './DataChangedEvent';
 import { DataSource } from './DataSource';
@@ -21,7 +22,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
     private readonly defaultMinValue = 0;
     private readonly defaultMaxValue = 100;
     //private readonly defaultMaxItemsRequested = 100;
-
+    protected autoUpdatePeriodSec = 10;
     protected pendingRequests: IPendingRequest<T>[] = [];
 
     constructor(
@@ -34,10 +35,40 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
             }
             this.dataStorage = new ArrayDataStorage<T>();
             this.config.readData = config.readData || this.makeDefaultReader();
+            this.config.autoupdate = (config.autoupdate !== undefined) ? config.autoupdate : false;
+
+            if (this.config.autoupdate) {
+                // start autoupdate
+                // TODO: period should depend on interval (sec, months, ...)
+                this.autoUpdatePeriodSec = 10;
+                setTimeout(this.autoUpdate, this.autoUpdatePeriodSec * 1000);
+            }
     }
 
     public get config(): HttpDataSourceConfig<T> {
         return <HttpDataSourceConfig<T>>this._config;
+    }
+
+    protected autoUpdate = () => {
+        // TODO: make interval public member and use in ChartBoard
+        const interval: TimeInterval = TimeInterval.min;
+
+        // Define now and time of last candle
+        const now = new Date();
+
+        let lastT = new Date();
+        lastT.setDate(lastT.getDate() - 1); // default value is now minus 1 day
+        const lastItem = this.dataStorage.last;
+        if (lastItem) {
+            // Last candle should be also updated
+            lastT = DateUtils.substractInterval(lastItem.date, interval);
+        }
+
+        // make request
+        this.makeRequest({ start: lastT, end: now }, interval);
+
+        // schedule next autoupdate
+        setTimeout(this.autoUpdate, this.autoUpdatePeriodSec * 1000);
     }
 
     public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {
@@ -77,7 +108,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
             const itemTime = item.date.getTime();
             return (itemTime >= startTime && itemTime <= endTime);
         });
-   }
+    }
 
     public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
 
@@ -204,8 +235,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
     }
 
     protected getDefaultConfig(): DataSourceConfig {
-        return new DataSourceConfig(
-        );
+        return new DataSourceConfig();
     }
 
     protected timeIntervalToString(interval: TimeInterval): string {

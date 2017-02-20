@@ -5,7 +5,6 @@ export enum TimeInterval {
     notSet =         0,
     min =        60000,
     min5 =      300000,
-    min10 =     600000,
     min15 =     900000,
     min30 =    1800000,
     hour =     3600000,

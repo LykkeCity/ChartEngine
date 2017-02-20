@@ -3,6 +3,7 @@
  */
 import { TimeInterval } from '../core/index';
 import { IRange } from '../shared/index';
+import { DateUtils } from '../utils/index';
 
 export class NumberAutoGrid {
 
@@ -98,7 +99,6 @@ export class TimeAutoGrid {
     private static readonly scales: TimeInterval[] = [
         TimeInterval.min,
         TimeInterval.min5,
-        TimeInterval.min10,
         TimeInterval.min15,
         TimeInterval.min30,
         TimeInterval.hour,
@@ -149,7 +149,7 @@ export class TimeAutoGrid {
 
         // 3. Calculate first bar
         // ... truncate date to the nearest round date.
-        const startBar = this.truncateToInterval(this.range.start, selectedScale);
+        const startBar = DateUtils.truncateToInterval(this.range.start, selectedScale);
 
         // 4. Calculate remaining bars
         let t: Date = startBar;
@@ -157,115 +157,9 @@ export class TimeAutoGrid {
             if (t >= this.range.start) {
                 grid.push(t);
             }
-            t = this.addInterval(t, selectedScale);
+            t = DateUtils.addInterval(t, selectedScale);
         }
 
         return grid;
-    }
-
-    private truncateToInterval(date: Date, interval: TimeInterval): Date {
-        switch (interval) {
-            case TimeInterval.min: return this.truncateToTimeSpan(date, TimeSpan.FROM_MINUTES(1));
-            case TimeInterval.min5: return this.truncateToTimeSpan(date, TimeSpan.FROM_MINUTES(5));
-            case TimeInterval.min15: return this.truncateToTimeSpan(date, TimeSpan.FROM_MINUTES(15));
-            case TimeInterval.min30: return this.truncateToTimeSpan(date, TimeSpan.FROM_MINUTES(30));
-            case TimeInterval.hour: return this.truncateToTimeSpan(date, TimeSpan.FROM_HOURS(1));
-            case TimeInterval.hour4: return this.truncateToTimeSpan(date, TimeSpan.FROM_HOURS(4));
-            case TimeInterval.hour6: return this.truncateToTimeSpan(date, TimeSpan.FROM_HOURS(6));
-            case TimeInterval.hour12: return this.truncateToTimeSpan(date, TimeSpan.FROM_HOURS(12));
-            case TimeInterval.day: return this.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(1));
-            case TimeInterval.day3: return this.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(3));
-            case TimeInterval.day7:
-                const firstDay = date.getDate() - date.getDay();
-                return new Date(date.getFullYear(), date.getMonth(), firstDay, 0, - ((new Date()).getTimezoneOffset()));
-            case TimeInterval.day10: return this.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(10));
-            case TimeInterval.month: return new Date(date.getFullYear(), date.getMonth(), 1, 0, - ((new Date()).getTimezoneOffset()));
-            default:
-                throw new Error(`Unexpected interval ${ interval }`);
-        }
-    }
-
-    private truncateToTimeSpan(date: Date, timeSpan: TimeSpan): Date {
-        if (timeSpan.totalMilliseconds === 0) {
-            return date;
-        }
-        const dateMilliseconds = date.getTime();
-        return new Date(dateMilliseconds - (dateMilliseconds % timeSpan.totalMilliseconds));
-    }
-
-    private addInterval(date: Date, interval: TimeInterval): Date {
-        const newDate = new Date(date.getTime());
-        switch (interval) {
-            case TimeInterval.min: newDate.setMinutes(newDate.getMinutes() + 1); break;
-            case TimeInterval.min5: newDate.setMinutes(date.getMinutes() + 5); break;
-            case TimeInterval.min15: newDate.setMinutes(date.getMinutes() + 15); break;
-            case TimeInterval.min30: newDate.setMinutes(date.getMinutes() + 30); break;
-            case TimeInterval.hour: newDate.setHours(date.getHours() + 1); break;
-            case TimeInterval.hour4: newDate.setHours(date.getHours() + 4); break;
-            case TimeInterval.hour6: newDate.setHours(date.getHours() + 6); break;
-            case TimeInterval.hour12: newDate.setHours(date.getHours() + 12); break;
-            case TimeInterval.day: newDate.setDate(date.getDate() + 1); break;
-            case TimeInterval.day3: newDate.setDate(date.getDate() + 3); break;
-            case TimeInterval.day7: newDate.setDate(date.getDate() + 7); break;
-            case TimeInterval.day10: newDate.setDate(date.getDate() + 10); break;
-            case TimeInterval.month: newDate.setMonth(date.getMonth() + 1); break;
-            default:
-                throw new Error(`Unexpected interval ${ interval }`);
-        }
-        return newDate;
-    }
-}
-
-enum TimeUnit {
-    Minutes,
-    Hours,
-    Days,
-    Months
-}
-
-class TimeSpan {
-    private readonly _totalMilliseconds: number;
-    // private minutes: number = 0;
-    // private hours: number = 0;
-    // private days: number = 0;
-    // private months: number = 0;
-
-    public get totalMilliseconds(): number {
-        return this._totalMilliseconds;
-    }
-
-    private constructor(value: number, unit: TimeUnit) {
-        switch (unit) {
-            case TimeUnit.Minutes:
-                this._totalMilliseconds = value * 60000;
-                //this.minutes = value;
-                break;
-            case TimeUnit.Hours:
-                this._totalMilliseconds = value * 3600000;
-                //this.hours = value;
-                break;
-            case TimeUnit.Days:
-                this._totalMilliseconds = value * 86400000;
-                //this.days = value;
-                break;
-            default:
-                throw new Error(`Unexpected TimeUnit value ${ unit }`);
-        }
-    }
-
-    public static FROM_DAYS(value: number): TimeSpan {
-        return new TimeSpan(value, TimeUnit.Days);
-    }
-
-    public static FROM_HOURS(value: number): TimeSpan {
-        return new TimeSpan(value, TimeUnit.Hours);
-    }
-
-    public static FROM_MINUTES(value: number): TimeSpan {
-        return new TimeSpan(value, TimeUnit.Minutes);
-    }
-
-    public static COMPARE(l: TimeSpan, r: TimeSpan): number {
-        return l._totalMilliseconds - r._totalMilliseconds;
     }
 }
