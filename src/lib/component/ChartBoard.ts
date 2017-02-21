@@ -60,7 +60,7 @@ export class ChartBoard extends VisualComponent {
         this.timeArea = this.makeArea(chartWidth, this.xAxisHeight);
 
         const start = new Date();
-        start.setUTCHours(start.getUTCHours() - 4);
+        start.setUTCHours(start.getUTCHours() - 2);
         const now = new Date();
         this.timeAxis = new TimeAxis(
             { x: 0, y: h}, // offset
@@ -348,7 +348,6 @@ export class ChartBoard extends VisualComponent {
 
         const direction = ((event.wheelDelta) ? event.wheelDelta / 120 : event.detail / -3) || 0;
         if (direction) {
-            console.debug('Mousewhell event: ' + direction);
             this.timeAxis.scale(direction);
             // TODO: Use animation loop (?)
             this.render();

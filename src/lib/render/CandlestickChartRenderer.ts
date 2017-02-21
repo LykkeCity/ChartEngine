@@ -14,7 +14,7 @@ import { IChartRender } from './Interfaces';
 export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
 
     private readonly minCandleWidth = 3;
-    private readonly maxCandleWidth = 20;
+    private readonly maxCandleWidth = 21;
 
     public constructor() { }
 
@@ -56,6 +56,7 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         let candleHit: Candlestick | undefined = undefined;
 
         const candleW = this.calculateBodyWidth(timeAxis, frame.w);
+
         while (dataIterator.moveNext()) {
             if (this.testHitAreaCandle(hitPoint, timeAxis, yAxis, dataIterator.current, candleW)) {
                 candleHit = dataIterator.current;
@@ -71,7 +72,9 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         if (candle.c === undefined || candle.o === undefined || candle.h === undefined || candle.l === undefined) {
             return false;
         }
-        const x = timeAxis.toX(candle.date);
+        let  x = timeAxis.toX(candle.date);
+        x = Math.round(x);
+
         const body = this.calculateBody(x, yAxis, candle.o, candle.c, candleW);
         return (hitPoint.x >= body.x && hitPoint.x <= (body.x + body.w)
                 && hitPoint.y >= body.y && hitPoint.y <= (body.y + body.h));
@@ -89,7 +92,9 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         canvas.lineWidth = 1;
         canvas.setStrokeStyle('#333333');
 
-        const x = timeAxis.toX(candle.date);
+        let x = timeAxis.toX(candle.date);
+        x = Math.round(x);
+
         const body = this.calculateBody(x, yAxis, candle.o, candle.c, candleW);
         const h = yAxis.toX(candle.h);
         const l = yAxis.toX(candle.l);
@@ -98,7 +103,7 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         this.line(canvas, x, body.y, x, h );
 
         // Drawing lower shadow
-        this.line(canvas, x, l, x, body.y + body.h);
+        this.line(canvas, x, l, x, body.y + body.h - 1);
 
         canvas.stroke();
 
@@ -116,7 +121,7 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
     private calculateBody(x: number, yAxis: IAxis<number>, o: number, c: number, candleW: number): IRect {
         const ocMin = yAxis.toX(Math.max(o, c)); // Inverted Y
         const ocMax = yAxis.toX(Math.min(o, c));
-        return { x: x - (candleW / 2), y: ocMin, w: candleW, h: ocMax - ocMin };
+        return { x: x - Math.floor(candleW / 2), y: ocMin, w: candleW, h: ocMax - ocMin };
     }
 
     private calculateBodyWidth(timeAxis: IAxis<Date>, frameWidth: number): number {
@@ -125,9 +130,11 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
             return this.minCandleWidth;
         }
         const candlesCount = range / timeAxis.interval;
-        const width = Math.floor(frameWidth / (3 * candlesCount));
+        let w = Math.floor(frameWidth / (3 * candlesCount));
+        // make width odd (1, 3, 5, ...)
+        w = w - ((w + 1) % 2);
         // between minCandleWidth and maxCandleWidth
-        return Math.min(this.maxCandleWidth, Math.max(this.minCandleWidth, width));
+        return Math.min(this.maxCandleWidth, Math.max(this.minCandleWidth, w));
     }
 
     private line(canvas: ICanvas, x1: number, y1: number, x2: number, y2: number): void {

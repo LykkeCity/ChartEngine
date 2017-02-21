@@ -7,13 +7,11 @@ import { CanvasTextAlign, CanvasTextBaseLine } from './Enums';
 import { ICanvas } from './ICanvas';
 
 export class CanvasWrapper implements ICanvas {
-
     private ctx: CanvasRenderingContext2D;
-    private adj: number = 0.5; // Adjusment to remove blury lines.
-
     public w: number;
     public h: number;
-    private readonly dpr: number;
+    private readonly ratio: number;
+    private adj: number = 0.5; // Adjusment to remove blury lines. Default value for line width = 1.
 
     public get font(): string {
         return this.ctx.font;
@@ -47,23 +45,22 @@ export class CanvasWrapper implements ICanvas {
     constructor(context: CanvasRenderingContext2D, width: number, height: number) {
 
         this.ctx = context;
-        this.w = width;
-        this.h = height;
-        //this.dpr = window.devicePixelRatio || 1;
-        this.dpr = 1;
-        //this.ctx.lineWidth = 1 * this.dpr;
+        const dpr = window.devicePixelRatio || 1;
+        const bsr = (<any>this.ctx).webkitBackingStorePixelRatio ||
+              (<any>this.ctx).mozBackingStorePixelRatio ||
+              (<any>this.ctx).msBackingStorePixelRatio ||
+              (<any>this.ctx).oBackingStorePixelRatio ||
+              (<any>this.ctx).backingStorePixelRatio || 1;
+        this.ratio = dpr / bsr;
+
+        this.w = width * this.ratio;
+        this.h = height * this.ratio;
+
+        this.ctx.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     }
 
     public clear() {
         this.ctx.clearRect(0, 0, this.round(this.w), this.round(this.h));
-    }
-
-    public moveTo(x: number, y: number) {
-        this.ctx.moveTo(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj);
-    }
-
-    public lineTo(x: number, y: number) {
-        this.ctx.lineTo(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj);
     }
 
     public getLineDash(): number[] {
@@ -74,29 +71,36 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.setLineDash(segments);
     }
 
-    public fillText(s: string, x: number, y: number) {
-        this.ctx.fillText(s, this.round(x * this.dpr), this.round(y * this.dpr));
+    public moveTo(x: number, y: number) {
+        this.ctx.moveTo(this.round(x) + this.adj, this.round(y) + this.adj);
+    }
+
+    public lineTo(x: number, y: number) {
+        this.ctx.lineTo(this.round(x) + this.adj, this.round(y) + this.adj);
     }
 
     public fillRect(x: number, y: number, w: number, h: number) {
-        this.ctx.fillRect(this.round(x * this.dpr), this.round(y * this.dpr),
-                          this.round(w * this.dpr), this.round(h * this.dpr));
+        this.ctx.fillRect(this.round(x), this.round(y), this.round(w), this.round(h));
     }
 
     public strokeRect(x: number, y: number, w: number, h: number) {
-        this.ctx.strokeRect(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj,
-                            this.round(w * this.dpr), this.round(h * this.dpr));
+        this.ctx.strokeRect(this.round(x) + this.adj, this.round(y) + this.adj,
+                            this.round(w) - this.adj * 2, this.round(h) - this.adj * 2);
     }
 
     // Used with beginPath() / stroke() / strokeStyle / fill()
     public rect(x: number, y: number, w: number, h: number) {
-        this.ctx.rect(this.round(x * this.dpr) + this.adj, this.round(y * this.dpr) + this.adj,
-                      this.round(w * this.dpr), this.round(h * this.dpr));
+        this.ctx.rect(this.round(x) + this.adj, this.round(y) + this.adj,
+                      this.round(w) - this.adj * 2, this.round(h) - this.adj * 2);
+    }
+
+    public fillText(s: string, x: number, y: number) {
+        this.ctx.fillText(s, this.round(x), this.round(y));
     }
 
     public resize(w: number, h: number): void {
-        this.w = w;
-        this.h = h;
+        this.w = w * this.ratio;
+        this.h = h * this.ratio;
     }
 
     public beginPath() {
