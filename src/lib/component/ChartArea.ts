@@ -64,8 +64,8 @@ export class ChartArea {
 
             this._baseCanvas = baseCanvas;
             this._frontCanvas = frontCanvas;
-            this._mainContext = this.getContext(baseCanvas, baseCanvas.width, baseCanvas.height);
-            this._frontContext = this.getContext(frontCanvas, frontCanvas.width, frontCanvas.height);
+            this._mainContext = this.getContext(baseCanvas, w, h);
+            this._frontContext = this.getContext(frontCanvas, w, h);
     }
 
     private getContext(el: HTMLCanvasElement, w: number, h: number): CanvasWrapper {
@@ -77,8 +77,6 @@ export class ChartArea {
     }
 
     public resize(w: number, h: number): void {
-        this._mainContext.resize(w, h);
-        this._frontContext.resize(w, h);
         this._baseCanvas.width = w * this.dpr;
         this._baseCanvas.height = h * this.dpr;
         this._baseCanvas.style.setProperty('width', w + 'px');
@@ -87,5 +85,8 @@ export class ChartArea {
         this._frontCanvas.height = h * this.dpr;
         this._frontCanvas.style.setProperty('width', w + 'px');
         this._frontCanvas.style.setProperty('height', h + 'px');
+
+        this._mainContext.resize(w, h);
+        this._frontContext.resize(w, h);
     }
 }

@@ -101,6 +101,8 @@ export class CanvasWrapper implements ICanvas {
     public resize(w: number, h: number): void {
         this.w = w * this.ratio;
         this.h = h * this.ratio;
+        // restore transformation
+        this.ctx.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     }
 
     public beginPath() {
