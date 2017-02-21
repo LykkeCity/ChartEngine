@@ -19,6 +19,10 @@ export interface IDataIterator<T> {
     current: T;
 }
 
+export interface IDataResolverDelegate<T> {
+    (response: any): IResponse<T>;
+}
+
 export interface IDataReaderDelegate<T> {
     (timeStart: Date, timeEnd: Date, interval: string): JQueryPromise<IResponse<T>>;
 }

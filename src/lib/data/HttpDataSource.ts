@@ -12,7 +12,7 @@ import { DataChangedArgument } from './DataChangedEvent';
 import { DataSource } from './DataSource';
 import { DataSourceConfig } from './DataSourceConfig';
 import { HttpDataSourceConfig } from './HttpDataSourceConfig';
-import { IDataIterator, IDataReaderDelegate, IDataStorage, IPendingRequest, IResponse } from './Interfaces';
+import { IDataIterator, IDataReaderDelegate, IDataResolverDelegate, IDataStorage, IPendingRequest, IResponse } from './Interfaces';
 
 import * as $ from 'jquery';
 
@@ -30,11 +30,12 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         config: HttpDataSourceConfig<T>) {
             super(dataType, config);
 
-            if (!config || !config.url) {
-                throw new Error('Url is not initialized.');
+            if (!config || (!config.url && !config.readData)) {
+                throw new Error('Url and readData are not initialized.');
             }
             this.dataStorage = new ArrayDataStorage<T>();
             this.config.readData = config.readData || this.makeDefaultReader();
+            this.config.resolveData = config.resolveData || this.makeDefaultResolver();
             this.config.autoupdate = (config.autoupdate !== undefined) ? config.autoupdate : false;
 
             if (this.config.autoupdate) {
@@ -173,7 +174,8 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
 
         const self = this;
         request
-        .done((response: IResponse<T>) => { self.onRequestResolved(response); })
+        .then((response: any) => { return self.config.resolveData(response); })
+        .then((response: IResponse<T>) => { self.onRequestResolved(response); })
         .fail((jqXhr: JQueryXHR, textStatus: string, errorThrown: string) => { self.onRequestFailed(jqXhr, textStatus, errorThrown); })
         .always(() => {
             // Remove request from pending requests
@@ -218,6 +220,10 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         };
     }
 
+    protected makeDefaultResolver(): IDataResolverDelegate<T> {
+        return (response) => response;
+    }
+
     protected mergeData(jsonData: T[]) {
 
         // Map incoming data to model
@@ -225,10 +231,10 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         const objects = jsonData
             .filter((el: T) => { return el && el.date; })
             .map((el: T) => {
-                const date = new Date(el.date);
-                const obj = new this.dataType(date);
-                (<any>obj).deserialize(el);
-                return obj;
+                    const date = new Date(el.date);
+                    const obj = new this.dataType(date);
+                    (<any>obj).deserialize(el);
+                    return obj;
             });
 
         this.dataStorage.merge(objects, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });

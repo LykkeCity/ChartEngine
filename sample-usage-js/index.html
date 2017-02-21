@@ -73,11 +73,46 @@
             },
             candles);
 
+        var dataResolver = function(response) {
+            if (response) {
+
+                const data = response.data
+                    //.filter((el: T) => { return el && el.date; })
+                    .map((item) => {
+                        item.date = item.t;
+                        return item;
+                    });
+
+                return {
+                    startDateTime: response.dateFrom,
+                    endDateTime: response.dateTo,
+                    interval: '1m',
+                    data: data
+                };
+            }
+        };
+
         var httpDataSource = new lychart.data.HttpDataSource(
             lychart.model.Candlestick,
             {
-                url: 'http://localhost:2226/api/random',
-                autoupdate: true
+                //url: 'http://localhost:2226/api/random',
+                autoupdate: true,
+                readData: function (timeStart, timeEnd, interval) {
+                    let settings = {
+                        type: 'POST',
+                        crossDomain: true,
+                        dataType: 'json',
+                        url: 'http://localhost:2226/api/stub/BTCCHF',
+                        data: {
+                            period: 'Minute', //interval,
+                            type: 'Ask',
+                            dateFrom: timeStart.toISOString(),
+                            dateTo: timeEnd.toISOString()
+                        }
+                    };
+                    return $.ajax(settings);
+                },
+                resolveData: dataResolver
             });
 
         var container1 = document.getElementById("chart-container1");
