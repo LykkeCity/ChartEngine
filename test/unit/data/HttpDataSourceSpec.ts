@@ -111,6 +111,9 @@ describe('HttpDataSource tests', () => {
                     }
 
                     return def.promise();
+                },
+                resolveData: (response: any) => {
+                    return response;
                 }
             };
         };
@@ -124,7 +127,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1d']);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
         const iterator = ads.getData({ start: new Date(2017, 0, 1), end: new Date(2017, 0, 2) }, TimeInterval.day);
 
@@ -138,7 +141,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1d'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
@@ -183,7 +186,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m']);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         let iterator;
@@ -236,7 +239,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1d'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Getting part of existing data
@@ -263,7 +266,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m']);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
@@ -306,7 +309,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
@@ -357,7 +360,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
@@ -415,7 +418,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
