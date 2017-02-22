@@ -15,13 +15,15 @@ export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
     private readonly defaultMinValue = 0;
     private readonly defaultMaxValue = 100;
 
+    protected comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
+
     constructor(
         dataType: { new(d: Date): T },
         config: DataSourceConfig,
         data: T[]) {
             super(dataType, config);
 
-            this.dataStorage = new ArrayDataStorage<T>(data);
+            this.dataStorage = new ArrayDataStorage<T>(this.comparer, data);
     }
 
     public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {

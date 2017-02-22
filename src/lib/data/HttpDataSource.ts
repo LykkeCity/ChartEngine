@@ -24,6 +24,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
     //private readonly defaultMaxItemsRequested = 100;
     protected autoUpdatePeriodSec = 10;
     protected pendingRequests: IPendingRequest<T>[] = [];
+    protected comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
 
     constructor(
         dataType: { new(d: Date): T },
@@ -33,7 +34,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
             if (!config || (!config.url && !config.readData)) {
                 throw new Error('Url and readData are not initialized.');
             }
-            this.dataStorage = new ArrayDataStorage<T>();
+            this.dataStorage = new ArrayDataStorage<T>(this.comparer);
             this.config.readData = config.readData || this.makeDefaultReader();
             this.config.resolveData = config.resolveData || this.makeDefaultResolver();
             this.config.autoupdate = (config.autoupdate !== undefined) ? config.autoupdate : false;
@@ -207,7 +208,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
 
         return (timeStart: Date, timeEnd: Date, interval: string) => {
             const settings: JQueryAjaxSettings = {
-                type: 'GET',
+                method: 'GET',
                 dataType: 'jsonp',
                 url: url,
                 data: {
@@ -237,7 +238,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
                     return obj;
             });
 
-        this.dataStorage.merge(objects, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
+        this.dataStorage.merge(objects);
     }
 
     protected getDefaultConfig(): DataSourceConfig {

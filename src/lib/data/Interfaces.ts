@@ -3,7 +3,6 @@
  */
 import { TimeInterval } from '../core/index';
 import { IEvent, IRange } from '../shared/index';
-import { IComparer } from '../utils/index';
 import { DataChangedArgument } from './DataChangedEvent';
 
 export interface IDataSource<T> {
@@ -37,7 +36,7 @@ export interface IDataStorage<T> {
     last: T | undefined;
     isEmpty: boolean;
     getIterator(filter?: (item: T) => boolean): IDataIterator<T>;
-    merge(update: T[], comparer: IComparer<T>): void;
+    merge(update: T[]): void;
 }
 
 export interface IPendingRequest<T> {

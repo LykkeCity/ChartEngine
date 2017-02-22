@@ -13,13 +13,15 @@ export class SimpleIndicator extends DataSource<Point> {
     private dataStorage: ArrayDataStorage<Point>;
     private dataInitialized = false;
 
+    protected comparer = (item1: Point, item2: Point) => { return item1.date.getTime() - item2.date.getTime(); };
+
     constructor(
         config: DataSourceConfig,
         dataSource: IDataSource<Candlestick>) {
             super(Point, config);
 
             this.dataSource = dataSource;
-            this.dataStorage = new ArrayDataStorage<Point>();
+            this.dataStorage = new ArrayDataStorage<Point>(this.comparer);
             // subscribe to source events
             const self = this;
             dataSource.dateChanged.on((arg) => { self.onDataSourceChanged(arg); });
@@ -94,6 +96,6 @@ export class SimpleIndicator extends DataSource<Point> {
         }
 
         // Update data storage
-        this.dataStorage.merge(indicatorData, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
+        this.dataStorage.merge(indicatorData);
     }
 }
