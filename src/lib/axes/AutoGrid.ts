@@ -3,7 +3,7 @@
  */
 import { TimeInterval } from '../core/index';
 import { IRange } from '../shared/index';
-import { DateUtils } from '../utils/index';
+import { DateUtils, NumberUtils } from '../utils/index';
 
 export class NumberAutoGrid {
 
@@ -78,7 +78,7 @@ export class NumberAutoGrid {
         let t: number = bar;
         while (t <= this.range.end) {
             if (t >= this.range.start) {
-                grid.push(t);
+                grid.push(NumberUtils.roundTo(t, 4));
             }
             t += selectedScale;
         }
