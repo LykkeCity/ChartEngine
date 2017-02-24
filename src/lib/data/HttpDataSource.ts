@@ -5,7 +5,7 @@
  */
 import { TimeInterval } from '../core/index';
 import { ITimeValue } from '../model/index';
-import { IRange } from '../shared/index';
+import { IDisposable, IRange } from '../shared/index';
 import { DateUtils } from '../utils/index';
 import { ArrayDataStorage } from './ArrayDataStorage';
 import { DataChangedArgument } from './DataChangedEvent';
@@ -16,7 +16,7 @@ import { IDataIterator, IDataReaderDelegate, IDataResolverDelegate, IDataStorage
 
 import * as $ from 'jquery';
 
-export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
+export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implements IDisposable {
     protected dataStorage: IDataStorage<T>;
     //private readonly defaultMinDate = new Date(2000, 0, 1);
     private readonly defaultMinValue = 0;
@@ -25,6 +25,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
     protected autoUpdatePeriodSec = 10;
     protected pendingRequests: IPendingRequest<T>[] = [];
     protected comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
+    protected timer?: number;
 
     constructor(
         dataType: { new(d: Date): T },
@@ -41,9 +42,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
 
             if (this.config.autoupdate) {
                 // start autoupdate
-                // TODO: period should depend on interval (sec, months, ...)
-                this.autoUpdatePeriodSec = 10;
-                setTimeout(this.autoUpdate, this.autoUpdatePeriodSec * 1000);
+                this.scheduleAutoupdate();
             }
     }
 
@@ -51,7 +50,12 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         return <HttpDataSourceConfig<T>>this._config;
     }
 
+    protected scheduleAutoupdate() {
+        this.timer = setTimeout(this.autoUpdate, this.autoUpdatePeriodSec * 1000);
+    }
+
     protected autoUpdate = () => {
+        console.debug('auto update');
         // TODO: make interval public member and use in ChartBoard
         const interval: TimeInterval = TimeInterval.min;
 
@@ -70,7 +74,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
         this.makeRequest({ start: lastT, end: now }, interval);
 
         // schedule next autoupdate
-        setTimeout(this.autoUpdate, this.autoUpdatePeriodSec * 1000);
+        this.scheduleAutoupdate();
     }
 
     public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {
@@ -274,6 +278,12 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> {
             case '1m': return TimeInterval.min;
             default:
                 throw new Error('Unexpected "interval" value ' + interval);
+        }
+    }
+
+    public dispose() {
+        if (this.timer) {
+            clearTimeout(this.timer);
         }
     }
 }

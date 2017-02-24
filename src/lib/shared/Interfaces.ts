@@ -37,3 +37,7 @@ export interface IRect {
 export interface IHashTable<T> {
     [key: string]: T;
 }
+
+export interface IDisposable {
+    dispose(): void;
+}

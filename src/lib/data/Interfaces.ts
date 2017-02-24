@@ -5,10 +5,13 @@ import { TimeInterval } from '../core/index';
 import { IEvent, IRange } from '../shared/index';
 import { DataChangedArgument } from './DataChangedEvent';
 
-export interface IDataSource<T> {
+export interface IDataSourceUntyped {
+    dateChanged: IEvent<DataChangedArgument>;
+}
+
+export interface IDataSource<T> extends IDataSourceUntyped {
     getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number>;
     getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T>;
-    dateChanged: IEvent<DataChangedArgument>;
     dataType: { new(d: Date): T };
 }
 

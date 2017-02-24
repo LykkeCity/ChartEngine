@@ -6,7 +6,7 @@
 
 import { NumberAxis, PriceAxis, TimeAxis } from '../axes/index';
 import { ChartType, TimeInterval, VisualComponent, VisualContext } from '../core/index';
-import { DataChangedArgument, IDataSource } from '../data/index';
+import { DataChangedArgument, IDataSource, IDataSourceUntyped } from '../data/index';
 import { IMouseHandler } from '../interaction/index';
 import { Point } from '../model/index';
 import { RenderLocator } from '../render/index';
@@ -31,6 +31,7 @@ export class ChartBoard extends VisualComponent {
     private timeAxis: TimeAxis;
     private timeArea: ChartArea;
 
+    private readonly dataSources: IHashTable<IDataSourceUntyped> = { };
     private readonly indicators: IDataSource<Point>[] = [];
 
     private eventHandlers: IHashTable<IEventHandler<any>> = {};
@@ -155,19 +156,27 @@ export class ChartBoard extends VisualComponent {
         return new ChartArea(w, h);
     }
 
-    public addChart<T>(chartType: string, dataSource: IDataSource<T>) {
-
+    public addChart<T>(uid: string, chartType: string, dataSource: IDataSource<T>) {
+        this.dataSources[uid] = dataSource;
         // add event handlers
-        let self = this;
-        dataSource.dateChanged.on(function (arg: DataChangedArgument) { self.onDataChanged(arg) });
-
-        this.chartStacks[0].addChart(chartType, dataSource);
-
+        dataSource.dateChanged.on(this.onDataChanged);
+        this.chartStacks[0].addChart(uid, chartType, dataSource);
         // re-render charts
         this.render();
     }
 
-    public addIndicator(indicatorDataSource: IDataSource<Point>) {
+    public removeChart(uid: string) {
+        // get data source
+        const dataSource = this.dataSources[uid];
+        if (dataSource) {
+            dataSource.dateChanged.off(this.onDataChanged);
+            this.chartStacks[0].removeChart(uid);
+        }
+        // re-render charts
+        this.render();
+    }
+
+    public addIndicator(uid: string, indicatorDataSource: IDataSource<Point>) {
         this.indicators.push(indicatorDataSource);
 
         const dh = Math.floor((this._size.height - this.xAxisHeight) / (this.chartStacks.length + 2));
@@ -194,7 +203,7 @@ export class ChartBoard extends VisualComponent {
         yAxis.addChild(numberMarker);
 
         const chartStack = new ChartStack(new IPoint(0, yOffset), { width: dw, height: dh }, this.timeAxis, yAxis);
-        chartStack.addChart(ChartType.line, indicatorDataSource);
+        chartStack.addChart(uid, ChartType.line, indicatorDataSource);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
 
@@ -336,7 +345,7 @@ export class ChartBoard extends VisualComponent {
         this.timeAxis.offset = { x: this.timeAxis.offset.x, y: yOffset };
     }
 
-    private onDataChanged(arg: DataChangedArgument): void {
+    private onDataChanged = (arg: DataChangedArgument) => {
         this.render();
     }
 

@@ -31,13 +31,21 @@ export class ChartStack extends VisualComponent {
             this.addChild(grid);
     }
 
-    public addChart<T>(chartType: string, dataSource: IDataSource<T>): void {
-        const newChart = new Chart(chartType,
+    public addChart<T>(uid: string, chartType: string, dataSource: IDataSource<T>): void {
+        const newChart = new Chart(uid, chartType,
                                    new Point(0, 0),
                                    { width: this.size.width, height: this.size.height },
                                    dataSource, this.timeAxis, this.yAxis);
         this.charts.push(newChart);
         this.addChild(newChart);
+    }
+
+    public removeChart(uid: string) {
+        this.charts.forEach((value, index) => {
+            if (value.uid === uid) {
+                this.charts.splice(index, 1);
+            }
+        });
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {

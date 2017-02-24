@@ -9,14 +9,17 @@ import { IRange, ISize, Point } from '../shared/index';
 import { ChartPopup } from './ChartPopup';
 
 export interface IChart {
+    uid: string;
     getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number>;
     render(context: VisualContext, renderLocator: IRenderLocator): void;
 }
 
 export class Chart<T> extends VisualComponent implements IChart {
+    private _uid: string;
     private popup: ChartPopup<T>;
 
     constructor(
+        uid: string,
         private chartType: string,
         offset: Point,
         size: ISize,
@@ -25,8 +28,13 @@ export class Chart<T> extends VisualComponent implements IChart {
         private yAxis: IAxis<number>) {
             super(offset, size);
 
+            this._uid = uid;
             this.popup = new ChartPopup<T>(chartType, { x: 0, y: 0 }, size, dataSource, timeAxis, yAxis);
             this.addChild(this.popup);
+    }
+
+    public get uid(): string {
+        return this._uid;
     }
 
     public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {

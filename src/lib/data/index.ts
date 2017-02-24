@@ -14,6 +14,7 @@ import {
     IDataIterator,
     IDataReaderDelegate,
     IDataSource,
+    IDataSourceUntyped,
     IResponse } from './Interfaces';
 
 export {
@@ -30,5 +31,6 @@ export {
     IDataIterator,
     IDataReaderDelegate,
     IDataSource,
+    IDataSourceUntyped,
     IResponse
 };
