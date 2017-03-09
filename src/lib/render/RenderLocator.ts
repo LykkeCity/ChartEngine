@@ -10,6 +10,7 @@ import { GridRenderer } from './GridRenderer';
 import { IRenderLocator } from './Interfaces';
 import { LineChartRenderer } from './LineChartRenderer';
 import { LinePopupRenderer } from './LinePopupRenderer';
+import { LinestickChartRenderer } from './LinestickChartRenderer';
 import { NumberAxisRenderer } from './NumberAxisRenderer';
 import { NumberMarkRenderer } from './NumberMarkRenderer';
 import { PriceAxisRenderer } from './PriceAxisRenderer';
@@ -18,17 +19,18 @@ import { TimeMarkRenderer } from './TimeMarkRenderer';
 
 export class RenderLocator implements IRenderLocator {
 
-    private candlestickChartRender: CandlestickChartRenderer = new CandlestickChartRenderer();
-    private lineChartRender: LineChartRenderer = new LineChartRenderer();
-    private timeAxisRender: TimeAxisRenderer = new TimeAxisRenderer();
-    private priceAxisRender: PriceAxisRenderer = new PriceAxisRenderer();
-    private numberAxisRender: NumberAxisRenderer = new NumberAxisRenderer();
-    private candlePopupRenderer: CandlestickPopupRenderer = new CandlestickPopupRenderer();
-    private linePopupRenderer: LinePopupRenderer = new LinePopupRenderer();
-    private timeMarkRender: TimeMarkRenderer = new TimeMarkRenderer();
-    private numberMarkRender: NumberMarkRenderer = new NumberMarkRenderer();
-    private crosshairRenderer: CrosshairRenderer = new CrosshairRenderer();
-    private gridRenderer: GridRenderer = new GridRenderer();
+    private candlestickChartRender = new CandlestickChartRenderer();
+    private lineChartRender = new LineChartRenderer();
+    private linestickChartRenderer = new LinestickChartRenderer();
+    private timeAxisRender = new TimeAxisRenderer();
+    private priceAxisRender = new PriceAxisRenderer();
+    private numberAxisRender = new NumberAxisRenderer();
+    private candlePopupRenderer = new CandlestickPopupRenderer();
+    private linePopupRenderer = new LinePopupRenderer();
+    private timeMarkRender = new TimeMarkRenderer();
+    private numberMarkRender = new NumberMarkRenderer();
+    private crosshairRenderer = new CrosshairRenderer();
+    private gridRenderer = new GridRenderer();
 
     private static instance: RenderLocator;
 
@@ -48,6 +50,8 @@ export class RenderLocator implements IRenderLocator {
         } else if (obj instanceof Candlestick) {
             if (chartType === ChartType.candle) {
                 return this.candlestickChartRender;
+            } else if (chartType === ChartType.line) {
+                return this.linestickChartRenderer;
             }
         } else {
             throw new Error('Unexpected data type: ' + dataType);

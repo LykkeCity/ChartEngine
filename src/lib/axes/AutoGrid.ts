@@ -25,7 +25,19 @@ export class NumberAutoGrid {
         5.0000,
         10.0000,
         25.0000,
-        50.0000
+        50.0000,
+        100,
+        250,
+        500,
+        1000,
+        2500,
+        5000,
+        10000,
+        25000,
+        50000,
+        100000,
+        250000,
+        500000
     ];
 
     constructor(length: number, minInterval: number, range: IRange<number>) {
@@ -97,6 +109,7 @@ export class TimeAutoGrid {
     // };
 
     private static readonly scales: TimeInterval[] = [
+        TimeInterval.sec,
         TimeInterval.min,
         TimeInterval.min5,
         TimeInterval.min15,
@@ -107,7 +120,7 @@ export class TimeAutoGrid {
         TimeInterval.hour12,
         TimeInterval.day,
         TimeInterval.day3,
-        TimeInterval.day7,
+        TimeInterval.week,
         TimeInterval.day10,
         TimeInterval.month
     ];

@@ -13,7 +13,20 @@
 <body>
     <div style="margin: 0; padding: 5px 0px 0px 25px; height: 20px">
         <select id="assetpair"></select>
-        <span style="font-family: arial">1m</span>
+        <select id="timeinterval">
+            <option value="sec">Sec</option>
+            <option value="min" selected="selected">1 min</option>
+            <!--<option value="min5">5 min</option>
+            <option value="min15">15 min</option>
+            <option value="min30">30 min</option>-->
+            <option value="hour">1 hour</option>
+            <!--<option value="hour4">4 hours</option>
+            <option value="hour6">6 hours</option>
+            <option value="hour12">12 hours</option>-->
+            <option value="day">Day</option>
+            <!--<option value="week">Week</option>-->
+            <option value="month">Month</option>
+        </select>
     </div>
 
     <div style="margin-top: 0px; margin-left: 25px;">
@@ -70,6 +83,26 @@
 
     <script type="text/javascript">
         
+        function intervalToPeriod(interval) {
+            switch (interval) {
+                case lychart.core.TimeInterval.sec: return 'Sec';
+                case lychart.core.TimeInterval.min: return 'Minute';
+                case lychart.core.TimeInterval.hour: return 'Hour';
+                case lychart.core.TimeInterval.day: return 'Day';
+                case lychart.core.TimeInterval.month: return 'Month';
+            }
+        }
+
+        function periodToInterval(period) {
+            switch (period) {
+                case 'Sec': return lychart.core.TimeInterval.sec;
+                case 'Minute': return lychart.core.TimeInterval.min;
+                case 'Hour': return lychart.core.TimeInterval.hour;
+                case 'Day': return lychart.core.TimeInterval.day;
+                case 'Month': return lychart.core.TimeInterval.month;
+            }
+        }
+
         let chart = (function(){ 
 
             var
@@ -79,8 +112,6 @@
                 dataSource = null,
 
                 readData = function (timeStart, timeEnd, interval) {
-                    timeEnd.setDate(timeEnd.getDate() + 1); // Day + 1
-
                     $.support.cors = true;
 
                     let settings = {
@@ -90,7 +121,7 @@
                         url: url,
                         contentType: "application/json",
                         data: JSON.stringify({
-                            period: 'Sec',
+                            period: intervalToPeriod(interval),
                             type: 'Bid',
                             dateFrom: timeStart.toISOString(),
                             dateTo: timeEnd.toISOString()
@@ -110,22 +141,22 @@
                         return {
                             startDateTime: response.dateFrom,
                             endDateTime: response.dateTo,
-                            interval: '1m',
+                            interval: periodToInterval(response.period),
                             data: data
                         };
                     }
                 },
 
-                init = function($containerEl, w, h, border) {
-                    board = new lychart.ChartBoard($containerEl, border, border, w, h);
-                    
+                init = function($containerEl, w, h, border, timeInterval) {
+                    board = new lychart.ChartBoard($containerEl, border, border, w, h, timeInterval);
                 },
 
-                setChart = function(assetPairId) {
+                setChart = function(assetPairId, timeInterval) {
 
                     url = urls.candles + assetPairId;
 
                     if (dataSource) {
+                        console.debug('removing chart = ' + uid)
                         board.removeChart(uid);
                         dataSource.dispose();
                     }
@@ -136,10 +167,17 @@
                         {
                             autoupdate: true,
                             readData: readData,
-                            resolveData: resolveData
+                            resolveData: resolveData,
+                            timeInterval: timeInterval
                         });
-                
-                    board.addChart(uid, lychart.core.ChartType.candle, dataSource);
+
+                    board.setTimeInterval(timeInterval);
+                    board.addChart(uid, 
+                                   (timeInterval === lychart.core.TimeInterval.sec) ? lychart.core.ChartType.line : lychart.core.ChartType.candle, 
+                                   dataSource);
+                },
+
+                render = function() {
                     board.render();
                 },
 
@@ -151,6 +189,7 @@
             return {
                 init: init,
                 setChart: setChart,
+                render: render,
                 resize: resize
             };
         })();
@@ -160,12 +199,23 @@
         $(function() {
             function loadAssets() {
                 console.debug('loading assets list');
+                $.support.cors = true; // Otherwise "no transport" in IE 11.
                 return $.ajax({
                     method: 'GET',
                     dataType: 'json',
                     url: urls.assets,
                     contentType: "application/json"
                 });
+            }
+
+            function getSelectedTimeInterval() {
+                let timeinterval = $("#timeinterval option:selected").val();
+                return lychart.core.TimeInterval[timeinterval]
+            }
+
+            function getSelectedAssetPair() {
+                let assetPair = $("#assetpair option:selected").val();
+                return assetPair;
             }
 
             function initForm(assets) {
@@ -177,17 +227,19 @@
                 });
                 $("#assetpair").val(defaultPair); // select default value
                 $('#assetpair').change(function(){
-                    let assetPair = $("select option:selected").val();
-                    reloadChart(assetPair);
+                    updateChart();
                 });
 
-                reloadChart(defaultPair);
+                $('#timeinterval').change(function(){
+                    updateChart();        
+                });
+
+                updateChart();
             }
 
-            function reloadChart(assetPairId) {
-                console.debug('reloading data for asset pair: ' + assetPairId);
-
-                chart.setChart(assetPairId);
+            function updateChart() {
+                chart.setChart(getSelectedAssetPair(), getSelectedTimeInterval());
+                chart.render();
             }
 
             let border = 25;

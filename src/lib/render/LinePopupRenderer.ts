@@ -12,7 +12,7 @@ export class LinePopupRenderer implements IPopupRender<Point> {
 
     public render(canvas: ICanvas, model: Point, point: IPoint, frameSize: ISize): void {
         const lineHeight = 20;
-        const w = 60;
+        const w = 90;
         const h = lineHeight + this.paddingTop * 2;
         const x = Math.max(0, Math.min(point.x, frameSize.width - w));
         const y = Math.max(0, Math.min(point.y, frameSize.height - h));

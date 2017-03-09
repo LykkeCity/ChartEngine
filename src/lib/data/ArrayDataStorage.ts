@@ -41,6 +41,10 @@ export class ArrayDataStorage<T> implements IDataStorage<T> {
         return this.dataSnapshot.data.length === 0;
     }
 
+    public clear() : void {
+        this.dataSnapshot.data = [];
+    }
+
     public merge(update: T[]): void {
         if (update && update.length) {
             // Sort incoming array

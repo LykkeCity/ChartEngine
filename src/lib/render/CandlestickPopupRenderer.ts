@@ -12,7 +12,7 @@ export class CandlestickPopupRenderer implements IPopupRender<Candlestick> {
 
     public render(canvas: ICanvas, model: Candlestick, point: IPoint, frameSize: ISize): void {
         const lineHeight = 20;
-        const w = 60;
+        const w = 90;
         const h = lineHeight * 4 + this.paddingTop * 2;
         const x = Math.max(0, Math.min(point.x, frameSize.width - w));
         const y = Math.max(0, Math.min(point.y, frameSize.height - h));

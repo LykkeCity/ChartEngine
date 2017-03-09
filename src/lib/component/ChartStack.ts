@@ -32,20 +32,21 @@ export class ChartStack extends VisualComponent {
     }
 
     public addChart<T>(uid: string, chartType: string, dataSource: IDataSource<T>): void {
-        const newChart = new Chart(uid, chartType,
-                                   new Point(0, 0),
-                                   { width: this.size.width, height: this.size.height },
-                                   dataSource, this.timeAxis, this.yAxis);
+        const newChart = new Chart<T>(uid, chartType,
+                                      new Point(0, 0),
+                                      { width: this.size.width, height: this.size.height },
+                                      dataSource, this.timeAxis, this.yAxis);
         this.charts.push(newChart);
         this.addChild(newChart);
     }
 
     public removeChart(uid: string) {
-        this.charts.forEach((value, index) => {
-            if (value.uid === uid) {
-                this.charts.splice(index, 1);
+        for (let i = 0; i < this.charts.length; i += 1) {
+            if (this.charts[i].uid === uid) {
+                this.removeChild(<any>this.charts[i]);
+                this.charts.splice(i, 1);
             }
-        });
+        }
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {

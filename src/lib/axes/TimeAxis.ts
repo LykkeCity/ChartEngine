@@ -32,6 +32,21 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
         return this._interval;
     }
 
+    public set interval(value: number) {
+        //const prevInterval = this._interval;
+        this._interval = value;
+
+        // Adjast scale according to the new interval if needed
+        // Multiplying by 1 will do the work
+        //this.scale(this._interval - prevInterval);
+        this.scaleByMultiplier(1.0);
+    }
+
+    public contains(date: Date): boolean {
+        const t = date.getTime();
+        return this._range.start.getTime() <= t && t <= this._range.end.getTime();
+    }
+
     public getGrid(): Date[] {
         const autoGrid = new TimeAutoGrid(this.size.width, this.interval, this.range);
         return autoGrid.getGrid();
@@ -63,15 +78,13 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
     }
 
     public move(direction: number): void {
-        //direction = Math.round(direction);
-
-        if (direction == 0) {
+        if (direction === 0) {
             return;
         }
 
-        let curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
+        const curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
 
-        let shiftInMs = direction * curRangeInMs / this.size.width;
+        const shiftInMs = direction * curRangeInMs / this.size.width;
 
         this._range = {
             start: new Date(this.range.start.getTime() - shiftInMs),
@@ -79,23 +92,40 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
         };
     }
 
+    public moveTo(date: Date): void {
+        const t = date.getTime();
+        const end = this._range.end.getTime();
+        const start = this._range.start.getTime();
+        let diff = 0;
+
+        if (t > end) {
+            diff = (t - end) + this._interval;
+        } else if (t < start) {
+            diff = (t - start) - this._interval;
+        }
+
+        if (diff !== 0) {
+            this._range = { start: new Date(start + diff), end: new Date(end  + diff) };
+        }
+    }
+
     public scale(direction: number): void {
-        let curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
-        let newRange = 0;
+        if (direction > 0) {                // zooming in
+            this.scaleByMultiplier(0.9);
+        } else if (direction < 0) {         // zooming out
+            this.scaleByMultiplier(1.1);
+        }
+    }
 
-        // Move date to the specified direction
-        if (direction > 0) { // zooming in
-            newRange = curRangeInMs * 0.9;
+    private scaleByMultiplier(multiplier: number) : void {
+        const curRangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime()); // current range in millisencods
+        let newRange = curRangeInMs * multiplier;
 
-            if (newRange / this.interval < 10) {
-                newRange = this.interval * 10;
-            }
-        } else if (direction < 0) { // zooming out
-            newRange = curRangeInMs * 1.1;
-
-            if (newRange / this.interval > 1000) {
-                newRange = this.interval * 1000;
-            }
+        // Cut range to min/max values
+        if (newRange / this.interval < 10) {
+            newRange = this.interval * 10;
+        } else if (newRange / this.interval > 1000) {
+            newRange = this.interval * 1000;
         }
 
         this._range = {
@@ -113,5 +143,3 @@ export class TimeAxis extends VisualComponent implements IAxis<Date> {
         super.render(context, renderLocator);
     }
 }
-
-

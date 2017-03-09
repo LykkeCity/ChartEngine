@@ -10,6 +10,9 @@ export class TimeSpan {
 
     private constructor(value: number, unit: TimeUnit) {
         switch (unit) {
+            case TimeUnit.Seconds:
+                this._totalMilliseconds = value * 1000;
+                break;
             case TimeUnit.Minutes:
                 this._totalMilliseconds = value * 60000;
                 break;
@@ -36,12 +39,17 @@ export class TimeSpan {
         return new TimeSpan(value, TimeUnit.Minutes);
     }
 
+    public static FROM_SECONDS(value: number): TimeSpan {
+        return new TimeSpan(value, TimeUnit.Seconds);
+    }
+
     public static COMPARE(l: TimeSpan, r: TimeSpan): number {
         return l._totalMilliseconds - r._totalMilliseconds;
     }
 }
 
 enum TimeUnit {
+    Seconds,
     Minutes,
     Hours,
     Days,

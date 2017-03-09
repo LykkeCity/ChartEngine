@@ -37,7 +37,7 @@ export class ChartBoard extends VisualComponent {
     private eventHandlers: IHashTable<IEventHandler<any>> = {};
     private readonly mouseHandlers: IMouseHandler[] = [];
 
-    private readonly yAxisWidth = 50;
+    private readonly yAxisWidth = 90;
     private readonly xAxisHeight = 25;
 
     constructor(
@@ -45,7 +45,8 @@ export class ChartBoard extends VisualComponent {
         private readonly offsetLeft: number,
         private readonly offsetTop: number,
         w: number,
-        h: number
+        h: number,
+        interval: TimeInterval
     ) {
         super({ x: 0, y: 0}, { width: Math.max(w, 100), height: Math.max(h, 50)});
 
@@ -66,7 +67,7 @@ export class ChartBoard extends VisualComponent {
         this.timeAxis = new TimeAxis(
             { x: 0, y: h}, // offset
             { width: this.timeArea.width, height: this.timeArea.height}, // size
-            TimeInterval.min, { start: start, end: now });
+            interval, { start: start, end: now });
         this.addChild(this.timeAxis);
 
         const timeMarker = new TimeMarker({ x: 0, y: 0 }, this.timeAxis.size, this.timeAxis);
@@ -323,7 +324,7 @@ export class ChartBoard extends VisualComponent {
 
             // resize HTML elements
             for (let j = 0; j < 3; j += 1) {
-                const div = this.table.rows[i].cells[j].getElementsByTagName('div')[0];
+                const div = this.table.rows.item(i).cells[j].getElementsByTagName('div')[0];
                 div.style.setProperty('height', (i === 0 ? dh * 2 : dh) + 'px');
                 if (j === 1) { div.style.setProperty('width', dw + 'px'); }
             }
@@ -338,19 +339,32 @@ export class ChartBoard extends VisualComponent {
         this.timeArea.resize(dw, this.xAxisHeight);
 
         // resize HTML element
-        const div = this.table.rows[i].cells[1].getElementsByTagName('div')[0];
+        const div = this.table.rows.item(i).cells[1].getElementsByTagName('div')[0];
         div.style.setProperty('width', dw + 'px');
 
         // update vertical offset
         this.timeAxis.offset = { x: this.timeAxis.offset.x, y: yOffset };
     }
 
+    public setTimeInterval(interval: TimeInterval) {
+        if (interval) {
+            // this.timeInterval = interval;
+            this.timeAxis.interval = interval;
+        }
+    }
+
     private onDataChanged = (arg: DataChangedArgument) => {
+
+        // Check if need to automove time range
+        if (arg.lastDateBefore && arg.lastDateAfter
+            && this.timeAxis.contains(arg.lastDateBefore)
+            && !this.timeAxis.contains(arg.lastDateAfter)) {
+            this.timeAxis.moveTo(arg.lastDateAfter);
+        }
+
         this.render();
     }
 
-    // TODO: Make mouse events handlers private
-    //
     public onMouseWheel(event: any): void {
         //let ev = event;
         if (false == !!event) { event = window.event; }

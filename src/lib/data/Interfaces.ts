@@ -26,7 +26,7 @@ export interface IDataResolverDelegate<T> {
 }
 
 export interface IDataReaderDelegate<T> {
-    (timeStart: Date, timeEnd: Date, interval: string): JQueryPromise<IResponse<T>>;
+    (timeStart: Date, timeEnd: Date, timeInterval: TimeInterval): JQueryPromise<IResponse<T>>;
 }
 
 export interface IDataSnapshot<T> {
@@ -51,7 +51,7 @@ export interface IPendingRequest<T> {
 
 export interface IResponse<T> {
     data: T[];
-    interval: string;
+    interval: keyof typeof TimeInterval;
     startDateTime: Date;
     endDateTime: Date;
 }

@@ -12,12 +12,12 @@ import { DataChangedArgument } from './DataChangedEvent';
 import { DataSource } from './DataSource';
 import { DataSourceConfig } from './DataSourceConfig';
 import { HttpDataSourceConfig } from './HttpDataSourceConfig';
-import { IDataIterator, IDataReaderDelegate, IDataResolverDelegate, IDataStorage, IPendingRequest, IResponse } from './Interfaces';
+import { IDataIterator, IDataReaderDelegate, IDataResolverDelegate, IPendingRequest, IResponse } from './Interfaces';
 
 import * as $ from 'jquery';
 
 export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implements IDisposable {
-    protected dataStorage: IDataStorage<T>;
+    protected dataStorage: ArrayDataStorage<T>;
     //private readonly defaultMinDate = new Date(2000, 0, 1);
     private readonly defaultMinValue = 0;
     private readonly defaultMaxValue = 100;
@@ -26,6 +26,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
     protected pendingRequests: IPendingRequest<T>[] = [];
     protected comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
     protected timer?: number;
+    protected isDisposed = false;
 
     constructor(
         dataType: { new(d: Date): T },
@@ -34,6 +35,9 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
 
             if (!config || (!config.url && !config.readData)) {
                 throw new Error('Url and readData are not initialized.');
+            }
+            if (config.timeInterval === undefined) {
+                throw new Error('Time interval is not set.');
             }
             this.dataStorage = new ArrayDataStorage<T>(this.comparer);
             this.config.readData = config.readData || this.makeDefaultReader();
@@ -52,12 +56,11 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
 
     protected scheduleAutoupdate() {
         this.timer = setTimeout(this.autoUpdate, this.autoUpdatePeriodSec * 1000);
+        console.debug(`scheduled autoupdate, timer=${ this.timer }`);
     }
 
     protected autoUpdate = () => {
-        console.debug('auto update');
-        // TODO: make interval public member and use in ChartBoard
-        const interval: TimeInterval = TimeInterval.min;
+        console.debug(`auto update, interval=${ TimeInterval[this.config.timeInterval] }`);
 
         // Define now and time of last candle
         const now = new Date();
@@ -67,11 +70,11 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         const lastItem = this.dataStorage.last;
         if (lastItem) {
             // Last candle should be also updated
-            lastT = DateUtils.substractInterval(lastItem.date, interval);
+            lastT = DateUtils.substractInterval(lastItem.date, this.config.timeInterval);
         }
 
         // make request
-        this.makeRequest({ start: lastT, end: now }, interval);
+        this.makeRequest({ start: lastT, end: now }, this.config.timeInterval);
 
         // schedule next autoupdate
         this.scheduleAutoupdate();
@@ -149,7 +152,19 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         return { start: minValue, end: maxValue };
     }
 
+    public setTimeInterval(interval: TimeInterval) {
+        // set interval and clear storage
+        //
+        this.config.timeInterval = interval;
+        this.dataStorage.clear(); // = new ArrayDataStorage<T>(this.comparer);
+    }
+
     protected makeRequest(range: IRange<Date>, interval: TimeInterval) {
+        if (this.isDisposed) {
+            console.debug(`Ignoring request from the disposed data source.`);
+            return;
+        }
+
         let reqStartTime = range.start.getTime();
         let reqEndTime = range.end.getTime();
 
@@ -171,7 +186,8 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         const reqEndDate = new Date(reqEndTime);
 
         // Make request
-        const request = this.config.readData(reqStartDate, reqEndDate, this.timeIntervalToString(interval));
+        console.debug(`reading data, interval=${ TimeInterval[this.config.timeInterval] }`);
+        const request = this.config.readData(reqStartDate, reqEndDate, this.config.timeInterval);
 
         // Add new request to collection of pending requests
         const uid = Date.now(); // unique id for request
@@ -193,13 +209,32 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
     }
 
     protected onRequestResolved(response: IResponse<T>) {
+        if (this.isDisposed) {
+            console.debug(`Ignoring response to the disposed data source.`);
+            return;
+        }
+
         if (response && response.data && response.data.length > 0) {
+
+            const timeInterval = this.stringToTimeInterval(response.interval);
+            if (timeInterval === this.config.timeInterval) {
+                // if timeinterval changed ignore response
+                console.debug(`Ignoring request with wrong time interval ${timeInterval}`);
+                return;
+            }
+
             // Update data
+            //
+            const lastDateBefore = this.dataStorage.last !== undefined ? this.dataStorage.last.date : undefined;
             this.mergeData(response.data);
+            const lastDateAfter = this.dataStorage.last !== undefined ? this.dataStorage.last.date : undefined;
+
             // Notify subscribers:
             this.dateChangedEvent.trigger(
-                new DataChangedArgument({ start: new Date(response.startDateTime), end: new Date(response.endDateTime) },
-                                        this.stringToTimeInterval(response.interval)));
+                new DataChangedArgument(
+                    { start: new Date(response.startDateTime), end: new Date(response.endDateTime) },
+                    timeInterval,
+                    lastDateBefore, lastDateAfter));
         }
     }
 
@@ -209,14 +244,14 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
 
     protected makeDefaultReader(): IDataReaderDelegate<T> {
         const url = this.config.url;
-
-        return (timeStart: Date, timeEnd: Date, interval: string) => {
+        const timeIntervalToString = this.timeIntervalToString;
+        return (timeStart: Date, timeEnd: Date, interval: TimeInterval) => {
             const settings: JQueryAjaxSettings = {
                 method: 'GET',
                 dataType: 'jsonp',
                 url: url,
                 data: {
-                    interval: interval,
+                    interval: timeIntervalToString(interval),
                     startDateTime: timeStart.toISOString(),
                     endDateTime: timeEnd.toISOString()
                 }
@@ -250,40 +285,18 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
     }
 
     protected timeIntervalToString(interval: TimeInterval): string {
-        switch (interval) {
-            case TimeInterval.month: return '1mo';
-            case TimeInterval.day7: return '1w';
-            case TimeInterval.day: return '1d';
-            case TimeInterval.hour4: return '4h';
-            case TimeInterval.hour: return '1h';
-            case TimeInterval.min30: return '30m';
-            case TimeInterval.min15: return '15m';
-            case TimeInterval.min5: return '5m';
-            case TimeInterval.min: return '1m';
-            default:
-                throw new Error('Unexpected TimeInterval value ' + interval);
-        }
+        return TimeInterval[interval];
     }
 
-    protected stringToTimeInterval(interval: string): TimeInterval {
-        switch (interval) {
-            case '1mo': return TimeInterval.month;
-            case '1w': return TimeInterval.day7;
-            case '1d': return TimeInterval.day;
-            case '4h': return TimeInterval.hour4;
-            case '1h': return TimeInterval.hour;
-            case '30m': return TimeInterval.min30;
-            case '15m': return TimeInterval.min15;
-            case '5m': return TimeInterval.min5;
-            case '1m': return TimeInterval.min;
-            default:
-                throw new Error('Unexpected "interval" value ' + interval);
-        }
+    protected stringToTimeInterval(interval: keyof typeof TimeInterval): TimeInterval {
+        return TimeInterval[interval];
     }
 
     public dispose() {
         if (this.timer) {
+            console.debug(`dispose, timer=${ this.timer }`);
             clearTimeout(this.timer);
         }
+        this.isDisposed = true;
     }
 }

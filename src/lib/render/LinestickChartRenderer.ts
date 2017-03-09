@@ -1,21 +1,21 @@
 ﻿/**
- * LineChartRenderer
+ * LinestickChartRenderer
  * 
- * @classdesc Renders points in a form of line chart.
+ * @classdesc Renders candlesticks in a form of line chart. Uses 'close' value as data source.
  */
 
 import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
 import { IDataIterator } from '../data/index';
-import { Point } from '../model/index';
+import { Candlestick } from '../model/index';
 import { IPoint, IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
 
-export class LineChartRenderer implements IChartRender<Point> {
+export class LinestickChartRenderer implements IChartRender<Candlestick> {
 
     public render(
         canvas: ICanvas,
-        dataIterator: IDataIterator<Point>,
+        dataIterator: IDataIterator<Candlestick>,
         frame: IRect,
         timeAxis: IAxis<Date>,
         yAxis: IAxis<number>): void {
@@ -40,12 +40,12 @@ export class LineChartRenderer implements IChartRender<Point> {
 
         if (dataIterator.moveNext()) {
             let x = timeAxis.toX(dataIterator.current.date);
-            let y = yAxis.toX(<number>dataIterator.current.value);
+            let y = yAxis.toX(<number>dataIterator.current.c);
             canvas.moveTo(x, y);
             while (dataIterator.moveNext()) {
-                if (dataIterator.current.value) {
+                if (dataIterator.current.c) {
                     x = timeAxis.toX(dataIterator.current.date);
-                    y = yAxis.toX(<number>dataIterator.current.value);
+                    y = yAxis.toX(<number>dataIterator.current.c);
                     canvas.lineTo(x, y);
                 }
             }
@@ -55,16 +55,16 @@ export class LineChartRenderer implements IChartRender<Point> {
 
     public testHitArea(
         hitPoint: IPoint,
-        dataIterator: IDataIterator<Point>,
+        dataIterator: IDataIterator<Candlestick>,
         frame: IRect,
         timeAxis: IAxis<Date>,
-        yAxis: IAxis<number>): Point | undefined {
+        yAxis: IAxis<number>): Candlestick | undefined {
 
         while (dataIterator.moveNext()) {
-            if (dataIterator.current.value) {
+            if (dataIterator.current.c) {
 
                 const x = timeAxis.toX(dataIterator.current.date);
-                const y = yAxis.toX(dataIterator.current.value);
+                const y = yAxis.toX(dataIterator.current.c);
 
                 const R = Math.sqrt(Math.pow(Math.abs(x - hitPoint.x), 2) + Math.pow(Math.abs(y - hitPoint.y), 2));
                 if (R < 2) {

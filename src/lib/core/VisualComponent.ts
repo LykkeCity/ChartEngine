@@ -38,6 +38,10 @@ export abstract class VisualComponent { //implements IMouseHandler {
         this.children.push(child);
     }
 
+    public removeChild(child: VisualComponent) {
+        this.children = this.children.filter((value) => value !== child);
+    }
+
     public render(context: VisualContext, renderLocator: IRenderLocator): void {
         for (const child of this.children) {
 

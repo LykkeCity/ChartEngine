@@ -3,6 +3,7 @@
  */
 export enum TimeInterval {
     notSet =         0,
+    sec =         1000,
     min =        60000,
     min5 =      300000,
     min15 =     900000,
@@ -13,7 +14,7 @@ export enum TimeInterval {
     hour12 =  43200000,
     day =     86400000,
     day3 =   259200000,
-    day7 =   604800000,
+    week =   604800000,
     day10 =  864000000,
     month = 2678400000 // 31 days
 }
