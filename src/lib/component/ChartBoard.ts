@@ -102,7 +102,7 @@ export class ChartBoard extends VisualComponent {
 
         // Hook up event handlers
         //
-        let self = this;
+        const self = this;
         this.eventHandlers['mousewheel'] = function (event: any) { self.onMouseWheel(event); };
         this.eventHandlers['mouseup'] = function (event: any) { self.onMouseUp(event); };
         this.eventHandlers['mousedown'] = function (event: any) { self.onMouseDown(event); };
@@ -386,7 +386,7 @@ export class ChartBoard extends VisualComponent {
         //super.onMouseMove(event);
 
         if (this.isMouseDown && this.mouseX && this.mouseY) {
-            let diffX = event.pageX - this.mouseX;
+            const diffX = event.pageX - this.mouseX;
 
             if (this.timeAxis) {
                 this.timeAxis.move(diffX);

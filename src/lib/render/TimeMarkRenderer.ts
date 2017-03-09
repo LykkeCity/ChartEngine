@@ -14,7 +14,7 @@ export class TimeMarkRenderer implements IMarkRender<Date> {
             const hh = data.getUTCHours();
             const mm = data.getUTCMinutes();
             const hhmm = ('0' + hh.toFixed(0)).slice(-2) + ':' + ('0' + mm.toFixed(0)).slice(-2);
-            const text = `${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate()} ${hhmm}`;
+            const text = `${data.getUTCFullYear()}-${data.getUTCMonth() + 1}-${data.getUTCDate()} ${hhmm}`;
 
             const textWidth = canvas.measureText(text).width;
             canvas.fillStyle = '#3F3F3F';
