@@ -53,8 +53,8 @@ export class CanvasWrapper implements ICanvas {
               (<any>this.ctx).backingStorePixelRatio || 1;
         this.ratio = dpr / bsr;
 
-        this.w = width * this.ratio;
-        this.h = height * this.ratio;
+        this.w = width;
+        this.h = height;
 
         this.ctx.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     }
@@ -99,8 +99,8 @@ export class CanvasWrapper implements ICanvas {
     }
 
     public resize(w: number, h: number): void {
-        this.w = w * this.ratio;
-        this.h = h * this.ratio;
+        this.w = w;
+        this.h = h;
         // restore transformation
         this.ctx.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     }
