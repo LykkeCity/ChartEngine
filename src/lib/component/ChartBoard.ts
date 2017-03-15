@@ -188,41 +188,6 @@ export class ChartBoard extends VisualComponent {
         this.area.resize(w, h);
 
         this.timeAxis.length = this.area.timeAxisLength;
-
-        // // resize inner components
-        // const dh = Math.floor((h - this.xAxisHeight) / (this.chartStacks.length + 1));
-        // const dw = w - this.yAxisWidth;
-        // let yOffset = 0;
-        // let i = 0;
-        // for (; i < this.chartStacks.length; i += 1) {
-        //     // resize charts
-        //     this.chartStacks[i].resize(dw, i === 0 ? dh * 2 : dh);
-        //     this.chartAreas[i].resize(dw, i === 0 ? dh * 2 : dh);
-        //     this.yAxes[i].resize(this.yAxisWidth, i === 0 ? dh * 2 : dh);
-        //     this.yAxisAreas[i].resize(this.yAxisWidth, i === 0 ? dh * 2 : dh);
-
-        //     // resize HTML elements
-        //     for (let j = 0; j < 3; j += 1) {
-        //         const div = this.table.rows.item(i).cells[j].getElementsByTagName('div')[0];
-        //         div.style.setProperty('height', (i === 0 ? dh * 2 : dh) + 'px');
-        //         if (j === 1) { div.style.setProperty('width', dw + 'px'); }
-        //     }
-
-        //     // update vertical and horizontal offset
-        //     this.chartStacks[i].offset = { x: this.chartStacks[i].offset.x, y: yOffset };
-        //     this.yAxes[i].offset = { x: dw, y: yOffset };
-        //     yOffset += (i === 0 ? dh * 2 : dh);
-        // }
-        // // resize time axis
-        // this.timeAxisComponent.resize(dw, this.xAxisHeight);
-        // this.timeArea.resize(dw, this.xAxisHeight);
-
-        // // resize HTML element
-        // const div = this.table.rows.item(i).cells[1].getElementsByTagName('div')[0];
-        // div.style.setProperty('width', dw + 'px');
-
-        // // update vertical offset
-        // this.timeAxisComponent.offset = { x: this.timeAxisComponent.offset.x, y: yOffset };
     }
 
     public setTimeInterval(interval: TimeInterval) {
