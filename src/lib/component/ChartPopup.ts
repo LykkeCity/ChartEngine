@@ -4,17 +4,15 @@
 import { IAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
+import { Area } from '../layout/index';
 import { IChartRender, IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
 
 export class ChartPopup<T> extends VisualComponent {
 
-    public get target(): string {
-        return 'front'; // 'base'
-    }
-
     constructor(
         private chartType: string,
+        private area: Area,
         offset: Point,
         size: ISize,
         private dataSource: IDataSource<T>,
@@ -35,7 +33,7 @@ export class ChartPopup<T> extends VisualComponent {
         if (mouseX > 0 && mouseX < this.size.width
             && mouseY > 0 && mouseY < this.size.height) {
 
-            const canvas = context.getCanvas(this.target);
+            //const canvas = context.getCanvas(this.target);
 
             // 1. Get approximate range
             // 2. Get data in that range            
@@ -54,7 +52,7 @@ export class ChartPopup<T> extends VisualComponent {
 
                 if (item) {
                     const popupRender = renderLocator.getPopupRender<T>(this.dataSource.dataType);
-                    popupRender.render(canvas, item, { x: mouseX, y: mouseY }, this.size);
+                    popupRender.render(this.area.frontCanvas, item, { x: mouseX, y: mouseY }, this.size);
                 }
             }
         }

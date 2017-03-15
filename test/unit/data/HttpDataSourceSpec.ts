@@ -127,7 +127,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1d']);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.day, dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
         const iterator = ads.getData({ start: new Date(2017, 0, 1), end: new Date(2017, 0, 2) }, TimeInterval.day);
 
@@ -141,7 +141,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1d'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.day, dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
@@ -186,7 +186,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m']);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.min, dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         let iterator;
@@ -201,7 +201,7 @@ describe('HttpDataSource tests', () => {
             // validate argument range
             expect(arg.range.start).toEqual(requestedStartDate);
             expect(arg.range.end).toEqual(requestedEndDate);
-            expect(arg.interval).toEqual(TimeInterval.min);
+            expect(arg.interval).toEqual(TimeInterval[TimeInterval.min]);
 
             // re-read data
             iterator = ads.getData({ start: requestedStartDate, end: requestedEndDate }, TimeInterval.min);
@@ -239,7 +239,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1d'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.day, dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Getting part of existing data
@@ -266,7 +266,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m']);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.min, dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
@@ -309,7 +309,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.min, dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
@@ -360,7 +360,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.min, dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
@@ -383,9 +383,9 @@ describe('HttpDataSource tests', () => {
         expect(dataReader.readData).toHaveBeenCalledTimes(2);
         //timeStart: Date, timeEnd: Date, interval: string
         expect(dataReader.readData.calls.argsFor(0))
-            .toEqual([makeUtcDate(2017, 0, 10, 10, 11, 58), makeUtcDate(2017, 0, 10, 10, 12, 6), '1m' ]);
+            .toEqual([makeUtcDate(2017, 0, 10, 10, 11, 58), makeUtcDate(2017, 0, 10, 10, 12, 6), TimeInterval.min ]);
         expect(dataReader.readData.calls.argsFor(1))
-            .toEqual([makeUtcDate(2017, 0, 10, 10, 12, 6), makeUtcDate(2017, 0, 10, 10, 12, 12), '1m' ]);
+            .toEqual([makeUtcDate(2017, 0, 10, 10, 12, 6), makeUtcDate(2017, 0, 10, 10, 12, 12), TimeInterval.min ]);
 
         // Signal that data request is finished
         $def.resolve();
@@ -418,7 +418,7 @@ describe('HttpDataSource tests', () => {
         const dataReader = makeDataReader(testCandlesSet['1m'], $def);
         spyOn(dataReader, 'readData').and.callThrough();
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', dataReader.readData, dataReader.resolveData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.min, dataReader.readData, dataReader.resolveData);
         const ads = new HttpDataSource<Candlestick>(Candlestick, httpConfig);
 
         // Hooking up event on data update
@@ -441,9 +441,9 @@ describe('HttpDataSource tests', () => {
         expect(dataReader.readData).toHaveBeenCalledTimes(2);
         //timeStart: Date, timeEnd: Date, interval: string
         expect(dataReader.readData.calls.argsFor(0))
-            .toEqual([makeUtcDate(2017, 0, 10, 10, 12, 3), makeUtcDate(2017, 0, 10, 10, 12, 7), '1m' ]);
+            .toEqual([makeUtcDate(2017, 0, 10, 10, 12, 3), makeUtcDate(2017, 0, 10, 10, 12, 7), TimeInterval.min ]);
         expect(dataReader.readData.calls.argsFor(1))
-            .toEqual([makeUtcDate(2017, 0, 10, 10, 12, 9), makeUtcDate(2017, 0, 10, 10, 12, 12), '1m' ]);
+            .toEqual([makeUtcDate(2017, 0, 10, 10, 12, 9), makeUtcDate(2017, 0, 10, 10, 12, 12), TimeInterval.min ]);
 
         // Signal that data request is finished
         $def.resolve();

@@ -24,17 +24,12 @@ export abstract class VisualComponent { //implements IMouseHandler {
         return this._size;
     }
 
-    public get target(): string {
-        // TODO: Make an enum
-        return 'base'; // 'front'
-    }
-
     constructor(offset?: Point, size?: ISize) {
         this._offset = offset ? offset : new Point(0, 0);
         this._size = size ? size : {width: 0, height: 0};
     }
 
-    public addChild(child: VisualComponent) {
+    protected addChild(child: VisualComponent) {
         this.children.push(child);
     }
 

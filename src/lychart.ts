@@ -4,9 +4,7 @@
 
 import {
     Chart,
-    ChartArea,
-    ChartBoard,
-    ChartStack
+    ChartBoard
 } from './lib/component';
 
 import * as axes from './lib/axes';
@@ -26,9 +24,7 @@ import * as utils from './lib/utils';
 
 (<any>window).lychart = {
     Chart: Chart,
-    ChartArea: ChartArea,
     ChartBoard: ChartBoard,
-    ChartStack: ChartStack,
     // 
     axes: axes,
     canvas: canvas,

@@ -3,42 +3,30 @@
  * 
  * @classdesc Facade for the chart library.
  */
-
-import { NumberAxis, PriceAxis, TimeAxis } from '../axes/index';
-import { ChartType, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { TimeAxis } from '../axes/index';
+import { TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, IDataSource, IDataSourceUntyped } from '../data/index';
 import { IMouseHandler } from '../interaction/index';
+import { BoardArea } from '../layout/index';
 import { Point } from '../model/index';
 import { RenderLocator } from '../render/index';
 import { IEventHandler, IHashTable, Point as IPoint } from '../shared/index';
-import { ChartArea } from './ChartArea';
 import { ChartStack } from './ChartStack';
-import { NumberMarker } from './NumberMarker';
-import { PriceMarker } from './PriceMarker';
-import { TimeMarker } from './TimeMarker';
+import { TimeAxisComponent } from './TimeAxisComponent';
 
 import * as $ from 'jquery';
 
 export class ChartBoard extends VisualComponent {
 
-    private table: HTMLTableElement;
-
-    private readonly chartAreas: ChartArea[] = [];
+    private readonly area: BoardArea;
     private readonly chartStacks: ChartStack[] = [];
-    private readonly yAxisAreas: ChartArea[] = [];
-    private readonly yAxes: any[] = [];
-
-    private timeAxis: TimeAxis;
-    private timeArea: ChartArea;
+    private readonly timeAxis: TimeAxis;
+    private readonly timeAxisComponent: TimeAxisComponent;
 
     private readonly dataSources: IHashTable<IDataSourceUntyped> = { };
-    private readonly indicators: IDataSource<Point>[] = [];
 
-    private eventHandlers: IHashTable<IEventHandler<any>> = {};
+    private readonly eventHandlers: IHashTable<IEventHandler<any>> = {};
     private readonly mouseHandlers: IMouseHandler[] = [];
-
-    private readonly yAxisWidth = 90;
-    private readonly xAxisHeight = 25;
 
     constructor(
         private readonly container: HTMLElement,
@@ -50,55 +38,21 @@ export class ChartBoard extends VisualComponent {
     ) {
         super({ x: 0, y: 0}, { width: Math.max(w, 100), height: Math.max(h, 50)});
 
-        const chartWidth = this._size.width - this.yAxisWidth;
-        const chartHeight = this._size.height - this.xAxisHeight;
-
-        this.table = document.createElement('table');
-        this.table.style.setProperty('position', 'relative');
-        this.table.style.setProperty('border-spacing', '0');
-        this.table.style.setProperty('border-collapse', 'collapse');
-        this.container.appendChild(this.table);
-
-        this.timeArea = this.makeArea(chartWidth, this.xAxisHeight);
+        this.area = new BoardArea(container, this._size);
 
         const start = new Date();
         start.setUTCHours(start.getUTCHours() - 2);
         const now = new Date();
-        this.timeAxis = new TimeAxis(
-            { x: 0, y: h}, // offset
-            { width: this.timeArea.width, height: this.timeArea.height}, // size
-            interval, { start: start, end: now });
-        this.addChild(this.timeAxis);
+        this.timeAxis = new TimeAxis(this.area.timeAxisLength, interval, { start: start, end: now });
 
-        const timeMarker = new TimeMarker({ x: 0, y: 0 }, this.timeAxis.size, this.timeAxis);
-        this.timeAxis.addChild(timeMarker);
+        this.timeAxisComponent = new TimeAxisComponent(this.area, this.timeAxis);
+        this.addChild(this.timeAxisComponent);
 
         // Create main chart area
         //
-        const chartArea = this.makeArea(chartWidth, chartHeight);
-        this.chartAreas.push(chartArea);
-
-        const yAxisArea = this.makeArea(this.yAxisWidth, chartHeight);
-        this.yAxisAreas.push(yAxisArea);
-
-        // create initial Y axis
-        const yAxis = new PriceAxis(
-            { x: chartArea.width, y: 0 },                         // offset
-            { width: yAxisArea.width, height: yAxisArea.height }, // size
-            0.0005);
-        this.yAxes.push(yAxis);
-        this.addChild(yAxis);
-
-        const priceMarker = new PriceMarker({x: 0, y: 0}, yAxis.size, yAxis);
-        yAxis.addChild(priceMarker);
-
-        // Add main chart stack
-        const chartStack = new ChartStack(new IPoint(0, 0), { width: chartWidth, height: chartHeight }, this.timeAxis, yAxis);
+        const chartStack = new ChartStack(this.area, this.timeAxis, true);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
-
-        this.insertRow(this.table, 0, undefined, chartArea, yAxisArea);
-        this.insertRow(this.table, 1, undefined, this.timeArea, undefined);
 
         // Hook up event handlers
         //
@@ -118,43 +72,6 @@ export class ChartBoard extends VisualComponent {
         $(this.container).mousemove(this.eventHandlers['mousemove']);
         this.container.addEventListener('mouseenter', this.eventHandlers['mouseenter'], false);
         this.container.addEventListener('mouseleave', this.eventHandlers['mouseleave'], false);
-    }
-
-    private insertRow(table: HTMLTableElement, index?: number, el1?: ChartArea, el2?: ChartArea, el3?: ChartArea) {
-        const row = table.insertRow(index);
-        const cell1 = row.insertCell(0);
-        const cell2 = row.insertCell(1);
-        const cell3 = row.insertCell(2);
-        cell1.style.setProperty('padding', '0');
-        cell2.style.setProperty('padding', '0');
-        cell3.style.setProperty('padding', '0');
-
-        const div1 = document.createElement('div');
-        const div2 = document.createElement('div');
-        const div3 = document.createElement('div');
-
-        div1.style.setProperty('position', 'relative');
-        div1.style.setProperty('height', el1 ? el1.height + 'px' : '');
-        div1.style.setProperty('width', el1 ? el1.width + 'px' : '');
-        div2.style.setProperty('position', 'relative');
-        div2.style.setProperty('height', el2 ? el2.height + 'px' : '');
-        div2.style.setProperty('width', el2 ? el2.width + 'px' : '');
-        div2.style.setProperty('cursor', 'crosshair');
-        div3.style.setProperty('position', 'relative');
-        div3.style.setProperty('height', el3 ? el3.height + 'px' : '');
-        div3.style.setProperty('width', el3 ? el3.width + 'px' : '');
-
-        cell1.appendChild(div1);
-        cell2.appendChild(div2);
-        cell3.appendChild(div3);
-
-        if (el1) { div1.appendChild(el1.baseCanvas); div1.appendChild(el1.frontCanvas); }
-        if (el2) { div2.appendChild(el2.baseCanvas); div2.appendChild(el2.frontCanvas); }
-        if (el3) { div3.appendChild(el3.baseCanvas); div3.appendChild(el3.frontCanvas); }
-    }
-
-    private makeArea(w: number, h: number) : ChartArea {
-        return new ChartArea(w, h);
     }
 
     public addChart<T>(uid: string, chartType: string, dataSource: IDataSource<T>) {
@@ -178,44 +95,33 @@ export class ChartBoard extends VisualComponent {
     }
 
     public addIndicator(uid: string, indicatorDataSource: IDataSource<Point>) {
-        this.indicators.push(indicatorDataSource);
+        // this.indicators.push(indicatorDataSource);
 
-        const dh = Math.floor((this._size.height - this.xAxisHeight) / (this.chartStacks.length + 2));
-        const dw = this._size.width - this.yAxisWidth;
+        // const dh = Math.floor((this._size.height - this.xAxisHeight) / (this.chartStacks.length + 2));
+        // const dw = this._size.width - this.yAxisWidth;
 
-        const yOffset = (this.chartStacks.length + 1) * dh;
+        // const yOffset = (this.chartStacks.length + 1) * dh;
 
-        // create new area
-        const chartArea = this.makeArea(dw, dh);
-        this.chartAreas.push(chartArea);
+        // // create new area
+        // const chartArea = this.makeArea(dw, dh);
+        // this.chartAreas.push(chartArea);
 
-        const yAxisArea = this.makeArea(this.yAxisWidth, dh);
-        this.yAxisAreas.push(yAxisArea);
+        // const yAxisArea = this.makeArea(this.yAxisWidth, dh);
+        // this.yAxisAreas.push(yAxisArea);
 
-        // create Y axis
-        const yAxis = new NumberAxis(
-            { x: chartArea.width, y: yOffset },                   // offset
-            { width: yAxisArea.width, height: yAxisArea.height }, // size
-            0.0005);
-        this.yAxes.push(yAxis);
-        this.addChild(yAxis);
+        // const chartStack = new ChartStack(new IPoint(0, yOffset), { width: dw, height: dh }, this.timeAxis, false);
+        // chartStack.addChart(uid, ChartType.line, indicatorDataSource);
+        // this.chartStacks.push(chartStack);
+        // this.addChild(chartStack);
 
-        const numberMarker = new NumberMarker({x: 0, y: 0}, yAxis.size, yAxis);
-        yAxis.addChild(numberMarker);
+        // this.insertRow(this.table, this.chartAreas.length - 1, undefined, chartArea, yAxisArea);
 
-        const chartStack = new ChartStack(new IPoint(0, yOffset), { width: dw, height: dh }, this.timeAxis, yAxis);
-        chartStack.addChart(uid, ChartType.line, indicatorDataSource);
-        this.chartStacks.push(chartStack);
-        this.addChild(chartStack);
+        // // change timeAxisOffset
+        // const curOffset = this.timeAxisComponent.offset;
+        // this.timeAxisComponent.offset = new IPoint(curOffset.x, curOffset.y + (this._size.height - this.xAxisHeight));
 
-        this.insertRow(this.table, this.chartAreas.length - 1, undefined, chartArea, yAxisArea);
-
-        // change timeAxisOffset
-        const curOffset = this.timeAxis.offset;
-        this.timeAxis.offset = new IPoint(curOffset.x, curOffset.y + (this._size.height - this.xAxisHeight));
-
-        // recalculate size of all elements
-        this.resize(this._size.width, this._size.height);
+        // // recalculate size of all elements
+        // this.resize(this._size.width, this._size.height);
     }
 
     public render(): void {
@@ -225,6 +131,13 @@ export class ChartBoard extends VisualComponent {
     private renderLayers(renderBase: boolean, renderFront: boolean): void {
         renderBase = renderBase === undefined ? true : renderBase;
         renderFront = renderFront === undefined ? true : renderFront;
+
+        if (renderBase) {
+            this.area.clearBase();
+        }
+        if (renderFront) {
+            this.area.clearFront();
+        }
 
         let mouse = undefined;
         if (this.isMouseEntered && this.mouseX && this.mouseY) {
@@ -236,19 +149,6 @@ export class ChartBoard extends VisualComponent {
         for (let i = 0; i < this.chartStacks.length; i += 1) {
 
             const cStack = this.chartStacks[i];
-            const area = this.chartAreas[i];
-            const yAxis = this.yAxes[i];
-            const yAxisArea = this.yAxisAreas[i];
-
-            if (renderBase) {
-                // clear base layer
-                area.mainContext.clear();
-                yAxisArea.mainContext.clear();
-            }
-            if (renderFront) {
-                area.frontContext.clear();
-                yAxisArea.frontContext.clear();
-            }
 
             let relativeMouse = undefined;
             // Convert mouse coords to relative
@@ -260,48 +160,23 @@ export class ChartBoard extends VisualComponent {
             let context: VisualContext = new VisualContext(
                 renderBase,
                 renderFront,
-                area.mainContext,
-                area.frontContext,
                 relativeMouse);
 
             cStack.render(context, RenderLocator.Instance);
-
-            context = new VisualContext(
-                renderBase,
-                renderFront,
-                yAxisArea.mainContext,
-                yAxisArea.frontContext,
-                relativeMouse);
-            if (mouse) {
-                relativeMouse = new IPoint(mouse.x - yAxis.offset.x, mouse.y - yAxis.offset.y);
-            }
-
-            yAxis.render(context, RenderLocator.Instance);
-        }
-
-        // Do not rerender time axis when rendering only front.
-        if (renderBase) {
-            // Clear canvas
-            this.timeArea.mainContext.clear();
-        }
-        if (renderFront) {
-            this.timeArea.frontContext.clear();
         }
 
         let relativeMouse = undefined;
         // Convert mouse coords to relative
         if (mouse) {
-            relativeMouse = new IPoint(mouse.x - this.timeAxis.offset.x, mouse.y - this.timeAxis.offset.y);
+            relativeMouse = new IPoint(mouse.x - this.timeAxisComponent.offset.x, mouse.y - this.timeAxisComponent.offset.y);
         }
 
         const context: VisualContext = new VisualContext(
             renderBase,
             renderFront,
-            this.timeArea.mainContext,
-            this.timeArea.frontContext,
             relativeMouse);
 
-        this.timeAxis.render(context, RenderLocator.Instance);
+        this.timeAxisComponent.render(context, RenderLocator.Instance);
     }
 
     public resize(w: number, h: number): void {
@@ -310,45 +185,48 @@ export class ChartBoard extends VisualComponent {
 
         this._size = { width: w, height: h };
 
-        // resize inner components
-        const dh = Math.floor((h - this.xAxisHeight) / (this.chartStacks.length + 1));
-        const dw = w - this.yAxisWidth;
-        let yOffset = 0;
-        let i = 0;
-        for (; i < this.chartStacks.length; i += 1) {
-            // resize charts
-            this.chartStacks[i].resize(dw, i === 0 ? dh * 2 : dh);
-            this.chartAreas[i].resize(dw, i === 0 ? dh * 2 : dh);
-            this.yAxes[i].resize(this.yAxisWidth, i === 0 ? dh * 2 : dh);
-            this.yAxisAreas[i].resize(this.yAxisWidth, i === 0 ? dh * 2 : dh);
+        this.area.resize(w, h);
 
-            // resize HTML elements
-            for (let j = 0; j < 3; j += 1) {
-                const div = this.table.rows.item(i).cells[j].getElementsByTagName('div')[0];
-                div.style.setProperty('height', (i === 0 ? dh * 2 : dh) + 'px');
-                if (j === 1) { div.style.setProperty('width', dw + 'px'); }
-            }
+        this.timeAxis.length = this.area.timeAxisLength;
 
-            // update vertical and horizontal offset
-            this.chartStacks[i].offset = { x: this.chartStacks[i].offset.x, y: yOffset };
-            this.yAxes[i].offset = { x: dw, y: yOffset };
-            yOffset += (i === 0 ? dh * 2 : dh);
-        }
-        // resize time axis
-        this.timeAxis.resize(dw, this.xAxisHeight);
-        this.timeArea.resize(dw, this.xAxisHeight);
+        // // resize inner components
+        // const dh = Math.floor((h - this.xAxisHeight) / (this.chartStacks.length + 1));
+        // const dw = w - this.yAxisWidth;
+        // let yOffset = 0;
+        // let i = 0;
+        // for (; i < this.chartStacks.length; i += 1) {
+        //     // resize charts
+        //     this.chartStacks[i].resize(dw, i === 0 ? dh * 2 : dh);
+        //     this.chartAreas[i].resize(dw, i === 0 ? dh * 2 : dh);
+        //     this.yAxes[i].resize(this.yAxisWidth, i === 0 ? dh * 2 : dh);
+        //     this.yAxisAreas[i].resize(this.yAxisWidth, i === 0 ? dh * 2 : dh);
 
-        // resize HTML element
-        const div = this.table.rows.item(i).cells[1].getElementsByTagName('div')[0];
-        div.style.setProperty('width', dw + 'px');
+        //     // resize HTML elements
+        //     for (let j = 0; j < 3; j += 1) {
+        //         const div = this.table.rows.item(i).cells[j].getElementsByTagName('div')[0];
+        //         div.style.setProperty('height', (i === 0 ? dh * 2 : dh) + 'px');
+        //         if (j === 1) { div.style.setProperty('width', dw + 'px'); }
+        //     }
 
-        // update vertical offset
-        this.timeAxis.offset = { x: this.timeAxis.offset.x, y: yOffset };
+        //     // update vertical and horizontal offset
+        //     this.chartStacks[i].offset = { x: this.chartStacks[i].offset.x, y: yOffset };
+        //     this.yAxes[i].offset = { x: dw, y: yOffset };
+        //     yOffset += (i === 0 ? dh * 2 : dh);
+        // }
+        // // resize time axis
+        // this.timeAxisComponent.resize(dw, this.xAxisHeight);
+        // this.timeArea.resize(dw, this.xAxisHeight);
+
+        // // resize HTML element
+        // const div = this.table.rows.item(i).cells[1].getElementsByTagName('div')[0];
+        // div.style.setProperty('width', dw + 'px');
+
+        // // update vertical offset
+        // this.timeAxisComponent.offset = { x: this.timeAxisComponent.offset.x, y: yOffset };
     }
 
     public setTimeInterval(interval: TimeInterval) {
         if (interval) {
-            // this.timeInterval = interval;
             this.timeAxis.interval = interval;
         }
     }

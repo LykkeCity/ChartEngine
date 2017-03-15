@@ -3,19 +3,18 @@
  */
 import { PriceAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
+import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
 
 export class PriceMarker extends VisualComponent {
 
+    private area: Area;
     private axis: PriceAxis;
 
-    public get target(): string {
-        return 'front'; // 'base'
-    }
-
-    constructor(offset: Point, size: ISize, axis: PriceAxis) {
+    constructor(area: Area, offset: Point, size: ISize, axis: PriceAxis) {
         super(offset, size);
+        this.area = area;
         this.axis = axis;
     }
 
@@ -30,10 +29,10 @@ export class PriceMarker extends VisualComponent {
 
             if (mouseY > 0 && mouseY < this.size.height) {
 
-                const canvas = context.getCanvas(this.target);
+                //const canvas = context.getCanvas(this.target);
                 const render = renderLocator.getMarkRender('number');
                 const num = this.axis.toValue(mouseY);
-                render.render(canvas, num, { x: 0, y: mouseY }, this.size);
+                render.render(this.area.frontCanvas, num, { x: 0, y: mouseY }, this.size);
             }
         }
     }

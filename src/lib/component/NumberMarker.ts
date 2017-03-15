@@ -3,6 +3,7 @@
  */
 import { NumberAxis } from '../axes/index';
 import { VisualComponent, VisualContext } from '../core/index';
+import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
 
@@ -10,11 +11,9 @@ export class NumberMarker extends VisualComponent {
 
     private axis: NumberAxis;
 
-    public get target(): string {
-        return 'front'; // 'base'
-    }
-
-    constructor(offset: Point, size: ISize, axis: NumberAxis) {
+    constructor(
+        private area: Area,
+        offset: Point, size: ISize, axis: NumberAxis) {
         super(offset, size);
         this.axis = axis;
     }
@@ -30,10 +29,10 @@ export class NumberMarker extends VisualComponent {
 
             if (mouseY > 0 && mouseY < this.size.height) {
 
-                const canvas = context.getCanvas(this.target);
+                //const canvas = context.getCanvas(this.target);
                 const render = renderLocator.getMarkRender('number');
                 const num = this.axis.toValue(mouseY);
-                render.render(canvas, num, { x: 0, y: mouseY }, this.size);
+                render.render(this.area.frontCanvas, num, { x: 0, y: mouseY }, this.size);
             }
         }
     }
