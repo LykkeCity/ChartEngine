@@ -21,16 +21,16 @@ export class YArea extends Area {
         cell.appendChild(div);
 
         div.style.setProperty('position', 'relative');
-        div.style.setProperty('height', this._size.height + 'px');
         div.style.setProperty('width', this.size.width + 'px');
+        div.style.setProperty('height', this._size.height + 'px');
 
         this.appendCanvases(div, this._size.width, this._size.height);
     }
 
     public resize(w: number, h: number) {
         const div = this.cell.getElementsByTagName('div')[0];
-        div.style.setProperty('height', this._size.height + 'px');
-        div.style.setProperty('width', this.size.width + 'px');
+        div.style.setProperty('width', w + 'px');
+        div.style.setProperty('height', h + 'px');
 
         super.resize(w, h);
     }

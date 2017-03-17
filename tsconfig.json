@@ -16,7 +16,7 @@
     "traceResolution": false,
     // TODO: change to 'true'
     "noUnusedParameters": false,
-    "noUnusedLocals": true
+    "noUnusedLocals": false
   },
   "exclude": [
     "node_modules",

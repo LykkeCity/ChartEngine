@@ -10,6 +10,7 @@ import { IRenderLocator } from '../render/index';
 import { Point } from '../shared/index';
 import { Chart, IChart } from './Chart';
 import { Crosshair } from './Crosshair';
+import { FigureComponent, LineFigureComponent } from './Figures';
 import { Grid } from './Grid';
 import { NumberAxisComponent } from './NumberAxisComponent';
 import { PriceAxisComponent } from './PriceAxisComponent';
@@ -21,6 +22,7 @@ export class ChartStack extends VisualComponent {
     private yAxis: IAxis<number>;
     private charts: IChart[] = [];
     private crosshair: Crosshair;
+    private figures: FigureComponent[] = [];
 
     constructor(
         boardArea: BoardArea,
@@ -78,10 +80,12 @@ export class ChartStack extends VisualComponent {
         }
     }
 
-    protected onresize = (arg: SizeChangedArgument) => {
-        this._size = arg.size;
-        (<any>this.yAxis).length = arg.size.height;
-        this.resize(arg.size.width, arg.size.height);
+    public addLine() : LineFigureComponent {
+        const line = new LineFigureComponent(this.area, { x: 0, y: 0 }, this.size, this.tAxis, this.yAxis);
+
+        this.figures.push(line);
+
+        return line;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
@@ -109,18 +113,20 @@ export class ChartStack extends VisualComponent {
             }
         }
 
-        // context = new VisualContext(
-        //     renderBase,
-        //     renderFront,
-        //     // yAxisArea.mainContext,
-        //     // yAxisArea.frontContext,
-        //     relativeMouse);
-        // if (mouse) {
-        //     relativeMouse = new IPoint(mouse.x - yAxis.offset.x, mouse.y - yAxis.offset.y);
-        // }
-
-        // this.yAxis.render(context, renderLocator);
-
         super.render(context, renderLocator);
+    }
+
+    protected onresize = (arg: SizeChangedArgument) => {
+        this._offset = this.area.offset;
+
+        const w = this.area.size.width;
+        const h = this.area.size.height;
+
+        this._size = { width: w, height: h };
+
+        (<any>this.yAxis).length = arg.size.height;
+
+        // resize all children
+        super.resize(arg.size.width, arg.size.height);
     }
 }

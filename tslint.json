@@ -60,7 +60,7 @@
         "no-jquery-raw-elements": true,
         "no-regex-spaces": true,
         "no-sparse-arrays": true,
-        "no-stateless-class": true,
+        "no-stateless-class": false,
         "no-string-literal": true,
         "no-unnecessary-bind": true,
         "no-unnecessary-override": true,
@@ -98,7 +98,7 @@
         "import-name": true,
         "interface-name": true,
         "jsdoc-format": true,
-        "max-classes-per-file": [true, 3],  // we generally recommend making one public class per file 
+        "max-classes-per-file": [true, 100],  // we generally recommend making one public class per file 
         "max-file-line-count": true,
         "max-func-body-length": [true, 100, {"ignore-parameters-to-function-regex": "describe"}],
         "max-line-length": [true, 140],

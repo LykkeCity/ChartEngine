@@ -2,10 +2,10 @@
  * Chart class.
  */
 import { IAxis } from '../axes/index';
-import { TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { IHoverable, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { ChartArea } from '../layout/index';
-import { IChartRender, IRenderLocator } from '../render/index';
+import { IChartRender, IRenderLocator, RenderLocator } from '../render/index';
 import { IRange, ISize, Point } from '../shared/index';
 import { ChartPopup } from './ChartPopup';
 
@@ -15,7 +15,7 @@ export interface IChart {
     render(context: VisualContext, renderLocator: IRenderLocator): void;
 }
 
-export class Chart<T> extends VisualComponent implements IChart {
+export class Chart<T> extends VisualComponent implements IChart, IHoverable {
     private _uid: string;
     private area: ChartArea;
     private popup: ChartPopup<T>;
@@ -58,5 +58,39 @@ export class Chart<T> extends VisualComponent implements IChart {
         }
 
         super.render(context, renderLocator);
+    }
+
+    public isHit(mouseX: number, mouseY: number): boolean {
+
+        if (mouseX > 0 && mouseX < this.size.width
+            && mouseY > 0 && mouseY < this.size.height) {
+
+            const renderLocator = RenderLocator.Instance;
+            // 1. Get approximate range
+            // 2. Get data in that range            
+            // 3. Test hit area
+            //
+            const dateRange = this.timeAxis.getValuesRange(mouseX - 10, mouseX + 10);
+            if (dateRange && dateRange.start && dateRange.end) {
+                const dataIterator = this.dataSource.getData(dateRange, this.timeAxis.interval);
+                const dataRender = <IChartRender<T>>renderLocator.getChartRender(this.dataSource.dataType, this.chartType);
+                const item = dataRender.testHitArea(
+                    { x: mouseX, y: mouseY },
+                    dataIterator,
+                    {x: 0, y: 0, w: this.size.width, h: this.size.height },
+                    this.timeAxis,
+                    this.yAxis);
+
+                if (item) {
+                    this.popup.item = item;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public setPopupVisibility(visible: boolean): void {
+        this.popup.visible = visible;
     }
 }

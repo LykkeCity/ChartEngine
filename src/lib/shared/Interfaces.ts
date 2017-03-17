@@ -8,8 +8,8 @@ export interface IRange<T> {
 }
 
 export interface IPoint {
-    readonly x: number,
-    readonly y: number
+    readonly x: number;
+    readonly y: number;
 }
 
 export class Point {
@@ -22,16 +22,31 @@ export class Point {
     }
 }
 
+export class PartialPoint {
+    public x?: number;
+    public y?: number;
+}
+
 export interface ISize {
-    readonly width: number,
-    readonly height: number
+    readonly width: number;
+    readonly height: number;
+}
+
+export class Size {
+    public width: number = 0;
+    public height: number = 0;
+
+    constructor(w?: number, h?: number) {
+        this.width = w ? w : 0;
+        this.height = h ? h : 0;
+    }
 }
 
 export interface IRect {
-    readonly x: number,
-    readonly y: number
-    readonly w: number,
-    readonly h: number
+    readonly x: number;
+    readonly y: number;
+    readonly w: number;
+    readonly h: number;
 }
 
 export interface IHashTable<T> {
