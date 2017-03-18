@@ -6,6 +6,7 @@ import { ChartPoint, IHoverable, VisualComponent, VisualContext } from '../core/
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IPoint, ISize, PartialPoint, Point } from '../shared/index';
+import { DrawUtils } from '../utils/index';
 
 export abstract class FigureComponent extends VisualComponent {
 
@@ -118,30 +119,32 @@ export class LineFigureComponent extends FigureComponent implements IHoverable {
         const ay = this.yAxis.toX(this.pa.point.v);
         const by = this.yAxis.toX(this.pb.point.v);
 
-        const minx = Math.min(ax, bx);
-        const maxx = Math.max(ax, bx);
-        const miny = Math.min(ay, by);
-        const maxy = Math.max(ay, by);
+        return DrawUtils.isPointInLine({ x: x, y: y }, { x: ax, y: ay }, { x: bx, y: by }, 0.05);
 
-        // Check hitting the rectangle area around the line
-        if (x > minx - 3 && x < maxx + 3 && y > miny - 3 && y < maxy + 3) {
+        // const minx = Math.min(ax, bx);
+        // const maxx = Math.max(ax, bx);
+        // const miny = Math.min(ay, by);
+        // const maxy = Math.max(ay, by);
 
-        } else {
-            return false;
-        }
+        // // Check hitting the rectangle area around the line
+        // if (x > minx - 3 && x < maxx + 3 && y > miny - 3 && y < maxy + 3) {
 
-        // If very short line
-        if (maxx - minx < 3 && maxy - miny < 3) {
-            console.debug(`minx - x = ${minx - x}   miny - y = ${miny - y}`);
-            if (Math.abs(minx - x) < 3 && Math.abs(miny - y) < 3) {
-                return true;
-            }
-            return false;
-        } else {
-            const diff = (x - ax) / (bx - ax) - (y - ay) / (by - ay);
-            console.debug(`diff = ${diff}`);
-            return (Math.abs(diff) < 0.04);
-        }
+        // } else {
+        //     return false;
+        // }
+
+        // // If very short line
+        // if (maxx - minx < 3 && maxy - miny < 3) {
+        //     console.debug(`minx - x = ${minx - x}   miny - y = ${miny - y}`);
+        //     if (Math.abs(minx - x) < 3 && Math.abs(miny - y) < 3) {
+        //         return true;
+        //     }
+        //     return false;
+        // } else {
+        //     const diff = (x - ax) / (bx - ax) - (y - ay) / (by - ay);
+        //     console.debug(`diff = ${diff}`);
+        //     return (Math.abs(diff) < 0.04);
+        // }
     }
 
     public setPopupVisibility(visible: boolean): void {
