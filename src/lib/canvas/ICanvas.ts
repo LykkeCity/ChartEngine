@@ -12,9 +12,11 @@ export interface ICanvas {
     globalAlpha: number;
     lineWidth: number;
 
+    arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, anticlockwise?: boolean): void;
     beginPath(): void;
     clear(): void;
     closePath(): void;
+    fill(fillRule?: string): void;
     fillText(s: string, x: number, y: number): void;
     fillRect(x: number, y: number, w: number, h: number): void;
     getLineDash(): number[];

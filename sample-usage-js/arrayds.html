@@ -12,6 +12,8 @@
 </head>
 <body>
     <div style="margin: 0; padding: 5px 0px 0px 25px; height: 20px">
+        <button id="btnAddLine">Add line</button>&nbsp;
+        <button id="btnAddRect">Add rect</button>
     </div>
 
     <div style="margin-top: 0px; margin-left: 25px;">
@@ -26,27 +28,27 @@
 
     <script type="text/javascript">
        var sampleData = [
-            { date: new Date('2017-03-16T10:10:00.000Z'), c: 60.1636, o: 60.0788, h: 60.2795, l: 59.8283 },
-            { date: new Date('2017-03-16T10:11:00.000Z'), c: 60.0788, o: 60.1636, h: 62.0860, l: 59.6046 },
-            { date: new Date('2017-03-16T10:12:00.000Z'), c: 59.6046, o: 59.4481, h: 59.7453, l: 59.1128 },
-            { date: new Date('2017-03-16T10:13:00.000Z'), c: 59.4481, o: 60.4653, h: 60.4653, l: 59.2225 },
-            { date: new Date('2017-03-16T10:14:00.000Z'), c: 60.4653, o: 60.9133, h: 61.1961, l: 60.2538 },
-            { date: new Date('2017-03-16T10:15:00.000Z'), c: 60.9133, o: 61.2730, h: 61.2864, l: 60.3812 },
-            { date: new Date('2017-03-16T10:16:00.000Z'), c: 61.2730, o: 60.4138, h: 61.6339, l: 60.4122 },
-            { date: new Date('2017-03-16T10:17:00.000Z'), c: 60.4138, o: 60.3297, h: 60.7954, l: 60.1234 },
-            { date: new Date('2017-03-16T10:18:00.000Z'), c: 60.3297, o: 60.6708, h: 60.7392, l: 60.1193 },
-            { date: new Date('2017-03-16T10:19:00.000Z'), c: 60.6708, o: 60.9777, h: 60.9777, l: 60.5989 },
-            { date: new Date('2017-03-16T10:20:00.000Z'), c: 60.9777, o: 61.0564, h: 61.0730, l: 60.7822 },
-            { date: new Date('2017-03-16T10:21:00.000Z'), c: 61.0564, o: 60.9426, h: 61.3663, l: 60.7854 },
-            { date: new Date('2017-03-16T10:22:00.000Z'), c: 60.9426, o: 61.1500, h: 61.1675, l: 60.7031 },
-            { date: new Date('2017-03-16T10:23:00.000Z'), c: 61.1500, o: 61.4518, h: 61.4598, l: 60.8764 },
-            { date: new Date('2017-03-16T10:24:00.000Z'), c: 61.4518, o: 61.9306, h: 62.0000, l: 61.3300 },
-            { date: new Date('2017-03-16T10:25:00.000Z'), c: 61.9306, o: 62.0946, h: 62.0946, l: 61.6667 },
-            { date: new Date('2017-03-16T10:26:00.000Z'), c: 62.0946, o: 61.7310, h: 62.4999, l: 61.4703 },
-            { date: new Date('2017-03-16T10:27:00.000Z'), c: 61.7310, o: 62.0812, h: 62.1000, l: 61.3483 },
-            { date: new Date('2017-03-16T10:28:00.000Z'), c: 62.0812, o: 60.6029, h: 62.0812, l: 60.6029 },
-            { date: new Date('2017-03-16T10:29:00.000Z'), c: 60.6029, o: 61.0442, h: 61.3088, l: 60.4866 },
-            { date: new Date('2017-03-16T10:30:00.000Z'), c: 61.0442, o: 62.4933, h: 62.4933, l: 60.7425 },
+            { date: new Date('2017-03-16T00:10:00.000Z'), c: 60.1636, o: 60.0788, h: 60.2795, l: 59.8283 },
+            { date: new Date('2017-03-16T00:11:00.000Z'), c: 60.0788, o: 60.1636, h: 62.0860, l: 59.6046 },
+            { date: new Date('2017-03-16T00:12:00.000Z'), c: 59.6046, o: 59.4481, h: 59.7453, l: 59.1128 },
+            { date: new Date('2017-03-16T00:13:00.000Z'), c: 59.4481, o: 60.4653, h: 60.4653, l: 59.2225 },
+            { date: new Date('2017-03-16T00:14:00.000Z'), c: 60.4653, o: 60.9133, h: 61.1961, l: 60.2538 },
+            { date: new Date('2017-03-16T00:15:00.000Z'), c: 60.9133, o: 61.2730, h: 61.2864, l: 60.3812 },
+            { date: new Date('2017-03-16T00:16:00.000Z'), c: 61.2730, o: 60.4138, h: 61.6339, l: 60.4122 },
+            { date: new Date('2017-03-16T00:17:00.000Z'), c: 60.4138, o: 60.3297, h: 60.7954, l: 60.1234 },
+            { date: new Date('2017-03-16T00:18:00.000Z'), c: 60.3297, o: 60.6708, h: 60.7392, l: 60.1193 },
+            { date: new Date('2017-03-16T00:19:00.000Z'), c: 60.6708, o: 60.9777, h: 60.9777, l: 60.5989 },
+            { date: new Date('2017-03-16T00:20:00.000Z'), c: 60.9777, o: 61.0564, h: 61.0730, l: 60.7822 },
+            { date: new Date('2017-03-16T00:21:00.000Z'), c: 61.0564, o: 60.9426, h: 61.3663, l: 60.7854 },
+            { date: new Date('2017-03-16T00:22:00.000Z'), c: 60.9426, o: 61.1500, h: 61.1675, l: 60.7031 },
+            { date: new Date('2017-03-16T00:23:00.000Z'), c: 61.1500, o: 61.4518, h: 61.4598, l: 60.8764 },
+            { date: new Date('2017-03-16T00:24:00.000Z'), c: 61.4518, o: 61.9306, h: 62.0000, l: 61.3300 },
+            { date: new Date('2017-03-16T00:25:00.000Z'), c: 61.9306, o: 62.0946, h: 62.0946, l: 61.6667 },
+            { date: new Date('2017-03-16T00:26:00.000Z'), c: 62.0946, o: 61.7310, h: 62.4999, l: 61.4703 },
+            { date: new Date('2017-03-16T00:27:00.000Z'), c: 61.7310, o: 62.0812, h: 62.1000, l: 61.3483 },
+            { date: new Date('2017-03-16T00:28:00.000Z'), c: 62.0812, o: 60.6029, h: 62.0812, l: 60.6029 },
+            { date: new Date('2017-03-16T00:29:00.000Z'), c: 60.6029, o: 61.0442, h: 61.3088, l: 60.4866 },
+            { date: new Date('2017-03-16T00:30:00.000Z'), c: 61.0442, o: 62.4933, h: 62.4933, l: 60.7425 },
         ];
 
         var sampleData2 = [
@@ -62,6 +64,7 @@
         for(let i = 0; i < sampleData2.length; i++) {
             sampleData2[i].date.setUTCMonth(now.getUTCMonth());
             sampleData2[i].date.setUTCDate(now.getUTCDate());
+            sampleData2[i].date.setUTCHours(sampleData2[i].date.getUTCHours() + now.getUTCHours() - 2); // Correct hour to current time
         }        
     </script>
 
@@ -114,6 +117,14 @@
            
                 },
 
+                addline = function() {
+                    board.drawing.start(lychart.core.FigureType.Line);
+                },
+
+                addrect = function() {
+                    //board.drawing.start();
+                },
+
                 render = function() {
                     board.render();
                 },
@@ -123,6 +134,8 @@
                 };
 
             return {
+                addline: addline,
+                addrect: addrect,
                 init: init,
                 render: render,
                 resize: resize
@@ -141,6 +154,14 @@
             let h = Math.max(window.innerHeight - border * 2, minChartHeight);   
 
             chart.init($("#chart-container")[0], w, h, border, lychart.core.TimeInterval.min);
+
+            $("#btnAddLine").click(function() {
+                chart.addline();
+            });
+
+            $("#btnAddRect").click(function() {
+                chart.addrect();
+            });
 
             window.onresize = function(event) {
                 let w = Math.max(window.innerWidth - border * 2, minChartWidth);

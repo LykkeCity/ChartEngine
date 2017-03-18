@@ -4,7 +4,7 @@
  * @classdesc Facade for the chart library.
  */
 import { TimeAxis } from '../axes/index';
-import { ChartType, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { ChartType, FigureType, IDrawing, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, IDataSource, IDataSourceUntyped } from '../data/index';
 //import { IMouseHandler } from '../interaction/index';
 import { BoardArea } from '../layout/index';
@@ -17,7 +17,7 @@ import { TimeAxisComponent } from './TimeAxisComponent';
 
 import * as $ from 'jquery';
 
-export class ChartBoard extends VisualComponent {
+export class ChartBoard extends VisualComponent implements IDrawing {
 
     private readonly area: BoardArea;
     private readonly chartStacks: ChartStack[] = [];
@@ -99,6 +99,7 @@ export class ChartBoard extends VisualComponent {
         this.render();
     }
 
+
     public render(): void {
         this.renderLayers(true, true);
     }
@@ -121,9 +122,7 @@ export class ChartBoard extends VisualComponent {
                 this.mouse.y - this.offsetTop); // - this.container.offsetTop);
         }
 
-        for (let i = 0; i < this.chartStacks.length; i += 1) {
-
-            const cStack = this.chartStacks[i];
+        for (const cStack of this.chartStacks) {
 
             let relativeMouse = undefined;
             // Convert mouse coords to relative
@@ -132,7 +131,7 @@ export class ChartBoard extends VisualComponent {
             }
 
             // Prepare rendering objects: locator and context.
-            let context: VisualContext = new VisualContext(
+            const context: VisualContext = new VisualContext(
                 renderBase,
                 renderFront,
                 relativeMouse);
@@ -235,17 +234,48 @@ export class ChartBoard extends VisualComponent {
         //for (const handler of this.mouseHandlers) { handler.onMouseDown(event); }
     }
 
-    private state: InputControllerState = States.hoverState;
-    public changeState(state: InputControllerState): void {
+    private state: InputControllerState = States.hover;
+    public changeState(state: InputControllerState, activationParameters?: IHashTable<any>): void {
         this.state.deactivate(this, this.mouse);
         this.state = state;
-        this.state.activate(this, this.mouse);
+        this.state.activate(this, this.mouse, activationParameters);
     }
 
-    // TODO: Should be internal
+    // TODO: Used by States. Should be internal
     public moveX(diffX: number) {
         if (this.timeAxis) {
             this.timeAxis.move(diffX);
         }
+    }
+
+    // TODO: Used by States. Should be internal
+    public getHitStack(mouseX: number, mouseY: number): ChartStack | undefined {
+        if (!mouseX || !mouseY) {
+            return undefined;
+        }
+        mouseX -= this.offsetLeft;
+        mouseY -= this.offsetTop;
+
+        for (const cStack of this.chartStacks) {
+            const relativeX = mouseX - cStack.offset.x;
+            const relativeY = mouseY - cStack.offset.y;
+
+            if (relativeX >= 0 && relativeX < cStack.size.width
+                && relativeY >= 0 && relativeY < cStack.size.height) {
+                return cStack;
+            }
+        }
+    }
+
+    public get drawing(): IDrawing {
+        return this;
+    }
+
+    public start(figure: FigureType): void {
+        this.changeState(States.drawLine);
+    }
+
+    public cancel(): void {
+        this.changeState(States.hover);
     }
 }

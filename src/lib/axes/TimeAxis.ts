@@ -60,6 +60,7 @@ export class TimeAxis implements IAxis<Date> {
         }
     }
 
+    // TODO: For figures should return values rounded to TimeInterval
     public toValue(x: number): Date {
         const range = Math.abs(this.range.end.getTime() - this.range.start.getTime());
         const base = Math.min(this.range.end.getTime(), this.range.start.getTime());
@@ -69,7 +70,8 @@ export class TimeAxis implements IAxis<Date> {
 
     public toX(value: Date): number {
         if (value < this.range.start || value > this.range.end) {
-            throw new Error(`Date ${value} is out of range.`);
+            //throw new Error(`Date ${value} is out of range.`);
+            console.debug(`Date ${value} is out of range.`);
         }
         const range = Math.abs(this.range.end.getTime() - this.range.start.getTime());
         const base = Math.min(this.range.end.getTime(), this.range.start.getTime());

@@ -3,7 +3,7 @@
  */
 import { NumberAxis, PriceAxis } from '../axes/index';
 import { IAxis } from '../axes/index';
-import { VisualComponent, VisualContext } from '../core/index';
+import { ChartPoint, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { BoardArea, ChartArea, SizeChangedArgument } from '../layout/index';
 import { IRenderLocator } from '../render/index';
@@ -82,10 +82,18 @@ export class ChartStack extends VisualComponent {
 
     public addLine() : LineFigureComponent {
         const line = new LineFigureComponent(this.area, { x: 0, y: 0 }, this.size, this.tAxis, this.yAxis);
-
         this.figures.push(line);
-
+        this.addChild(line);
         return line;
+    }
+
+    // TODO: Rename
+    // TODO: Used by States. Should be internal.
+    public mouseToCoords(mouseX: number, mouseY: number): ChartPoint {
+        return new ChartPoint(
+            this.tAxis.toValue(mouseX),
+            this.yAxis.toValue(mouseY)
+        );
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
@@ -122,11 +130,9 @@ export class ChartStack extends VisualComponent {
         const w = this.area.size.width;
         const h = this.area.size.height;
 
-        this._size = { width: w, height: h };
-
         (<any>this.yAxis).length = arg.size.height;
 
-        // resize all children
-        super.resize(arg.size.width, arg.size.height);
+        // resize self and all children
+        super.resize(w, h);
     }
 }

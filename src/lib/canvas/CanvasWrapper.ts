@@ -79,6 +79,10 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.lineTo(this.round(x) + this.adj, this.round(y) + this.adj);
     }
 
+    public fill(fillRule?: string) {
+        this.ctx.fill(fillRule);
+    }
+
     public fillRect(x: number, y: number, w: number, h: number) {
         this.ctx.fillRect(this.round(x), this.round(y), this.round(w), this.round(h));
     }
@@ -92,6 +96,10 @@ export class CanvasWrapper implements ICanvas {
     public rect(x: number, y: number, w: number, h: number) {
         this.ctx.rect(this.round(x) + this.adj, this.round(y) + this.adj,
                       this.round(w) - this.adj * 2, this.round(h) - this.adj * 2);
+    }
+
+    public arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, anticlockwise?: boolean) {
+        this.ctx.arc(this.round(x), this.round(y), radius, startAngle, endAngle, anticlockwise);
     }
 
     public fillText(s: string, x: number, y: number) {

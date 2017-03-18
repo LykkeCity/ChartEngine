@@ -165,7 +165,7 @@
         "curly": true,
         "eofline": true,
         "indent": [true, "spaces"],
-        "linebreak-style": true,
+        "linebreak-style": [true, "LF"],
         "no-consecutive-blank-lines": true,
         "no-empty-line-after-opening-brace": false,
         "no-single-line-block-comment": true,
