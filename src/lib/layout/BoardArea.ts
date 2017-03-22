@@ -5,7 +5,7 @@ import { ISize } from '../shared/index';
 import { ChartArea, XArea } from './ChartArea';
 
 export class BoardArea {
-    private table: HTMLTableElement;
+    private readonly table: HTMLTableElement;
 
     private readonly yAxisWidth = 90;
     private readonly xAxisHeight = 25;

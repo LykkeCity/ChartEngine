@@ -9,8 +9,8 @@ import { TimeMarker } from './TimeMarker';
 
 export class TimeAxisComponent extends VisualComponent {
 
-    private tAxis: TimeAxis;
-    private area: XArea;
+    private readonly tAxis: TimeAxis;
+    private readonly area: XArea;
 
     constructor(
         area: BoardArea,

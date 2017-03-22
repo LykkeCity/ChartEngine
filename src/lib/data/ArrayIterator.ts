@@ -8,9 +8,9 @@ export class ArrayIterator<T> implements IDataIterator<T> {
     private currentIndex = 0;
 
     constructor(
-        private dataSnapshot: IDataSnapshot<T>,
-        private timestamp: number,
-        private filter?: (item: T) => boolean
+        private readonly dataSnapshot: IDataSnapshot<T>,
+        private readonly timestamp: number,
+        private readonly filter?: (item: T) => boolean
         ) {
             this.currentIndex = -1;
     }

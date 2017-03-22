@@ -12,7 +12,7 @@ export class NumberMarker extends VisualComponent {
     private axis: NumberAxis;
 
     constructor(
-        private area: Area,
+        private readonly area: Area,
         offset: Point, size: ISize, axis: NumberAxis) {
         super(offset, size);
         this.axis = axis;

@@ -9,9 +9,9 @@ import { DataSourceConfig } from './DataSourceConfig';
 import { IDataIterator, IDataSource } from './Interfaces';
 
 export abstract class DataSource<T extends ITimeValue> implements IDataSource<T> {
-    protected _config: DataSourceConfig;
-    protected dateChangedEvent = new DataChangedEvent();
-    protected _dataType: { new(d: Date): T };
+    protected readonly _config: DataSourceConfig;
+    protected readonly dateChangedEvent = new DataChangedEvent();
+    protected readonly _dataType: { new(d: Date): T };
 
     constructor(
         dataType: { new(d: Date): T },

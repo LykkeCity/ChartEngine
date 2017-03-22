@@ -11,7 +11,7 @@ import { IDataIterator } from './Interfaces';
 
 export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
 
-    protected dataStorage: ArrayDataStorage<T>;
+    protected readonly dataStorage: ArrayDataStorage<T>;
     private readonly defaultMinValue = 0;
     private readonly defaultMaxValue = 100;
 

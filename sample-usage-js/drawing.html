@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drawing figures sample</title>
+	<meta charset="utf-8" />
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div style="margin: 0; padding: 5px 0px 0px 25px; height: 20px">
+        <button id="btnAddLine">Add line</button>&nbsp;
+        <button id="btnAddRect">Add rect</button>
+    </div>
+
+    <div style="margin-top: 0px; margin-left: 25px;">
+        <div id="chart-container" style="float: left">
+        </div>
+        <div style="clear: both"></div>
+    </div>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="../dist/bundle.js?v=6"></script>
+    <script type="text/javascript" src="./scripts/sampledata.js"></script>
+
+    <script type="text/javascript">
+        let chart = (function(){ 
+
+            var
+                board = null,
+
+                init = function($containerEl, w, h, border, timeInterval) {
+                    board = new lychart.ChartBoard($containerEl, border, border, w, h, timeInterval);
+
+                    let candles1 = [];
+                    for(let i = 0; i < sampleCandles.length; i++) {
+                        let item = sampleCandles[i];
+                        let c = new lychart.model.Candlestick(item.date, item.c, item.o, item.h, item.l);
+                        candles1.push(c);
+                    }
+
+                    let candles2 = [];
+                    for(let i = 0; i < sampleCandles.length; i++) {
+                        let item = sampleCandles[i];
+                        let c = new lychart.model.Candlestick(item.date, item.o + 0.0001, item.c + 0.0001, item.h + 0.0001, item.l + 0.0001);
+                        candles2.push(c);
+                    }
+
+                    let dataSource1 = new lychart.data.ArrayDataSource(lychart.model.Candlestick, { }, candles1);
+                    board.addChart(1, lychart.core.ChartType.candle, dataSource1);
+
+                    let dataSource2 = new lychart.data.ArrayDataSource(lychart.model.Candlestick, { }, candles2);
+                    board.addChart(2, lychart.core.ChartType.candle, dataSource2);
+
+                    let dataSource3 = new lychart.data.ArrayDataSource(lychart.model.Candlestick, { }, candles2);
+                    board.addChart(3, lychart.core.ChartType.line, dataSource3);
+
+                    // Add indicator
+                    var indicator1 = new lychart.indicator.SimpleIndicator(
+                        {
+                        },
+                        dataSource1);
+                    board.addIndicator(3, indicator1);
+
+                    // // Add indicator
+                    // var indicator2 = new lychart.indicator.SimpleIndicator(
+                    //     {
+                    //     },
+                    //     dataSource2);
+                    // board.addIndicator(indicator2);
+                },
+
+                addline = function() {
+                    board.drawing.start(lychart.core.FigureType.Line);
+                },
+
+                addrect = function() {
+                    //board.drawing.start();
+                },
+
+                render = function() {
+                    board.render();
+                },
+
+                resize = function(w, h) {
+                    board.resize(w, h);
+                };
+
+            return {
+                addline: addline,
+                addrect: addrect,
+                init: init,
+                render: render,
+                resize: resize
+            };
+        })();
+    </script>
+
+    <script type="text/javascript">
+        $(function() {
+
+            let border = 25;
+            let minChartWidth = 100;
+            let minChartHeight = 100;
+
+            let w = Math.max(window.innerWidth - border * 2, minChartWidth);
+            let h = Math.max(window.innerHeight - border * 2, minChartHeight);   
+
+            chart.init($("#chart-container")[0], w, h, border, lychart.core.TimeInterval.min);
+
+            $("#btnAddLine").click(function() {
+                chart.addline();
+            });
+
+            $("#btnAddRect").click(function() {
+                chart.addrect();
+            });
+
+            window.onresize = function(event) {
+                let w = Math.max(window.innerWidth - border * 2, minChartWidth);
+                let h = Math.max(window.innerHeight - border * 2, minChartHeight);
+                chart.resize(w, h);
+                chart.render();
+            };
+
+            chart.render();
+        });
+    </script>    
+</body>
+</html>

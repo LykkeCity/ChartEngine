@@ -9,11 +9,11 @@ import { ISize, Point } from '../shared/index';
 
 export class Grid extends VisualComponent {
     constructor(
-        private area: Area,
+        private readonly area: Area,
         offset: Point,
         size: ISize,
-        private timeAxis: IAxis<Date>,
-        private yAxis: IAxis<number>) {
+        private readonly timeAxis: IAxis<Date>,
+        private readonly yAxis: IAxis<number>) {
             super(offset, size);
     }
 

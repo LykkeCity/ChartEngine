@@ -16,19 +16,19 @@ export interface IChart {
 }
 
 export class Chart<T> extends VisualComponent implements IChart, IHoverable {
-    private _uid: string;
-    private area: ChartArea;
-    private popup: ChartPopup<T>;
+    private readonly _uid: string;
+    private readonly area: ChartArea;
+    private readonly popup: ChartPopup<T>;
 
     constructor(
         uid: string,
-        private chartType: string,
+        private readonly chartType: string,
         chartArea: ChartArea,
         offset: Point,
         size: ISize,
-        private dataSource: IDataSource<T>,
-        private timeAxis: IAxis<Date>,
-        private yAxis: IAxis<number>) {
+        private readonly dataSource: IDataSource<T>,
+        private readonly timeAxis: IAxis<Date>,
+        private readonly yAxis: IAxis<number>) {
             super(offset, size);
 
             this._uid = uid;

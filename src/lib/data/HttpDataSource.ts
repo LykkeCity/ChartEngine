@@ -17,14 +17,14 @@ import { IDataIterator, IDataReaderDelegate, IDataResolverDelegate, IPendingRequ
 import * as $ from 'jquery';
 
 export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implements IDisposable {
-    protected dataStorage: ArrayDataStorage<T>;
+    protected readonly dataStorage: ArrayDataStorage<T>;
     //private readonly defaultMinDate = new Date(2000, 0, 1);
     private readonly defaultMinValue = 0;
     private readonly defaultMaxValue = 100;
     //private readonly defaultMaxItemsRequested = 100;
     protected autoUpdatePeriodSec = 10;
-    protected pendingRequests: IPendingRequest<T>[] = [];
-    protected comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
+    protected readonly pendingRequests: IPendingRequest<T>[] = [];
+    protected readonly comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
     protected timer?: number;
     protected isDisposed = false;
 

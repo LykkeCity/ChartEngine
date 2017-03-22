@@ -10,8 +10,8 @@ import { IDataIterator, IDataSnapshot, IDataStorage } from './Interfaces';
  */
 export class ArrayDataStorage<T> implements IDataStorage<T> {
 
-    private dataSnapshot: IDataSnapshot<T>;
-    private comparer: IComparer<T>;
+    private readonly dataSnapshot: IDataSnapshot<T>;
+    private readonly comparer: IComparer<T>;
 
     constructor(comparer: IComparer<T>, initArray?: T[]) {
         if (!comparer) {

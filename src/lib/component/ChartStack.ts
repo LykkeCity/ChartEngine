@@ -17,12 +17,12 @@ import { PriceAxisComponent } from './PriceAxisComponent';
 
 export class ChartStack extends VisualComponent {
 
-    private area: ChartArea;
-    private tAxis: IAxis<Date>;
-    private yAxis: IAxis<number>;
-    private charts: IChart[] = [];
-    private crosshair: Crosshair;
-    private figures: FigureComponent[] = [];
+    private readonly area: ChartArea;
+    private readonly tAxis: IAxis<Date>;
+    private readonly yAxis: IAxis<number>;
+    private readonly charts: IChart[] = [];
+    private readonly crosshair: Crosshair;
+    private readonly figures: FigureComponent[] = [];
 
     constructor(
         boardArea: BoardArea,
@@ -91,8 +91,8 @@ export class ChartStack extends VisualComponent {
     // TODO: Used by States. Should be internal.
     public mouseToCoords(mouseX: number, mouseY: number): ChartPoint {
         return new ChartPoint(
-            this.tAxis.toValue(mouseX),
-            this.yAxis.toValue(mouseY)
+            this.tAxis.toValue(mouseX - this._offset.x),
+            this.yAxis.toValue(mouseY - this._offset.y)
         );
     }
 

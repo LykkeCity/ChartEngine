@@ -10,8 +10,8 @@ import { PriceMarker } from './PriceMarker';
 
 export class PriceAxisComponent extends VisualComponent {
 
-    private axis: PriceAxis;
-    private area: YArea;
+    private readonly axis: PriceAxis;
+    private readonly area: YArea;
 
     constructor(
         chartArea: ChartArea,

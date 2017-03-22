@@ -5,7 +5,7 @@ import { IPoint, ISize } from '../shared/index';
 import { Area } from './Area';
 
 export class YArea extends Area {
-    protected cell: HTMLTableCellElement;
+    protected readonly cell: HTMLTableCellElement;
 
     constructor(
         cell: HTMLTableCellElement,

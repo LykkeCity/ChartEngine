@@ -10,8 +10,8 @@ import { NumberMarker } from './NumberMarker';
 
 export class NumberAxisComponent extends VisualComponent {
 
-    private axis: NumberAxis;
-    private area: YArea;
+    private readonly axis: NumberAxis;
+    private readonly area: YArea;
 
     constructor(
         chartArea: ChartArea,

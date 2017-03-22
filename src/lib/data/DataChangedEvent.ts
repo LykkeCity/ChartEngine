@@ -8,10 +8,10 @@ export class DataChangedEvent extends Event<DataChangedArgument> {
 }
 
 export class DataChangedArgument {
-    private _range: IRange<Date>;
-    private _interval: TimeInterval;
-    private _lastDateBefore?: Date;
-    private _lastDateAfter?: Date;
+    private readonly _range: IRange<Date>;
+    private readonly _interval: TimeInterval;
+    private readonly _lastDateBefore?: Date;
+    private readonly _lastDateAfter?: Date;
 
     constructor(range: IRange<Date>, interval: TimeInterval, lastDateBefore?: Date, lastDateAfter?: Date) {
         this._range = range;

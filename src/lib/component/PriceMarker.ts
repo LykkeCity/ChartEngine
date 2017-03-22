@@ -9,8 +9,8 @@ import { ISize, Point } from '../shared/index';
 
 export class PriceMarker extends VisualComponent {
 
-    private area: Area;
-    private axis: PriceAxis;
+    private readonly area: Area;
+    private readonly axis: PriceAxis;
 
     constructor(area: Area, offset: Point, size: ISize, axis: PriceAxis) {
         super(offset, size);

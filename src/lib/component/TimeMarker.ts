@@ -9,8 +9,8 @@ import { ISize, Point } from '../shared/index';
 
 export class TimeMarker extends VisualComponent {
 
-    private area: Area;
-    private axis: IAxis<Date>;
+    private readonly area: Area;
+    private readonly axis: IAxis<Date>;
 
     constructor(area: Area, offset: Point, size: ISize, axis: IAxis<Date>) {
         super(offset, size);
