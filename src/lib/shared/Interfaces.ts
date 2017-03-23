@@ -7,11 +7,6 @@ export interface IRange<T> {
     readonly end: T;
 }
 
-export interface IPoint {
-    readonly x: number;
-    readonly y: number;
-}
-
 export class Point {
     public readonly x: number;
     public readonly y: number;

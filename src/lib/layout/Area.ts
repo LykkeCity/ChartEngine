@@ -2,7 +2,8 @@
  * Area class
  */
 import { CanvasWrapper } from '../canvas/index';
-import { IEvent, IPoint, ISize } from '../shared/index';
+import { IPoint } from '../core/index';
+import { IEvent, ISize } from '../shared/index';
 import { SizeChangedArgument, SizeChangedEvent } from './SizeChangedEvent';
 
 export class Area {

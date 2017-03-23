@@ -3,9 +3,9 @@
  * 
  * @classdesc Represents a chart's axis of numbers
  */
+import { IAxis } from '../core/index';
 import { IRange } from '../shared/index';
 import { TimeAutoGrid } from './AutoGrid';
-import { IAxis } from './IAxis';
 
 export class TimeAxis implements IAxis<Date> {
 

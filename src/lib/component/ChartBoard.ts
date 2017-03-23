@@ -4,20 +4,21 @@
  * @classdesc Facade for the chart library.
  */
 import { TimeAxis } from '../axes/index';
-import { ChartType, FigureType, IDrawing, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { ChartType, Mouse, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, IDataSource, IDataSourceUntyped } from '../data/index';
-//import { IMouseHandler } from '../interaction/index';
 import { BoardArea } from '../layout/index';
 import { Point } from '../model/index';
 import { RenderLocator } from '../render/index';
-import { IEventHandler, IHashTable, Point as IPoint } from '../shared/index';
+import { IHashTable, Point as IPoint } from '../shared/index';
 import { ChartStack } from './ChartStack';
-import { InputControllerState, Mouse, States } from './InputControllerState';
+import { HoverState, MoveChartState } from './InputControllerState';
+import { IChartBoard, IDrawing, isStateController, IStateController } from './Interfaces';
+import { StateFabric } from './StateFabric';
 import { TimeAxisComponent } from './TimeAxisComponent';
 
 import * as $ from 'jquery';
 
-export class ChartBoard extends VisualComponent implements IDrawing {
+export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard {
 
     private readonly area: BoardArea;
     private readonly chartStacks: ChartStack[] = [];
@@ -26,6 +27,8 @@ export class ChartBoard extends VisualComponent implements IDrawing {
 
     private readonly dataSources: IHashTable<IDataSourceUntyped> = { };
     private readonly indicators: IHashTable<IDataSourceUntyped> = { };
+
+    private state: IStateController;
 
     constructor(
         private readonly container: HTMLElement,
@@ -63,6 +66,12 @@ export class ChartBoard extends VisualComponent implements IDrawing {
         $(this.container).mousemove(this.onMouseMove);
         this.container.addEventListener('mouseenter', this.onMouseEnter, false);
         this.container.addEventListener('mouseleave', this.onMouseLeave, false);
+
+        // Register states and go to default state
+        StateFabric.instance.setState('hover', HoverState.instance);
+        StateFabric.instance.setState('movechart', MoveChartState.instance);
+
+        this.state = HoverState.instance;
     }
 
     public addChart<T>(uid: string, chartType: string, dataSource: IDataSource<T>) {
@@ -115,7 +124,7 @@ export class ChartBoard extends VisualComponent implements IDrawing {
             this.area.clearFront();
         }
 
-        let mouse = undefined;
+        let mouse;// = { x: this.mouse.x, y: this.mouse.y };
         if (this.mouse.isEntered && this.mouse.x && this.mouse.y) {
             mouse = new IPoint(
                 this.mouse.x - this.offsetLeft, // - this.container.offsetLeft,
@@ -183,7 +192,6 @@ export class ChartBoard extends VisualComponent implements IDrawing {
     }
 
     private onMouseWheel = (event: any) => {
-        //let ev = event;
         if (false == !!event) { event = window.event; }
 
         this.state.onMouseWheel(this, event);
@@ -198,7 +206,7 @@ export class ChartBoard extends VisualComponent implements IDrawing {
     private mouse: Mouse = new Mouse();
 
     private onMouseMove = (event: any) => {
-        [this.mouse.x, this.mouse.y] = [event.pageX, event.pageY];
+        [this.mouse.x, this.mouse.y] = [event.pageX, event.pageY]; // [event.pageX - this.offset.x, event.pageY - this.offset.y];
 
         this.state.onMouseMove(this, this.mouse);
 
@@ -212,53 +220,38 @@ export class ChartBoard extends VisualComponent implements IDrawing {
     private onMouseEnter = (event: any) => {
         this.mouse.isEntered = true;
         this.state.onMouseEnter(this, this.mouse);
-        //for (const handler of this.mouseHandlers) { handler.onMouseEnter(event); }
     }
 
     private onMouseLeave = (event: any) => {
         this.mouse.isEntered = false;
         this.mouse.isDown = false;
         this.state.onMouseLeave(this, this.mouse);
-        //for (const handler of this.mouseHandlers) { handler.onMouseLeave(event); }
     }
 
     private onMouseUp = (event: any) => {
         this.mouse.isDown = false;
         this.state.onMouseUp(this, this.mouse);
-        //for (const handler of this.mouseHandlers) { handler.onMouseUp(event); }
     }
 
     private onMouseDown = (event: any) => {
         this.mouse.isDown = true;
         this.state.onMouseDown(this, this.mouse);
-        //for (const handler of this.mouseHandlers) { handler.onMouseDown(event); }
     }
 
-    private state: InputControllerState = States.hover;
-    public changeState(state: InputControllerState, activationParameters?: IHashTable<any>): void {
-        this.state.deactivate(this, this.mouse);
-        this.state = state;
-        this.state.activate(this, this.mouse, activationParameters);
-    }
-
-    // TODO: Used by States. Should be internal
     public moveX(diffX: number) {
         if (this.timeAxis) {
             this.timeAxis.move(diffX);
         }
     }
 
-    // TODO: Used by States. Should be internal
-    public getHitStack(mouseX: number, mouseY: number): ChartStack | undefined {
-        if (!mouseX || !mouseY) {
+    public getHitStack(localX: number, localY: number): ChartStack | undefined {
+        if (!localX || !localY) {
             return undefined;
         }
-        mouseX -= this.offsetLeft;
-        mouseY -= this.offsetTop;
 
         for (const cStack of this.chartStacks) {
-            const relativeX = mouseX - cStack.offset.x;
-            const relativeY = mouseY - cStack.offset.y;
+            const relativeX = localX - cStack.offset.x;
+            const relativeY = localY - cStack.offset.y;
 
             if (relativeX >= 0 && relativeX < cStack.size.width
                 && relativeY >= 0 && relativeY < cStack.size.height) {
@@ -271,11 +264,30 @@ export class ChartBoard extends VisualComponent implements IDrawing {
         return this;
     }
 
-    public start(figure: FigureType): void {
-        this.changeState(States.drawLine);
+    public start(figureId: string): void {
+        this.changeState(figureId);
     }
 
     public cancel(): void {
-        this.changeState(States.hover);
+        this.changeState('hover');
+    }
+
+
+    public changeState(state: string | IStateController, activationParameters?: IHashTable<any>): void {
+        let stateInstance;
+
+        if (isStateController(state)) {
+            stateInstance = state;
+        } else if (typeof state === 'string') {
+            stateInstance = StateFabric.instance.getState(state);
+        }
+
+        if (!stateInstance) {
+            throw new Error(`State is not defined for the specified stateId '${ state }'`);
+        }
+
+        this.state.deactivate(this, this.mouse);
+        this.state = stateInstance;
+        this.state.activate(this, this.mouse, activationParameters);
     }
 }

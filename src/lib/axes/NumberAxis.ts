@@ -1,9 +1,10 @@
 /**
  * NumberAxis class.
  */
+import { IAxis } from '../core/index';
 import { IRange } from '../shared/index';
 import { NumberAutoGrid } from './AutoGrid';
-import { IAxis } from './IAxis';
+
 
 export class NumberAxis implements IAxis<number> {
 

@@ -1,10 +1,10 @@
 /**
  * Interfaces related to rendering.
  */
-import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
+import { IAxis, IPoint } from '../core/index';
 import { IDataIterator } from '../data/index';
-import { IPoint, IRect, ISize } from '../shared/index';
+import { IRect, ISize } from '../shared/index';
 
 export interface IRenderLocator {
     getChartRender<T>(dataType: { new(d: Date): T}, chartType: string): any;

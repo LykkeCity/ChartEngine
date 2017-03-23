@@ -3,12 +3,11 @@
  * 
  * @classdesc Renders candlesticks in a form of line chart. Uses 'close' value as data source.
  */
-
-import { IAxis } from '../axes/index';
 import { ICanvas } from '../canvas/index';
+import { IAxis, IPoint } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick } from '../model/index';
-import { IPoint, IRect } from '../shared/index';
+import { IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
 
 export class LinestickChartRenderer implements IChartRender<Candlestick> {

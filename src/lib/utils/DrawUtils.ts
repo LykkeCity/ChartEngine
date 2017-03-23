@@ -1,7 +1,7 @@
 /**
  * DrawUtils class
  */
-import { IPoint } from '../shared/index';
+import { IPoint } from '../core/index';
 
 export class DrawUtils {
     /**
@@ -19,7 +19,6 @@ export class DrawUtils {
 
         // Check hitting the rectangle area around the line
         if (p.x > minx - 3 && p.x < maxx + 3 && p.y > miny - 3 && p.y < maxy + 3) {
-
         } else {
             return false;
         }
@@ -32,8 +31,18 @@ export class DrawUtils {
             return false;
         } else {
             const diff = (p.x - pa.x) / (pb.x - pa.x) - (p.y - pa.y) / (pb.y - pa.y);
-            console.debug(`diff = ${diff}`);
             return (Math.abs(diff) < precision);
         }
+    }
+
+    /**
+     * Determines if point A is near point B (i.e. distance between points is less then precision).
+     * @param pa 
+     * @param pb 
+     * @param precision 
+     */
+    public static isPointOver(pa: IPoint, pb: IPoint, precision: number): boolean {
+        return Math.abs(pa.x - pb.x) < precision
+               && Math.abs(pa.y - pb.y) < precision;
     }
 }

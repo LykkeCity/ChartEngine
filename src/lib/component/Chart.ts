@@ -1,13 +1,13 @@
 ﻿/**
  * Chart class.
  */
-import { IAxis } from '../axes/index';
-import { IHoverable, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { IAxis, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { ChartArea } from '../layout/index';
 import { IChartRender, IRenderLocator, RenderLocator } from '../render/index';
 import { IRange, ISize, Point } from '../shared/index';
 import { ChartPopup } from './ChartPopup';
+import { IHoverable } from './Interfaces';
 
 export interface IChart {
     uid: string;

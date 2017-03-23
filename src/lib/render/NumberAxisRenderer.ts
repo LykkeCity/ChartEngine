@@ -3,9 +3,8 @@
  * 
  * @classdesc Contains methods for rendering axes.
  */
-
-import { IAxis } from '../axes/index';
 import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
+import { IAxis } from '../core/index';
 import { IRect } from '../shared/index';
 import { IAxesRender } from './Interfaces';
 

@@ -13,7 +13,8 @@
 <body>
     <div style="margin: 0; padding: 5px 0px 0px 25px; height: 20px">
         <button id="btnAddLine">Add line</button>&nbsp;
-        <button id="btnAddRect">Add rect</button>
+        <button id="btnAddRect">Add rect</button>&nbsp;
+        <button id="btnAddCircle">Add circle</button>
     </div>
 
     <div style="margin-top: 0px; margin-left: 25px;">
@@ -25,6 +26,7 @@
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script type="text/javascript" src="../dist/bundle.js?v=6"></script>
+    <script type="text/javascript" src="./scripts/drawing.js"></script>
     <script type="text/javascript" src="./scripts/sampledata.js"></script>
 
     <script type="text/javascript">
@@ -75,13 +77,15 @@
                 },
 
                 addline = function() {
-                    board.drawing.start(lychart.core.FigureType.Line);
+                    board.drawing.start('line');
                 },
 
                 addrect = function() {
                     //board.drawing.start();
                 },
-
+                addcircle = function() {
+                    board.drawing.start('circle');
+                },
                 render = function() {
                     board.render();
                 },
@@ -91,6 +95,7 @@
                 };
 
             return {
+                addcircle: addcircle,
                 addline: addline,
                 addrect: addrect,
                 init: init,
@@ -118,6 +123,10 @@
 
             $("#btnAddRect").click(function() {
                 chart.addrect();
+            });
+
+            $("#btnAddCircle").click(function() {
+                chart.addcircle();
             });
 
             window.onresize = function(event) {

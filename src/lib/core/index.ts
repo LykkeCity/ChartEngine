@@ -2,19 +2,19 @@
  * 
  */
 import { ChartType } from './ChartType';
-import { FigureType, IDrawing } from './Drawing';
 import { TimeInterval } from './Enums';
-import { ChartPoint, IHoverable, isHoverable } from './Interfaces';
+import { IAxis, IMouse, IPoint } from './Interfaces';
+import { ChartPoint, Mouse } from './Model';
 import { VisualComponent } from './VisualComponent';
 import { VisualContext } from './VisualContext';
 
 export {
     ChartPoint,
     ChartType,
-    FigureType,
-    IDrawing,
-    IHoverable,
-    isHoverable,
+    IAxis,
+    IMouse,
+    IPoint,
+    Mouse,
     VisualComponent,
     VisualContext,
     TimeInterval

@@ -2,20 +2,20 @@
  * ChartStack class.
  */
 import { NumberAxis, PriceAxis } from '../axes/index';
-import { IAxis } from '../axes/index';
-import { ChartPoint, VisualComponent, VisualContext } from '../core/index';
+import { ChartPoint, IAxis, IPoint, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
-import { BoardArea, ChartArea, SizeChangedArgument } from '../layout/index';
+import { Area, BoardArea, ChartArea, SizeChangedArgument } from '../layout/index';
 import { IRenderLocator } from '../render/index';
-import { Point } from '../shared/index';
+import { ISize, Point } from '../shared/index';
 import { Chart, IChart } from './Chart';
 import { Crosshair } from './Crosshair';
-import { FigureComponent, LineFigureComponent } from './Figures';
+import { FigureComponent } from './FigureComponent';
 import { Grid } from './Grid';
+import { IChartStack } from './Interfaces';
 import { NumberAxisComponent } from './NumberAxisComponent';
 import { PriceAxisComponent } from './PriceAxisComponent';
 
-export class ChartStack extends VisualComponent {
+export class ChartStack extends VisualComponent implements IChartStack {
 
     private readonly area: ChartArea;
     private readonly tAxis: IAxis<Date>;
@@ -80,19 +80,18 @@ export class ChartStack extends VisualComponent {
         }
     }
 
-    public addLine() : LineFigureComponent {
-        const line = new LineFigureComponent(this.area, { x: 0, y: 0 }, this.size, this.tAxis, this.yAxis);
-        this.figures.push(line);
-        this.addChild(line);
-        return line;
+    public addFigure(ctor: {(area: Area, offset: IPoint, size: ISize, timeAxis: IAxis<Date>, yAxis: IAxis<number>): FigureComponent}) : FigureComponent {
+        const figure = ctor(this.area, { x: 0, y: 0 }, this.size, this.tAxis, this.yAxis);
+        this.figures.push(figure);
+        this.addChild(figure);
+        return figure;
     }
 
     // TODO: Rename
-    // TODO: Used by States. Should be internal.
-    public mouseToCoords(mouseX: number, mouseY: number): ChartPoint {
+    public mouseToCoords(localX: number, localY: number): ChartPoint {
         return new ChartPoint(
-            this.tAxis.toValue(mouseX - this._offset.x),
-            this.yAxis.toValue(mouseY - this._offset.y)
+            this.tAxis.toValue(localX),
+            this.yAxis.toValue(localY)
         );
     }
 

@@ -1,6 +1,7 @@
 /**
  * VisualComponent class.
  */
+import { IPoint } from '../core/index';
 import { IRenderLocator } from '../render/index';
 import { ISize, Point, Size } from '../shared/index';
 import { VisualContext } from './VisualContext';
@@ -66,12 +67,12 @@ export abstract class VisualComponent { //implements IMouseHandler {
         }
     }
 
-    public forEach(delegate: {(component: VisualComponent, aggregatedOffset: Point): void }, directOrder: boolean = true): boolean {
+    public forEach(delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void }, directOrder: boolean = true): boolean {
         return this.forEachAggregator(delegate, directOrder, new Point(0, 0));
     }
 
     private forEachAggregator(
-        delegate: {(component: VisualComponent, aggregatedOffset: Point): void },
+        delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void },
         directOrder: boolean = true,
         initialOffset: Point): boolean {
 

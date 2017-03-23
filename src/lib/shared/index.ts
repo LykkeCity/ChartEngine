@@ -2,7 +2,7 @@
  * 
  */
 import { Event, IEvent, IEventHandler } from './Event';
-import { IDisposable, IHashTable, IPoint, IRange, IRect, ISize, PartialPoint, Point, Size } from './Interfaces';
+import { IDisposable, IHashTable, IRange, IRect, ISize, PartialPoint, Point, Size } from './Interfaces';
 
 export {
     Event,
@@ -10,7 +10,6 @@ export {
     IEvent,
     IEventHandler,
     IHashTable,
-    IPoint,
     IRange,
     IRect,
     ISize,

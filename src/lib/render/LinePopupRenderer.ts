@@ -2,8 +2,9 @@
  * LinePopupRenderer class.
  */
 import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
+import { IPoint } from '../core/index';
 import { Point } from '../model/index';
-import { IPoint, ISize } from '../shared/index';
+import { ISize } from '../shared/index';
 import { IPopupRender } from './Interfaces';
 
 export class LinePopupRenderer implements IPopupRender<Point> {
