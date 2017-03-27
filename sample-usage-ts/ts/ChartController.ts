@@ -41,8 +41,6 @@ export class ChartController {
 
         // Hook up event handlers
         $('.add-line', container).click(this.onAddLine);
-        $('.add-rect', container).click(this.onAddRect);
-        $('.add-circle', container).click(this.onAddCircle);
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);

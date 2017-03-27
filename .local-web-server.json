@@ -1,0 +1,12 @@
+{
+  "mocks": [
+    {
+      "route": "/mock/candles/history/:asset",
+      "module": "/candles.js"
+    },
+    {
+      "route": "/mock/assetpairs/dictionary",
+      "module": "/assets.js"
+    }    
+  ]
+}

@@ -17,6 +17,7 @@ export class DateUtils {
     public static addInterval(date: Date, interval: TimeInterval): Date {
         const newDate = new Date(date.getTime());
         switch (interval) {
+            // TODO: vanilla JS can incorrectly handle "set*" functions. Check with "daylight saving time".
             case TimeInterval.sec: newDate.setSeconds(date.getSeconds() + 1); break;
             case TimeInterval.min: newDate.setMinutes(date.getMinutes() + 1); break;
             case TimeInterval.min5: newDate.setMinutes(date.getMinutes() + 5); break;
@@ -40,6 +41,7 @@ export class DateUtils {
     public static substractInterval(date: Date, interval: TimeInterval): Date {
         const newDate = new Date(date.getTime());
         switch (interval) {
+            // TODO: vanilla JS can incorrectly handle "set*" functions. Check with "daylight saving time".
             case TimeInterval.sec: newDate.setSeconds(date.getSeconds() - 1); break;
             case TimeInterval.min: newDate.setMinutes(date.getMinutes() - 1); break;
             case TimeInterval.min5: newDate.setMinutes(date.getMinutes() - 5); break;
@@ -75,9 +77,12 @@ export class DateUtils {
             case TimeInterval.day3: return DateUtils.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(3));
             case TimeInterval.week:
                 const firstDay = date.getDate() - date.getDay();
+                // TODO: Constructor of Date is not UTC.
                 return new Date(date.getFullYear(), date.getMonth(), firstDay, 0, - ((new Date()).getTimezoneOffset()));
             case TimeInterval.day10: return DateUtils.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(10));
-            case TimeInterval.month: return new Date(date.getFullYear(), date.getMonth(), 1, 0, - ((new Date()).getTimezoneOffset()));
+            case TimeInterval.month:
+                // TODO: Constructor of Date is not UTC.
+                return new Date(date.getFullYear(), date.getMonth(), 1, 0, - ((new Date()).getTimezoneOffset()));
             default:
                 throw new Error(`Unexpected interval ${ interval }`);
         }
