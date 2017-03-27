@@ -1,12 +1,13 @@
 /**
- * 
+ * Main module.
  */
-
 import {
     Chart,
     ChartBoard,
     FigureComponent,
+    HoverState,
     IStateController,
+    MoveChartState,
     StateFabric
 } from './lib/component';
 
@@ -25,8 +26,16 @@ function register(stateId: string, state: IStateController) {
     StateFabric.instance.setState(stateId, state);
 }
 
+// Register built-in states
+register('hover', HoverState.instance);
+register('movechart', MoveChartState.instance);
+
 // Register built-in drawing tools
 register('line', drawing.DrawLineState.instance);
+
+const states = {
+    register: register
+};
 
 const lychart = {
     // types:
@@ -42,11 +51,28 @@ const lychart = {
     indicator: indicator,
     model: model,
     render: render,
-    states: {
-        register: register
-    },
+    states: states,
     shared: shared,
     utils: utils
 };
 
 (<any>window).lychart = lychart;
+
+export {
+    // types:
+    Chart,
+    ChartBoard,
+    FigureComponent,
+    // namespaces:
+    axes,
+    canvas,
+    core,
+    data,
+    drawing,
+    indicator,
+    model,
+    render,
+    states,
+    shared,
+    utils
+};

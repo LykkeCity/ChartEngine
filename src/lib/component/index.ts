@@ -10,6 +10,7 @@ import { isEditable, isHoverable, isStateController } from './Interfaces';
 import { NumberAxisComponent } from './NumberAxisComponent';
 import { PriceAxisComponent } from './PriceAxisComponent';
 import { StateFabric } from './StateFabric';
+import { HoverState, MoveChartState } from './States';
 import { TimeAxisComponent } from './TimeAxisComponent';
 
 export {
@@ -17,6 +18,7 @@ export {
     ChartBoard,
     ChartStack,
     FigureComponent,
+    HoverState,
     IChart,
     IChartBoard,
     IChartStack,
@@ -26,6 +28,7 @@ export {
     isHoverable,
     IStateController,
     isStateController,
+    MoveChartState,
     NumberAxisComponent,
     PriceAxisComponent,
     StateFabric,

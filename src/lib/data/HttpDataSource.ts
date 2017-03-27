@@ -210,14 +210,14 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
 
     protected onRequestResolved(response: IResponse<T>) {
         if (this.isDisposed) {
-            console.debug(`Ignoring response to the disposed data source.`);
+            console.debug('Ignoring response to the disposed data source.');
             return;
         }
 
         if (response && response.data && response.data.length > 0) {
 
-            const timeInterval = this.stringToTimeInterval(response.interval);
-            if (timeInterval === this.config.timeInterval) {
+            const timeInterval = response.interval; //this.stringToTimeInterval(response.interval);
+            if (timeInterval !== this.config.timeInterval) {
                 // if timeinterval changed ignore response
                 console.debug(`Ignoring request with wrong time interval ${timeInterval}`);
                 return;
@@ -226,7 +226,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
             // Update data
             //
             const lastDateBefore = this.dataStorage.last !== undefined ? this.dataStorage.last.date : undefined;
-            this.mergeData(response.data);
+            this.merge(response.data);
             const lastDateAfter = this.dataStorage.last !== undefined ? this.dataStorage.last.date : undefined;
 
             // Notify subscribers:
@@ -239,7 +239,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
     }
 
     protected onRequestFailed(jqXhr: JQueryXHR, textStatus: string, errorThrown: string) {
-        console.debug('request failed: ' + textStatus);
+        console.error('request failed: ' + textStatus);
     }
 
     protected makeDefaultReader(): IDataReaderDelegate<T> {
@@ -260,24 +260,30 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         };
     }
 
-    protected makeDefaultResolver(): IDataResolverDelegate<T> {
-        return (response) => response;
+    protected makeDefaultResolver(): IDataResolverDelegate<ITimeValue, T> {
+        return (response: IResponse<ITimeValue>) => {
+            // Map incoming data to model
+            //
+            const objects = response.data
+                .filter((el: ITimeValue) => { return el && el.date; })
+                .map((el: ITimeValue) => {
+                        const date = new Date(el.date);
+                        const obj: T = new this.dataType(date);
+                        (<any>obj).deserialize(el);
+                        return obj;
+                });
+
+            return {
+                data: objects,
+                interval: response.interval,
+                startDateTime: response.startDateTime,
+                endDateTime: response.endDateTime
+            };
+        };
     }
 
-    protected mergeData(jsonData: T[]) {
-
-        // Map incoming data to model
-        //
-        const objects = jsonData
-            .filter((el: T) => { return el && el.date; })
-            .map((el: T) => {
-                    const date = new Date(el.date);
-                    const obj = new this.dataType(date);
-                    (<any>obj).deserialize(el);
-                    return obj;
-            });
-
-        this.dataStorage.merge(objects);
+    public merge(data: T[]) {
+        this.dataStorage.merge(data);
     }
 
     protected getDefaultConfig(): DataSourceConfig {

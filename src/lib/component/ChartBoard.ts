@@ -11,9 +11,9 @@ import { Point } from '../model/index';
 import { RenderLocator } from '../render/index';
 import { IHashTable, Point as IPoint } from '../shared/index';
 import { ChartStack } from './ChartStack';
-import { HoverState, MoveChartState } from './InputControllerState';
 import { IChartBoard, IDrawing, isStateController, IStateController } from './Interfaces';
 import { StateFabric } from './StateFabric';
+import { HoverState, MoveChartState } from './States';
 import { TimeAxisComponent } from './TimeAxisComponent';
 
 import * as $ from 'jquery';
@@ -32,8 +32,8 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
     constructor(
         private readonly container: HTMLElement,
-        private readonly offsetLeft: number,
-        private readonly offsetTop: number,
+        offsetLeft: number,
+        offsetTop: number,
         w: number,
         h: number,
         interval: TimeInterval
@@ -67,10 +67,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.container.addEventListener('mouseenter', this.onMouseEnter, false);
         this.container.addEventListener('mouseleave', this.onMouseLeave, false);
 
-        // Register states and go to default state
-        StateFabric.instance.setState('hover', HoverState.instance);
-        StateFabric.instance.setState('movechart', MoveChartState.instance);
-
+        // Go to default state
         this.state = HoverState.instance;
     }
 
@@ -127,13 +124,13 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         let mouse;// = { x: this.mouse.x, y: this.mouse.y };
         if (this.mouse.isEntered && this.mouse.x && this.mouse.y) {
             mouse = new IPoint(
-                this.mouse.x - this.offsetLeft, // - this.container.offsetLeft,
-                this.mouse.y - this.offsetTop); // - this.container.offsetTop);
+                this.mouse.x - this.offset.x, // - this.container.offsetLeft,
+                this.mouse.y - this.offset.y); // - this.container.offsetTop);
         }
 
         for (const cStack of this.chartStacks) {
 
-            let relativeMouse = undefined;
+            let relativeMouse: IPoint | undefined;
             // Convert mouse coords to relative
             if (mouse) {
                 relativeMouse = new IPoint(mouse.x - cStack.offset.x, mouse.y - cStack.offset.y);
@@ -148,7 +145,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
             cStack.render(context, RenderLocator.Instance);
         }
 
-        let relativeMouse = undefined;
+        let relativeMouse: IPoint | undefined;
         // Convert mouse coords to relative
         if (mouse) {
             relativeMouse = new IPoint(mouse.x - this.timeAxisComponent.offset.x, mouse.y - this.timeAxisComponent.offset.y);

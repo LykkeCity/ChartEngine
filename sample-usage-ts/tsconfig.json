@@ -1,8 +1,14 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "module": "amd",
-    //"outFile": "./chartengine.js",
+    "lib": [
+      "dom",
+      "es5",
+      "scripthost",
+      "es2015.promise"
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node",
     "noImplicitAny": true,
     "noEmitOnError": true,
     "removeComments": false,
@@ -10,22 +16,15 @@
     "target": "es5",
     "strictNullChecks": true,
     "baseUrl": ".",
-    // "paths": {
-    //   "charts/*": [ "charts/*" ],
-    //   "core/*": [ "charts/core/*" ],
-    //   "shared/*": [ "charts/shared/*" ],
-    //   "data/*": [ "charts/data/*" ]
-    // },
-    //"typeRoots": [ "../scripts/typings/" ],
-    "traceResolution": true,
-    "noUnusedParameters": true,
-    "noUnusedLocals": true
+    "traceResolution": false,
+    "noUnusedParameters": false,
+    "noUnusedLocals": false
   },
   "exclude": [
     "node_modules",
     "wwwroot"
   ],
   "include": [
-    "**/*"
+    "ts/**/*"
   ]
 }

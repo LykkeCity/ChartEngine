@@ -17,7 +17,7 @@ gulp.task('clean', function () {
     //del is an async function and not a gulp plugin (just standard nodejs)
     //It returns a promise, so make sure you return that from this task function
     //  so gulp knows when the delete is complete
-    return del(['dist/**/*']);
+    return del(['dist/**/*', 'sample-usage-ts/dist/**/*']);
 });
 
 gulp.task('tslint', (cb) => {
@@ -66,4 +66,18 @@ gulp.task('build-bundle', ['clean', 'build-js'], function () {
     .pipe(gulp.dest('dist'));     
 });
 
-gulp.task('build', ['clean', 'build-js', 'build-bundle']);
+gulp.task('build-bundle-sample', ['build-bundle'], function () {
+    return browserify({
+        basedir: './sample-usage-ts',
+        debug: true,
+        entries: ['ts/App.ts'],
+        cache: {},
+        packageCache: {}
+    })
+    .plugin(tsify)
+    .bundle()
+    .pipe(source('sampleapp.bundle.js'))
+    .pipe(gulp.dest("./sample-usage-ts/dist")); 
+});
+
+gulp.task('build', ['clean', 'build-js', 'build-bundle', 'build-bundle-sample']);

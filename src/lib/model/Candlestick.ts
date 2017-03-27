@@ -19,7 +19,7 @@ export class Candlestick implements ITimeValue {
     }
 
     public getValues(): number[] {
-        const ar = [];
+        const ar: number[] = [];
         if (this.c) { ar.push(this.c); }
         if (this.o) { ar.push(this.o); }
         if (this.h) { ar.push(this.h); }

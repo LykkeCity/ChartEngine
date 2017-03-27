@@ -32,26 +32,29 @@
     <script type="text/javascript">
         let chart = (function(){ 
 
+            // Map sample data to classes
+            let candles1 = [];
+            for(let i = 0; i < sampleCandles.length; i++) {
+                let item = sampleCandles[i];
+                let c = new lychart.model.Candlestick(item.date, item.c, item.o, item.h, item.l);
+                candles1.push(c);
+            }
+
+            // Shift sample data by y-axis.
+            let candles2 = [];
+            for(let i = 0; i < sampleCandles.length; i++) {
+                let item = sampleCandles[i];
+                let c = new lychart.model.Candlestick(item.date, item.o + 0.0001, item.c + 0.0001, item.h + 0.0001, item.l + 0.0001);
+                candles2.push(c);
+            }
+
             var
                 board = null,
 
                 init = function($containerEl, w, h, border, timeInterval) {
                     board = new lychart.ChartBoard($containerEl, border, border, w, h, timeInterval);
 
-                    let candles1 = [];
-                    for(let i = 0; i < sampleCandles.length; i++) {
-                        let item = sampleCandles[i];
-                        let c = new lychart.model.Candlestick(item.date, item.c, item.o, item.h, item.l);
-                        candles1.push(c);
-                    }
-
-                    let candles2 = [];
-                    for(let i = 0; i < sampleCandles.length; i++) {
-                        let item = sampleCandles[i];
-                        let c = new lychart.model.Candlestick(item.date, item.o + 0.0001, item.c + 0.0001, item.h + 0.0001, item.l + 0.0001);
-                        candles2.push(c);
-                    }
-
+                    // Create data sources
                     let dataSource1 = new lychart.data.ArrayDataSource(lychart.model.Candlestick, { }, candles1);
                     board.addChart(1, lychart.core.ChartType.candle, dataSource1);
 
@@ -67,22 +70,14 @@
                         },
                         dataSource1);
                     board.addIndicator(3, indicator1);
-
-                    // // Add indicator
-                    // var indicator2 = new lychart.indicator.SimpleIndicator(
-                    //     {
-                    //     },
-                    //     dataSource2);
-                    // board.addIndicator(indicator2);
                 },
 
                 addline = function() {
                     board.drawing.start('line');
                 },
 
-                addrect = function() {
-                    //board.drawing.start();
-                },
+                addrect = function() { },
+
                 addcircle = function() {
                     board.drawing.start('circle');
                 },

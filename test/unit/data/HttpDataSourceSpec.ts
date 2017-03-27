@@ -201,7 +201,7 @@ describe('HttpDataSource tests', () => {
             // validate argument range
             expect(arg.range.start).toEqual(requestedStartDate);
             expect(arg.range.end).toEqual(requestedEndDate);
-            expect(arg.interval).toEqual(TimeInterval[TimeInterval.min]);
+            expect(arg.interval).toEqual(TimeInterval.min);
 
             // re-read data
             iterator = ads.getData({ start: requestedStartDate, end: requestedEndDate }, TimeInterval.min);
