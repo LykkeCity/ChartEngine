@@ -12,14 +12,15 @@ import { Utils } from './Utils';
  * Creates and handles one chart and its controls.
  */
 export class ChartController {
-    private container: HTMLElement;
+    private readonly autoupdatePeriod = 10; // In seconds
+    private autoupdateTimer?: number;
     private board: ChartBoard;
-    private readonly uid: string = '1';
+    private container: HTMLElement;
     private dataSource?: lychart.data.HttpDataSource<lychart.model.Candlestick>;
     private selectedInterval: lychart.core.TimeInterval;
     private selectedAsset: string;
-    private autoupdateTimer?: number;
-    private readonly autoupdatePeriod = 10; // In seconds
+    private storage = new Storage();
+    private readonly uid: string = '1';
 
     constructor(container: HTMLElement, offsetLeft: number, offsetTop: number, assets: Asset[], selectedAsset: string) {
         this.container = container;
@@ -28,7 +29,7 @@ export class ChartController {
 
         // Create chart
         const chartContainer = <HTMLElement>container.getElementsByClassName('chart-container')[0];
-        this.board = new ChartBoard(chartContainer, offsetLeft, offsetTop, 200, 200, lychart.core.TimeInterval.min);
+        this.board = new ChartBoard(chartContainer, offsetLeft, offsetTop, 200, 200, lychart.core.TimeInterval.min, this.storage);
 
         // Set up controls
         //
@@ -187,5 +188,23 @@ export class ChartController {
     private updateChart = () => {
         this.setChart(this.getSelectedAssetPair(), this.getSelectedTimeInterval());
         this.board.render();
+    }
+}
+
+class Storage implements lychart.core.IStorage {
+    public getItem(key: string): string | null {
+        if (localStorage) {
+            return localStorage.getItem(key);
+        } else {
+            throw new Error('Local storage is not available.');
+        }
+    }
+
+    public setItem(key: string, value: string) {
+        if (localStorage) {
+            localStorage.setItem(key, value);
+        } else {
+            throw new Error('Local storage is not available.');
+        }
     }
 }

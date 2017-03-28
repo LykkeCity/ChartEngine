@@ -19,7 +19,6 @@ export interface IPoint {
     readonly y: number;
 }
 
-
 export interface IMouse {
     x: number;
     y: number;
@@ -27,3 +26,7 @@ export interface IMouse {
     isEntered: boolean;
 }
 
+export interface IStorage {
+    getItem(key: string): string | null;
+    setItem(key: string, value: string): void;
+}

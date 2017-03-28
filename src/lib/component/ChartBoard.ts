@@ -4,7 +4,7 @@
  * @classdesc Facade for the chart library.
  */
 import { TimeAxis } from '../axes/index';
-import { ChartType, Mouse, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { ChartType, IStorage, Mouse, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, IDataSource, IDataSourceUntyped } from '../data/index';
 import { BoardArea } from '../layout/index';
 import { Point } from '../model/index';
@@ -29,6 +29,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private readonly indicators: IHashTable<IDataSourceUntyped> = { };
 
     private state: IStateController;
+    private storage: Storage;
 
     constructor(
         private readonly container: HTMLElement,
@@ -36,10 +37,12 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         offsetTop: number,
         w: number,
         h: number,
-        interval: TimeInterval
+        interval: TimeInterval,
+        storage?: IStorage
     ) {
         super({ x: offsetLeft, y: offsetTop}, { width: Math.max(w, 100), height: Math.max(h, 50)});
 
+        this.storage = new Storage(storage);
         this.area = new BoardArea(container, this._size);
 
         const start = new Date();
