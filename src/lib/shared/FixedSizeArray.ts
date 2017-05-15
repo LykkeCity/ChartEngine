@@ -32,6 +32,14 @@ export class FixedSizeArray<T> {
         return this.container[index];
     }
 
+    public last(): T {
+        if (this._length > 0) {
+            return this.container[this._length - 1];
+        } else {
+            throw new Error('Array is empty.');
+        }
+    }
+
     /**
      * Appends specified element to the end of array.
      * If amount of elements exceeds allowed amount, first element is removed.
@@ -58,27 +66,27 @@ export class FixedSizeArray<T> {
         });
     }
 
-    public max(): T | undefined {
-        if (this._length > 0) {
-            let max = this.container[0];
-            this.container.forEach(el => {
-                if (this.comparer(el, max) > 0) {
-                    max = el;
-                }
-            });
-            return max;
-        }
+    public max(accessor: (item: T) => number|undefined): number | undefined {
+        let max: number|undefined = undefined;
+
+        this.container.forEach(el => {
+            const value = accessor(el);
+            if (value !== undefined) {
+                max = Math.max(value, max !== undefined ? max : Number.NEGATIVE_INFINITY);
+            }
+        });
+        return max;
     }
 
-    public min(): T | undefined {
-        if (this._length > 0) {
-            let min = this.container[0];
-            this.container.forEach(el => {
-                if (this.comparer(el, min) < 0) {
-                    min = el;
-                }
-            });
-            return min;
-        }
+    public min(accessor: (item: T) => number|undefined): number | undefined {
+        let min: number|undefined = undefined;
+
+        this.container.forEach(el => {
+            const value = accessor(el);
+            if (value !== undefined) {
+                min = Math.min(value, min !== undefined ? min : Number.POSITIVE_INFINITY);
+            }
+        });
+        return min;
     }
 }

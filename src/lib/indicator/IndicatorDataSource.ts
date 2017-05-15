@@ -92,4 +92,26 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
         array.reverse();
         return array;
     }
+
+    protected static getPreviousItems(
+        iterator: IDataIterator<Candlestick>,
+        N: number,
+        arg: DataChangedArgument): Candlestick[] {
+
+        if (!iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0)) {
+            throw new Error('Source does not contain updated data');
+        }
+
+        const array: Candlestick[] = [];
+        iterator.somebackward((item, counter) => {
+            if (counter > N) { return false; }
+            if (counter > 0) {
+                array.push(item);
+                return true;
+            }
+            return true; // Skip current item
+        });
+        array.reverse();
+        return array;
+    }
 }

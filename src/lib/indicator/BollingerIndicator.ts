@@ -53,14 +53,14 @@ export class BollingerIndicator extends IndicatorDataSource<TripleCandlestick> {
 
         const N = 20;
         const K = 2;
-        const fsarray = new FixedSizeArray<number>(N - 1, (lhs, rhs) => lhs - rhs);
+        const fsarray = new FixedSizeArray<Candlestick>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
 
         // Get source data without loading
         const iterator: IDataIterator<Candlestick> = this.source.getIterator();
 
         // Select last source values
         if (arg) {
-            const prev = IndicatorDataSource.getPreviousValues(iterator, N - 1, arg, accessor);
+            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1, arg);
             fsarray.pushRange(prev);
         }
 
@@ -97,27 +97,31 @@ export class BollingerIndicator extends IndicatorDataSource<TripleCandlestick> {
             computed.uid.t = source.uid.t;
             computed.uid.n = source.uid.n;
 
+            fsarray.push(source);
+
             if (value !== undefined) { // has value
-                computed.middle.c = ma.compute(N, value, fsarray, prevMA);
+                computed.middle.c = ma.compute(N, fsarray, accessor, prevMA);
                 computed.middle.h = computed.middle.c;
                 computed.middle.l = computed.middle.c;
 
-                // After moving avg is computed, current value can be pushed to array, to calculate std deviation.
-                fsarray.push(value);
-                const standardDeviation = Utils.STDDEV(fsarray, computed.middle.c);
+                if (computed.middle.c !== undefined) {
+                    // After moving avg is computed, current value can be pushed to array, to calculate std deviation.
+                    const standardDeviation = Utils.STDDEV(fsarray, accessor, computed.middle.c);
 
-                computed.top.c = computed.middle.c + K * standardDeviation;
-                computed.top.h = computed.top.c;
-                computed.top.l = computed.middle.c;
+                    computed.top.c = computed.middle.c + K * standardDeviation;
+                    computed.top.h = computed.top.c;
+                    computed.top.l = computed.middle.c;
 
-                computed.bottom.c = computed.middle.c - K * standardDeviation;
-                computed.bottom.h = computed.bottom.c;
-                computed.bottom.l = computed.bottom.c;
+                    computed.bottom.c = computed.middle.c - K * standardDeviation;
+                    computed.bottom.h = computed.bottom.c;
+                    computed.bottom.l = computed.bottom.c;
 
-                computed.h = Math.max(computed.middle.h, computed.top.h, computed.bottom.h);
-                computed.l = Math.min(computed.middle.l, computed.top.l, computed.bottom.l);
+                    computed.h = Math.max(computed.top.h, computed.bottom.h,
+                                          computed.middle.h !== undefined ? computed.middle.h : Number.NEGATIVE_INFINITY);
+                    computed.l = Math.min(computed.top.l, computed.bottom.l, computed.middle.l || Number.POSITIVE_INFINITY, );
 
-                prevMA = computed.middle.c;
+                    prevMA = computed.middle.c;
+                }
             }
 
             computedArray.push(computed);

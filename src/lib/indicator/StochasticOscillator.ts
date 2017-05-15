@@ -51,15 +51,15 @@ export class StochasticOscillator extends IndicatorDataSource<DoubleCandlestick>
         const accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
 
         const N = this.settings.period;
-        const fsarray = new FixedSizeArray<number>(N - 1, (lhs, rhs) => lhs - rhs);
-        const karray = new FixedSizeArray<number>(N - 1, (lhs, rhs) => lhs - rhs);
+        const fsarray = new FixedSizeArray<Candlestick>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
+        const karray = new FixedSizeArray<Candlestick>(N - 1, (lhs, rhs) => { throw new Error('Not implemented.'); });
 
         // Get source data without loading
         const iterator: IDataIterator<Candlestick> = this.source.getIterator();
 
         // Select last source values
         if (arg) {
-            const prev = IndicatorDataSource.getPreviousValues(iterator, N - 1, arg, accessor);
+            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1, arg);
             fsarray.pushRange(prev);
         }
 
@@ -89,30 +89,32 @@ export class StochasticOscillator extends IndicatorDataSource<DoubleCandlestick>
             lastUid = iterator.current.uid;
             const source = iterator.current;
             const value = accessor(source);
+            fsarray.push(source);
 
             const computed = new DoubleCandlestick(source.date);
             computed.uid.t = source.uid.t;
             computed.uid.n = source.uid.n;
 
             if (value !== undefined) { // has value
-                fsarray.push(value); // calculating min/max with current value
+                 // calculating min/max with current value
 
-                const H = <number>fsarray.max();
-                const L = <number>fsarray.min();
+                const H = <number>fsarray.max(accessor);
+                const L = <number>fsarray.min(accessor);
                 const K = (L !== H) ? 100 * (value - L) / (H - L) : 100;
 
                 computed.fast.c = K;
                 computed.fast.h = K;
                 computed.fast.l = K;
 
-                computed.slow.c = ma.compute(N, K, karray, prevMA);
+                karray.push(computed.fast);
+
+                computed.slow.c = ma.compute(N, karray, candle => candle.c, prevMA);
                 computed.slow.h = computed.slow.c;
                 computed.slow.l = computed.slow.c;
 
-                computed.h = Math.max(computed.fast.c, computed.slow.c);
-                computed.l = Math.min(computed.fast.c, computed.slow.c);
+                computed.h = Math.max(computed.fast.c, computed.slow.c !== undefined ? computed.slow.c : Number.NEGATIVE_INFINITY);
+                computed.l = Math.min(computed.fast.c, computed.slow.c !== undefined ? computed.slow.c : Number.POSITIVE_INFINITY);
 
-                karray.push(K);
                 prevMA = computed.slow.c;
             }
 

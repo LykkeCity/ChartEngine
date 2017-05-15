@@ -57,6 +57,8 @@ export class ChartController {
             () => { this.changeIndicator('102', 'bollinger', 0, $('#cbIndicatorBollinger').is(':checked')); });
         $('#cbIndicatorStochastic').change(
             () => { this.changeIndicator('103', 'stochastic-osc', 1, $('#cbIndicatorStochastic').is(':checked')); });
+        $('#cbIndicatorSMA').change(() => { this.changeIndicator('104', 'SMA', 0, $('#cbIndicatorSMA').is(':checked')); });
+        $('#cbIndicatorWMA').change(() => { this.changeIndicator('105', 'WMA', 0, $('#cbIndicatorWMA').is(':checked')); });
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);

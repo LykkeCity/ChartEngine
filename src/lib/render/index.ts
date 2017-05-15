@@ -4,6 +4,7 @@
 import { CandlestickChartRenderer } from './CandlestickChartRenderer';
 import { IAxesRender, IChartRender, IMarkRender, IPopupRender, IRenderLocator, ITimeAxisRender } from './Interfaces';
 import { LineChartRenderer } from './LineChartRenderer';
+import { LinestickChartRenderer } from './LinestickChartRenderer';
 import { PriceAxisRenderer } from './PriceAxisRenderer';
 import { RenderLocator } from './RenderLocator';
 import { RenderUtils } from './RenderUtils';
@@ -18,6 +19,7 @@ export {
     IRenderLocator,
     ITimeAxisRender,
     LineChartRenderer,
+    LinestickChartRenderer,
     PriceAxisRenderer,
     RenderLocator,
     RenderUtils,

@@ -53,14 +53,14 @@ export class AlligatorIndicator extends IndicatorDataSource<TripleCandlestick> {
 
         const N = 13;
 
-        const fsarray = new FixedSizeArray<number>(N - 1, (lhs, rhs) => lhs - rhs); // Array fits maximum used elements
+        const fsarray = new FixedSizeArray<Candlestick>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
 
         // Get source data without loading
         const iterator: IDataIterator<Candlestick> = this.source.getIterator();
 
         // Select last source values
         if (arg) {
-            const prev = IndicatorDataSource.getPreviousValues(iterator, N - 1, arg, accessor);
+            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1, arg);
             fsarray.pushRange(prev);
         }
 
@@ -109,6 +109,7 @@ export class AlligatorIndicator extends IndicatorDataSource<TripleCandlestick> {
             lastUid = iterator.current.uid;
 
             const source = iterator.current;
+            fsarray.push(source);
             const j = new Candlestick(source.date);
             j.uid.t = source.uid.t;
             j.uid.n = source.uid.n;
@@ -119,10 +120,10 @@ export class AlligatorIndicator extends IndicatorDataSource<TripleCandlestick> {
             l.uid.t = source.uid.t;
             l.uid.n = source.uid.n;
 
-            if (source.c !== undefined) { // has value
-                j.c = ma.compute(13, source.c, fsarray, prevJaw);  prevJaw = j.c;
-                t.c = ma.compute(8, source.c, fsarray, prevTeeth); prevTeeth = t.c;
-                l.c = ma.compute(5, source.c, fsarray, prevLips);  prevLips = l.c;
+            if (source.c !== undefined) {
+                j.c = ma.compute(13, fsarray, accessor, prevJaw);  prevJaw = j.c;
+                t.c = ma.compute(8, fsarray, accessor, prevTeeth); prevTeeth = t.c;
+                l.c = ma.compute(5, fsarray, accessor, prevLips);  prevLips = l.c;
 
                 j.h = j.c;
                 j.l = j.c;
@@ -130,8 +131,6 @@ export class AlligatorIndicator extends IndicatorDataSource<TripleCandlestick> {
                 t.l = t.c;
                 l.h = l.c;
                 l.l = l.c;
-
-                fsarray.push(source.c);
             }
 
             jaw.push(j);

@@ -7,7 +7,9 @@ import { HeikinAshiDataSource } from './HeikinAshiDataSource';
 import { IndicatorDataSource } from './IndicatorDataSource';
 import { IndicatorFabric, register } from './IndicatorFabric';
 import { IIndicator } from './Interfaces';
+import { SMAIndicator } from './SMAIndicator';
 import { StochasticOscillator, StochasticOscillatorRenderer } from './StochasticOscillator';
+import { WMAIndicator } from './WMAIndicator';
 
 export {
     AlligatorIndicator,
@@ -19,6 +21,8 @@ export {
     IndicatorFabric,
     IIndicator,
     register,
+    SMAIndicator,
     StochasticOscillator,
-    StochasticOscillatorRenderer
+    StochasticOscillatorRenderer,
+    WMAIndicator
  };
