@@ -4,7 +4,7 @@
  * @classdesc Data source with dynamic data loading.
  */
 import { TimeInterval } from '../core/index';
-import { ITimeValue } from '../model/index';
+import { Candlestick, ITimeValue, IUidValue, Uid } from '../model/index';
 import { IDisposable, IRange } from '../shared/index';
 import { DateUtils } from '../utils/index';
 import { ArrayDataStorage } from './ArrayDataStorage';
@@ -16,21 +16,21 @@ import { IDataIterator, IDataReaderDelegate, IDataResolverDelegate, IPendingRequ
 
 import * as $ from 'jquery';
 
-export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implements IDisposable {
-    protected readonly dataStorage: ArrayDataStorage<T>;
+export class HttpDataSource extends DataSource {
+    protected readonly dataStorage: ArrayDataStorage<Candlestick>;
     //private readonly defaultMinDate = new Date(2000, 0, 1);
-    private readonly defaultMinValue = 0;
-    private readonly defaultMaxValue = 100;
+
     //private readonly defaultMaxItemsRequested = 100;
     protected autoUpdatePeriodSec = 10;
-    protected readonly pendingRequests: IPendingRequest<T>[] = [];
-    protected readonly comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
+    protected readonly pendingRequests: IPendingRequest<ITimeValue>[] = [];
+    protected readonly comparer = (item1: Candlestick, item2: Candlestick) => { return item1.uid.compare(item2.uid); };
+//    protected readonly comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
     protected timer?: number;
     protected isDisposed = false;
 
     constructor(
-        dataType: { new(d: Date): T },
-        config: HttpDataSourceConfig<T>) {
+        dataType: { new(d: Date): Candlestick },
+        config: HttpDataSourceConfig<ITimeValue, Candlestick>) {
             super(dataType, config);
 
             if (!config || (!config.url && !config.readData)) {
@@ -39,7 +39,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
             if (config.timeInterval === undefined) {
                 throw new Error('Time interval is not set.');
             }
-            this.dataStorage = new ArrayDataStorage<T>(this.comparer);
+            this.dataStorage = new ArrayDataStorage<Candlestick>(this.comparer);
             this.config.readData = config.readData || this.makeDefaultReader();
             this.config.resolveData = config.resolveData || this.makeDefaultResolver();
             this.config.autoupdate = (config.autoupdate !== undefined) ? config.autoupdate : false;
@@ -50,8 +50,8 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
             }
     }
 
-    public get config(): HttpDataSourceConfig<T> {
-        return <HttpDataSourceConfig<T>>this._config;
+    public get config(): HttpDataSourceConfig<ITimeValue, Candlestick> {
+        return <HttpDataSourceConfig<ITimeValue, Candlestick>>this._config;
     }
 
     protected scheduleAutoupdate() {
@@ -70,7 +70,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         const lastItem = this.dataStorage.last;
         if (lastItem) {
             // Last candle should be also updated
-            lastT = DateUtils.substractInterval(lastItem.date, this.config.timeInterval);
+            lastT = DateUtils.substractInterval(lastItem.uid.t, this.config.timeInterval);
         }
 
         // make request
@@ -80,18 +80,48 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         this.scheduleAutoupdate();
     }
 
-    public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {
+    public getIterator(filter?: (item: Candlestick) => boolean): IDataIterator<Candlestick> {
+        // return everything
+        return this.dataStorage.getIterator(filter);
+    }
 
-        this.validateRange(range);
+    public lock(uid: Uid): void {
+        // TODO: When unloading data from memory do not unload specified range.
+    }
+
+    //public getData(itemUid: string, count: number): IDataIterator<T> {
+    public load(uid: Uid, count: number): void {
+        // HttpDataSource ignores uid.n
+        const dateStart = uid.t; // this.uidToDate(itemUid);
+        const dateEnd = DateUtils.addInterval(dateStart, this.config.timeInterval, count);
+        const range = (count > 0) ? { start: dateStart, end: dateEnd } : { start: dateEnd, end: dateStart };
+
+        return this.getDataInRange(range, this.config.timeInterval);
+    }
+
+    //public getDataByDate(date: Date, count: number): IDataIterator<T> {
+
+    // Both UID are inclusive.
+    public loadRange(uidFirst: Uid, uidLast: Uid): void {
+        const dateFirst = uidFirst.t;
+        const dateLast = uidLast.t; //DateUtils.addInterval(date, this.config.timeInterval, count);
+        const range = (dateLast > dateFirst) ? { start: dateFirst, end: dateLast } : { start: dateLast, end: dateFirst };
+
+        return this.getDataInRange(range, this.config.timeInterval);
+    }
+
+    private getDataInRange(range: IRange<Date>, interval: TimeInterval): void {
+
+        this.validateDateRange(range);
         this.validateInterval(interval);
 
         const rangesToRequest: IRange<Date>[] = [];
 
         // 1. Check existing data and define what range needs to be requested
         if (!this.dataStorage.isEmpty) {
-            const first = <T>this.dataStorage.first;
-            const last = <T>this.dataStorage.last;
-            const curRange = { start: first.date, end: last.date };
+            const first = <Candlestick>this.dataStorage.first;
+            const last = <Candlestick>this.dataStorage.last;
+            const curRange = { start: first.uid.t, end: last.uid.t };
             // Define ranges to request
             if (range.start < curRange.start) {
                 rangesToRequest.push({ start: range.start, end: curRange.start });
@@ -109,48 +139,53 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
             this.makeRequest(r, interval);
         }
 
-        // 3. So far return what we have
-        const startTime = range.start.getTime();
-        const endTime = range.end.getTime();
+        // // 3. So far return what we have
+        // const startTime = range.start.getTime();
+        // const endTime = range.end.getTime();
 
-        return this.dataStorage.getIterator((item: T) => {
-            const itemTime = item.date.getTime();
-            return (itemTime >= startTime && itemTime <= endTime);
-        });
+        // return this.dataStorage.filter((item: T) => {
+        //     const itemTime = item.date.getTime();
+        //     return (itemTime >= startTime && itemTime <= endTime);
+        // });
     }
 
-    public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
+    // public getValuesRange(range: IRange<Uid>): IRange<number> {
 
-        this.validateRange(range);
-        this.validateInterval(interval);
+    //     this.validateRange(range);
+    //     //this.validateInterval(interval);
 
-        if (this.dataStorage.isEmpty) {
-            return { start: this.defaultMinValue, end: this.defaultMaxValue };
-        }
+    //     if (this.dataStorage.isEmpty) {
+    //         return { start: this.defaultMinValue, end: this.defaultMaxValue };
+    //     }
 
-        let minValue = Number.MAX_VALUE;
-        let maxValue = Number.MIN_VALUE;
+    //     let minValue = Number.MAX_VALUE;
+    //     let maxValue = Number.MIN_VALUE;
 
-        // Filter data by date and find min/max price
-        //
-        const startTime = range.start.getTime();
-        const endTime = range.end.getTime();
-        const iterator = this.dataStorage.getIterator((item: T) => {
-            const itemTime = item.date.getTime();
-            return (itemTime >= startTime && itemTime <= endTime);
-        });
+    //     // Filter data by date and find min/max price
+    //     //
+    //     // const startTime = range.start.t.getTime();
+    //     // const endTime = range.end.t.getTime();
+    //     // const iterator = this.dataStorage.getIterator((item: T) => {
+    //     //     const itemTime = item.date.getTime();
+    //     //     return (itemTime >= startTime && itemTime <= endTime);
+    //     // });
 
-        while (iterator.moveNext()) {
-            // update min / max values
-            const values = iterator.current.getValues();
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            if (min < minValue) { minValue = min; }
-            if (max > maxValue) { maxValue = max; }
-        }
+    //     const iterator = this.dataStorage.getIterator((item: T) => {
+    //         // item >= range.start && item <= range.end
+    //         return item.uid.compare(range.start) >= 0 && item.uid.compare(range.end) <= 0;
+    //     });
 
-        return { start: minValue, end: maxValue };
-    }
+    //     while (iterator.moveNext()) {
+    //         // update min / max values
+    //         const values = iterator.current.getValues();
+    //         const min = Math.min(...values);
+    //         const max = Math.max(...values);
+    //         if (min < minValue) { minValue = min; }
+    //         if (max > maxValue) { maxValue = max; }
+    //     }
+
+    //     return { start: minValue, end: maxValue };
+    // }
 
     public setTimeInterval(interval: TimeInterval) {
         // set interval and clear storage
@@ -161,7 +196,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
 
     protected makeRequest(range: IRange<Date>, interval: TimeInterval) {
         if (this.isDisposed) {
-            console.debug(`Ignoring request from the disposed data source.`);
+            console.debug('Ignoring request from the disposed data source.');
             return;
         }
 
@@ -196,7 +231,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         const self = this;
         request
         .then((response: any) => { return self.config.resolveData(response); })
-        .then((response: IResponse<T>) => { self.onRequestResolved(response); })
+        .then((response: IResponse<Candlestick>) => { self.onRequestResolved(response); })
         .fail((jqXhr: JQueryXHR, textStatus: string, errorThrown: string) => { self.onRequestFailed(jqXhr, textStatus, errorThrown); })
         .always(() => {
             // Remove request from pending requests
@@ -208,7 +243,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         });
     }
 
-    protected onRequestResolved(response: IResponse<T>) {
+    protected onRequestResolved(response: IResponse<Candlestick>) {
         if (this.isDisposed) {
             console.debug('Ignoring response to the disposed data source.');
             return;
@@ -225,16 +260,28 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
 
             // Update data
             //
-            const lastDateBefore = this.dataStorage.last !== undefined ? this.dataStorage.last.date : undefined;
+            const lastBefore = this.dataStorage.last !== undefined ? this.dataStorage.last.uid : undefined;
             this.merge(response.data);
-            const lastDateAfter = this.dataStorage.last !== undefined ? this.dataStorage.last.date : undefined;
+            const lastAfter = this.dataStorage.last !== undefined ? this.dataStorage.last.uid : undefined;
 
+            // const arg = new DataChangedArgument(
+            //         { start: new Date(response.startDateTime), end: new Date(response.endDateTime) },
+            //         timeInterval,
+            //         lastDateBefore, lastDateAfter);
+
+            // TODO: Remove conversion
+            const uidFirst = response.data[0].uid; // first (new Date(response.startDateTime));
+            const uidLast = response.data[response.data.length - 1].uid; // last
+            const count = response.data.length;
+            const arg = new DataChangedArgument(uidFirst, uidLast, count);
+            arg.lastUidBefore = lastBefore;
+            arg.lastUidAfter = lastAfter;
+
+            this.computeExtensions(arg);
+
+            console.debug(`HTTP: triggering event ${uidFirst.t.toISOString()}-${uidLast.t.toISOString()}`);
             // Notify subscribers:
-            this.dateChangedEvent.trigger(
-                new DataChangedArgument(
-                    { start: new Date(response.startDateTime), end: new Date(response.endDateTime) },
-                    timeInterval,
-                    lastDateBefore, lastDateAfter));
+            this.dateChangedEvent.trigger(arg);
         }
     }
 
@@ -242,7 +289,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         console.error('request failed: ' + textStatus);
     }
 
-    protected makeDefaultReader(): IDataReaderDelegate<T> {
+    protected makeDefaultReader(): IDataReaderDelegate<ITimeValue> {
         const url = this.config.url;
         const timeIntervalToString = this.timeIntervalToString;
         return (timeStart: Date, timeEnd: Date, interval: TimeInterval) => {
@@ -260,7 +307,15 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         };
     }
 
-    protected makeDefaultResolver(): IDataResolverDelegate<ITimeValue, T> {
+    // private dateToUid(date: Date): string {
+    //     return date.getTime().toString();
+    // }
+
+    // private uidToDate(uid: string): Date {
+    //     return new Date(parseInt(uid, 10));
+    // }
+
+    protected makeDefaultResolver(): IDataResolverDelegate<ITimeValue, Candlestick> {
         return (response: IResponse<ITimeValue>) => {
             // Map incoming data to model
             //
@@ -268,8 +323,11 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
                 .filter((el: ITimeValue) => { return el && el.date; })
                 .map((el: ITimeValue) => {
                         const date = new Date(el.date);
-                        const obj: T = new this.dataType(date);
+                        const obj: Candlestick = new this.dataType(date);
                         (<any>obj).deserialize(el);
+
+                        //obj.uid = this.dateToUid(el.date);
+
                         return obj;
                 });
 
@@ -282,7 +340,7 @@ export class HttpDataSource<T extends ITimeValue> extends DataSource<T> implemen
         };
     }
 
-    public merge(data: T[]) {
+    public merge(data: Candlestick[]) {
         this.dataStorage.merge(data);
     }
 

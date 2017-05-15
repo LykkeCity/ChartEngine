@@ -13,6 +13,7 @@ export class CrosshairRenderer {
         canvas.setStrokeStyle('black');
         const curDash = canvas.getLineDash();
         canvas.setLineDash([5, 5]);
+        canvas.lineWidth = 1;
         canvas.beginPath();
         if (point.x > 0 && point.x < frameSize.width) {
             // draw vertical line

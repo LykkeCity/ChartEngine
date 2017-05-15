@@ -14,7 +14,7 @@ export class ArrayUtils {
      * 
      * @returns New array containing elements from target and update arrays.
      */
-    public static merge<T>(target: T[], update: T[], comparer: IComparer<T>) : T[] {
+    public static merge<T>(target: T[], update: T[], comparer: IComparer<T>, updateFunction?: (target: T, update: T) => T) : T[] {
 
         const merged = new Array<T>(target.length + update.length); // preallocate memory
 
@@ -33,7 +33,11 @@ export class ArrayUtils {
                     ib += 1;
                 } else {
                     // Take newest value
-                    merged[actualSize] = update[ib];
+                    if (updateFunction) {
+                        merged[actualSize] = updateFunction(target[ia], update[ib]);
+                    } else {
+                        merged[actualSize] = update[ib];
+                    }
                     ia += 1;
                     ib += 1;
                 }

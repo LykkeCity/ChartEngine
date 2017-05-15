@@ -2,7 +2,7 @@
  * 
  */
 import { FigureComponent, IChartBoard, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, IMouse, Mouse, VisualContext }
+import { ChartPoint, IAxis, ICoordsConverter, IMouse, Mouse, VisualContext }
     from '../core/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
@@ -20,23 +20,26 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
         private area: Area,
         offset: Point,
         size: ISize,
-        private timeAxis: IAxis<Date>,
-        private yAxis: IAxis<number>
+        private coords: ICoordsConverter
+        // private timeAxis: IAxis<Date>,
+        // private yAxis: IAxis<number>
         ) {
         super(offset, size);
     }
 
     public isHit(x: number, y: number): boolean {
 
-        if (!this.p.t || !this.p.v) {
-            return false;
+        if (this.p.uid && this.p.v) {
+            //const px = this.coords.toX(this.p.t === undefined ? <string>this.p.uid : this.p.t);
+            const px = this.coords.toX(this.p.uid);
+            const py = this.coords.toY(this.p.v);
+
+            if (px) {
+                const diff = Math.sqrt((px - x) * (px - x) + (py - y) * (py - y));
+                return diff < 5;
+            }
         }
-
-        const px = this.timeAxis.toX(this.p.t);
-        const py = this.yAxis.toX(this.p.v);
-
-        const diff = Math.sqrt((px - x) * (px - x) + (py - y) * (py - y));
-        return diff < 5;
+        return false;
     }
 
     public setPopupVisibility(visible: boolean): void {
@@ -50,25 +53,34 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
             return;
         }
 
-        if (this.p.t && this.p.v) {
-            const x = this.timeAxis.toX(this.p.t);
-            const y = this.yAxis.toX(this.p.v);
+        if (this.p.uid && this.p.v) {
+            // const x = this.timeAxis.toX(this.p.t);
+            // const y = this.yAxis.toX(this.p.v);
 
-            const canvas = this.area.frontCanvas;
+            //const x = this.coords.toX(this.p.t === undefined ? <string>this.p.uid : this.p.t);
+            const x = this.coords.toX(this.p.uid);
+            const y = this.coords.toY(this.p.v);
 
-            canvas.beginPath();
-            canvas.arc(x, y, 3, 0, 2 * Math.PI, false);
+            if (x) {
+                const canvas = this.area.frontCanvas;
 
-            if (this.isHovered) {
-                canvas.setFillStyle('#FFFFFF');
-                canvas.setStrokeStyle('#000BEF');
-                canvas.fill();
-            } else {
-                canvas.setStrokeStyle('#FF0509');
+                canvas.lineWidth = 2;
+                canvas.beginPath();
+
+
+                if (this.isHovered) {
+                    canvas.arc(x, y, 5, 0, 2 * Math.PI, false);
+
+                    canvas.setFillStyle('#FFFFFF');
+                    canvas.setStrokeStyle('#606060');
+                    canvas.fill();
+                } else {
+                    canvas.setStrokeStyle('#C9001D');
+                }
+
+                canvas.stroke();
+                canvas.closePath();
             }
-
-            canvas.stroke();
-            canvas.closePath();
         }
     }
 
@@ -100,24 +112,34 @@ class EditPointState implements IStateController {
 
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
         if (this.point && this.chartStack) {
-            const timeNumberCoords = this.chartStack.mouseToCoords(
-                mouse.x - board.offset.x - this.chartStack.offset.x,
-                mouse.y - board.offset.y - this.chartStack.offset.y);
 
-            // Calculate difference
-            // TODO: Get rid of excessive check for undefined values
-            if (timeNumberCoords.t && timeNumberCoords.v
-                && this.currentCoords && this.currentCoords.t && this.currentCoords.v
-                && this.point.point.t && this.point.point.v) {
+            // const timeNumberCoords = this.chartStack.mouseToCoords(
+            //     mouse.x - board.offset.x - this.chartStack.offset.x,
+            //     mouse.y - board.offset.y - this.chartStack.offset.y);
 
-                const tdiff = timeNumberCoords.t.getTime() - this.currentCoords.t.getTime();
-                const vdiff = timeNumberCoords.v - this.currentCoords.v;
+            const coordX = this.chartStack.xToValue(mouse.x - board.offset.x - this.chartStack.offset.x);
+            const coordY = this.chartStack.yToValue(mouse.y - board.offset.y - this.chartStack.offset.y);
 
-                this.point.point.t = new Date(this.point.point.t.getTime() + tdiff);
-                this.point.point.v = this.point.point.v + vdiff;
+            //this.point.point.t = (typeof coordX === 'string') ? undefined : <Date>coordX;
+            //this.point.point.uid = (typeof coordX === 'string') ? <string>coordX : undefined;
+            this.point.point.uid = coordX;
+            this.point.point.v = coordY;
 
-                this.currentCoords = timeNumberCoords;
-            }
+            // // Calculate difference
+            // // TODO: Get rid of excessive check for undefined values
+            // if (timeNumberCoords.t && timeNumberCoords.v
+            //     && this.currentCoords && this.currentCoords.t && this.currentCoords.v
+            //     && this.point.point.t && this.point.point.v) {
+
+            //     const tdiff = timeNumberCoords.t.getTime() - this.currentCoords.t.getTime();
+            //     const vdiff = timeNumberCoords.v - this.currentCoords.v;
+
+            //     this.point.point.t = new Date(this.point.point.t.getTime() + tdiff);
+            //     this.point.point.uid = ;
+            //     this.point.point.v = this.point.point.v + vdiff;
+
+            //     this.currentCoords = timeNumberCoords;
+            // }
         } else {
             console.debug('Edit state: line or chartStack is not found.');
         }
@@ -146,9 +168,12 @@ class EditPointState implements IStateController {
         // Determine which ChartStack was hit
         this.chartStack = board.getHitStack(mouse.x - board.offset.x, mouse.y - board.offset.y);
         if (this.chartStack) {
-            this.currentCoords = this.chartStack.mouseToCoords(
-                mouse.x - board.offset.x - this.chartStack.offset.x,
-                mouse.y - board.offset.y - this.chartStack.offset.y);
+            // this.currentCoords = this.chartStack.mouseToCoords(
+            //     mouse.x - board.offset.x - this.chartStack.offset.x,
+            //     mouse.y - board.offset.y - this.chartStack.offset.y);
+
+
+
         } else {
             throw new Error('Can not find hit chart stack.');
         }

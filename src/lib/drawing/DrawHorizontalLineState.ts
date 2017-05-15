@@ -1,58 +1,52 @@
 /**
- * Classes for drawing lines.
+ * Classes for drawing horizontal lines.
  */
 
 import { FigureComponent, IChartBoard, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, IMouse, Mouse, VisualContext } from '../core/index';
+import { ChartPoint, IAxis, ICoordsConverter, IMouse, Mouse, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, ISize, Point } from '../shared/index';
 import { DrawUtils } from '../utils/index';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class LineFigureComponent extends FigureComponent implements IHoverable, IEditable {
-    private pa: PointFigureComponent;
-    private pb: PointFigureComponent;
+class HorizontalLineFigureComponent extends FigureComponent implements IHoverable, IEditable {
+    private p: PointFigureComponent;
     private isHovered = false;
 
-    public get pointA(): ChartPoint {
-        return this.pa.point;
-    }
-
-    public get pointB(): ChartPoint {
-        return this.pb.point;
+    public get point(): ChartPoint {
+        return this.p.point;
     }
 
     constructor(
         private area: Area,
         offset: Point,
         size: ISize,
-        private timeAxis: IAxis<Date>,
-        private yAxis: IAxis<number>
+        private coords: ICoordsConverter
+        // private timeAxis: IAxis<Date>,
+        // private yAxis: IAxis<number>
         ) {
         super(offset, size);
 
-        this.pa = new PointFigureComponent(area, offset, size, timeAxis, yAxis);
-        this.pb = new PointFigureComponent(area, offset, size, timeAxis, yAxis);
+        this.p = new PointFigureComponent(area, offset, size, coords);
 
-        this.addChild(this.pa);
-        this.addChild(this.pb);
+        this.addChild(this.p);
     }
 
     public isHit(x: number, y: number): boolean {
 
-        if (!this.pa.point.t || !this.pa.point.v || !this.pb.point.t || !this.pb.point.v) {
+        if (!this.p.point.uid || !this.p.point.v) {
             return false;
         }
 
-        // TODO: Can be stored when coords are changed
-        const ax = this.timeAxis.toX(this.pa.point.t);
-        const bx = this.timeAxis.toX(this.pb.point.t);
+        // // TODO: Can be stored when coords are changed
+        // const ax = this.coords.toX(this.pa.point.t === undefined ? <string>this.pa.point.uid : this.pa.point.t);
+        // const bx = this.coords.toX(this.pb.point.t === undefined ? <string>this.pb.point.uid : this.pb.point.t);
 
-        const ay = this.yAxis.toX(this.pa.point.v);
-        const by = this.yAxis.toX(this.pb.point.v);
+        const pointy = this.coords.toY(this.p.point.v);
+        // const by = this.coords.toY(this.pb.point.v);
 
-        return DrawUtils.isPointInLine({ x: x, y: y }, { x: ax, y: ay }, { x: bx, y: by }, 0.05);
+        return y >= pointy - 3 && y <= pointy + 3;
     }
 
     public setPopupVisibility(visible: boolean): void {
@@ -66,25 +60,23 @@ class LineFigureComponent extends FigureComponent implements IHoverable, IEditab
             return;
         }
 
-        if (this.pa.point.t && this.pa.point.v && this.pb.point.t && this.pb.point.v) {
-            const ax = this.timeAxis.toX(this.pa.point.t);
-            const ay = this.yAxis.toX(this.pa.point.v);
+        if (this.p.point.uid && this.p.point.v) {
 
-            const bx = this.timeAxis.toX(this.pb.point.t);
-            const by = this.yAxis.toX(this.pb.point.v);
+            const y = this.coords.toY(this.p.point.v);
 
             const canvas = this.area.frontCanvas;
 
             if (this.isHovered) {
-                canvas.setStrokeStyle('#000BEF');
+                canvas.setStrokeStyle('#FF3232');
             } else {
-                canvas.setStrokeStyle('#FF0509');
+                canvas.setStrokeStyle('#C9001D');
             }
 
+            canvas.lineWidth = 2;
             canvas.beginPath();
 
-            canvas.moveTo(ax, ay);
-            canvas.lineTo(bx, by);
+            canvas.moveTo(0, y);
+            canvas.lineTo(this.size.width, y);
 
             canvas.stroke();
             canvas.closePath();
@@ -94,41 +86,42 @@ class LineFigureComponent extends FigureComponent implements IHoverable, IEditab
     }
 
     public getEditState(): IStateController {
-        return EditLineState.instance;
+        return EditHorizontalLineState.instance;
     }
 }
 
 
-export class DrawLineState implements IStateController {
-    private static inst?: DrawLineState;
+export class DrawHorizontalLineState implements IStateController {
+    private static inst?: DrawHorizontalLineState;
     private constructor() { }
 
     public static get instance() {
         if (!this.inst) {
-            this.inst = new DrawLineState();
+            this.inst = new DrawHorizontalLineState();
         }
         return this.inst;
     }
 
     private mouse = new Mouse();
     private chartStack?: IChartStack;
-    private line?: LineFigureComponent;
+    private line?: HorizontalLineFigureComponent;
 
     public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
 
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
         [this.mouse.x, this.mouse.y] = [mouse.x, mouse.y];
 
-        if (this.line && this.chartStack) {
-            const timeNumberCoords = this.chartStack.mouseToCoords(
-                mouse.x - board.offset.x - this.chartStack.offset.x,
-                mouse.y - board.offset.y - this.chartStack.offset.y);
+        // if (this.line && this.chartStack) {
 
-            if (timeNumberCoords.t && timeNumberCoords.v) {
-                this.line.pointB.t = timeNumberCoords.t;
-                this.line.pointB.v = timeNumberCoords.v;
-            }
-        }
+        //     const coordX = this.chartStack.xToValue(mouse.x - board.offset.x - this.chartStack.offset.x);
+        //     const coordY = this.chartStack.yToValue(mouse.y - board.offset.y - this.chartStack.offset.y);
+
+        //     if (coordX && coordY) {
+        //         this.line.pointB.t = (typeof coordX === 'string') ? undefined : <Date>coordX;
+        //         this.line.pointB.uid = (typeof coordX === 'string') ? <string>coordX : undefined;
+        //         this.line.pointB.v = coordY;
+        //     }
+        // }
     }
 
     public onMouseEnter(board: IChartBoard, mouse: IMouse): void {
@@ -152,20 +145,17 @@ export class DrawLineState implements IStateController {
         // Determine which ChartStack was hit
         this.chartStack = board.getHitStack(mouse.x - board.offset.x, mouse.y - board.offset.y);
         if (this.chartStack) {
-            this.line = <LineFigureComponent>this.chartStack.addFigure((area, offset, size, timeAxis, yAxis) => {
-                return new LineFigureComponent(area, offset, size, timeAxis, yAxis);
+            this.line = <HorizontalLineFigureComponent>this.chartStack.addFigure((area, offset, size, coords) => {
+                return new HorizontalLineFigureComponent(area, offset, size, coords);
             });
 
-            const timeNumberCoords = this.chartStack.mouseToCoords(
-                mouse.x - board.offset.x - this.chartStack.offset.x,
-                mouse.y - board.offset.y - this.chartStack.offset.y
-            );
+            const coordX = this.chartStack.xToValue(mouse.x - board.offset.x - this.chartStack.offset.x);
+            const coordY = this.chartStack.yToValue(mouse.y - board.offset.y - this.chartStack.offset.y);
 
-            this.line.pointA.t = timeNumberCoords.t;
-            this.line.pointA.v = timeNumberCoords.v;
-
-            this.line.pointB.t = timeNumberCoords.t;
-            this.line.pointB.v = timeNumberCoords.v;
+            // this.line.point.t = (typeof coordX === 'string') ? undefined : <Date>coordX;
+            // this.line.point.uid = (typeof coordX === 'string') ? <string>coordX : undefined;
+            this.line.point.uid = coordX;
+            this.line.point.v = coordY;
         }
     }
 
@@ -180,47 +170,49 @@ export class DrawLineState implements IStateController {
     }
 }
 
-class EditLineState implements IStateController {
-    private static inst?: EditLineState;
+class EditHorizontalLineState implements IStateController {
+    private static inst?: EditHorizontalLineState;
     private constructor() { }
 
     public static get instance() {
         if (!this.inst) {
-            this.inst = new EditLineState();
+            this.inst = new EditHorizontalLineState();
         }
         return this.inst;
     }
 
     private mouse = new Mouse();
     private chartStack?: IChartStack;
-    private line?: LineFigureComponent;
+    private line?: HorizontalLineFigureComponent;
     private currentCoords?: ChartPoint;
 
     public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
 
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
         if (this.line && this.chartStack) {
-            const timeNumberCoords = this.chartStack.mouseToCoords(
-                mouse.x - board.offset.x - this.chartStack.offset.x,
-                mouse.y - board.offset.y - this.chartStack.offset.y);
 
-            // Calculate difference
-            // TODO: Get rid of excessive check for undefined values
-            if (timeNumberCoords.t && timeNumberCoords.v
-                && this.currentCoords && this.currentCoords.t && this.currentCoords.v
-                && this.line.pointA.t && this.line.pointA.v && this.line.pointB.t && this.line.pointB.v) {
+            //const coordX = this.chartStack.xToValue(mouse.x - board.offset.x - this.chartStack.offset.x);
+            const coordY = this.chartStack.yToValue(mouse.y - board.offset.y - this.chartStack.offset.y);
 
-                const tdiff = timeNumberCoords.t.getTime() - this.currentCoords.t.getTime();
-                const vdiff = timeNumberCoords.v - this.currentCoords.v;
+            this.line.point.v = coordY;
 
-                this.line.pointA.t = new Date(this.line.pointA.t.getTime() + tdiff);
-                this.line.pointA.v = this.line.pointA.v + vdiff;
+        //     // Calculate difference
+        //     // TODO: Get rid of excessive check for undefined values
+        //     if (timeNumberCoords.t && timeNumberCoords.v
+        //         && this.currentCoords && this.currentCoords.t && this.currentCoords.v
+        //         && this.line.pointA.t && this.line.pointA.v && this.line.pointB.t && this.line.pointB.v) {
 
-                this.line.pointB.t = new Date(this.line.pointB.t.getTime() + tdiff);
-                this.line.pointB.v = this.line.pointB.v + vdiff;
+        //         const tdiff = timeNumberCoords.t.getTime() - this.currentCoords.t.getTime();
+        //         const vdiff = timeNumberCoords.v - this.currentCoords.v;
 
-                this.currentCoords = timeNumberCoords;
-            }
+        //         this.line.pointA.t = new Date(this.line.pointA.t.getTime() + tdiff);
+        //         this.line.pointA.v = this.line.pointA.v + vdiff;
+
+        //         this.line.pointB.t = new Date(this.line.pointB.t.getTime() + tdiff);
+        //         this.line.pointB.v = this.line.pointB.v + vdiff;
+
+        //         this.currentCoords = timeNumberCoords;
+        //     }
         } else {
             console.debug('Edit state: line or chartStack is not found.');
         }
@@ -249,15 +241,15 @@ class EditLineState implements IStateController {
         // Determine which ChartStack was hit
         this.chartStack = board.getHitStack(mouse.x - board.offset.x, mouse.y - board.offset.y);
         if (this.chartStack) {
-            this.currentCoords = this.chartStack.mouseToCoords(
-                mouse.x - board.offset.x - this.chartStack.offset.x,
-                mouse.y - board.offset.y - this.chartStack.offset.y);
+            // this.currentCoords = this.chartStack.mouseToCoords(
+            //     mouse.x - board.offset.x - this.chartStack.offset.x,
+            //     mouse.y - board.offset.y - this.chartStack.offset.y);
         } else {
             throw new Error('Can not find hit chart stack.');
         }
 
         if (activationParameters && activationParameters['component']) {
-            this.line = <LineFigureComponent>activationParameters['component'];
+            this.line = <HorizontalLineFigureComponent>activationParameters['component'];
         } else {
             throw new Error('Editable component is not specified for edit.');
         }

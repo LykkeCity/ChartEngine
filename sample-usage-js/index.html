@@ -99,7 +99,11 @@
                     if (response) {
                         const data = response.data
                             .map(function(item) {
-                                return new lychart.model.Candlestick(new Date(item.t), item.c, item.o, item.h, item.l);;
+                                let date = new Date(item.t);
+                                let stick = new lychart.model.Candlestick(date, item.c, item.o, item.h, item.l);
+                                // init uid
+                                //stick.uid = date.getTime().toString();
+                                return stick;
                             });
 
                         return {
@@ -213,7 +217,7 @@
             let w = Math.max(window.innerWidth - border * 2, minChartWidth);
             let h = Math.max(window.innerHeight - border * 2, minChartHeight);   
 
-            chart.init($("#chart-container")[0], w, h, border);
+            chart.init($("#chart-container")[0], w, h, border, lychart.core.TimeInterval.min);
 
             window.onresize = function(event) {
                 let w = Math.max(window.innerWidth - border * 2, minChartWidth);

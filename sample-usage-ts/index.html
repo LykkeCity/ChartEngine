@@ -7,52 +7,97 @@
         body {
             margin: 0;
             padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 0.9em;  
         }
+        #menu {
+            margin: 0; 
+            padding: 5px 0px 5px 0px; 
+            height: 40px;
+        }
+        #lsection {
+            float: left;
+            width: 75%;
+            margin-left: 5px;
+        }
+        #panel {
+            float: left;
+            width: 20%;
+            padding-top: 35px;
+        }
+        fieldset {
+            padding: 1px;
+            display: inline-block;
+        }        
     </style>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 </head>
 <body>
-    <table style="margin: 5px 5px 5px 5px; border-spacing: 0px; border-collapse: collapse">
-        <tr>
-            <td>
-                <div id="container1">
-                    <div style="margin: 0; padding: 5px 0px 5px 0px; height: 30px">
-                        <select class="assetpair"></select>
-                        <select class="timeinterval">
-                            <option value="sec">Sec</option>
-                            <option value="min" selected="selected">1 min</option>
-                            <option value="hour">1 hour</option>
-                            <option value="day">Day</option>
-                            <option value="month">Month</option>
-                        </select>
-                        <button class="add-line">Add line</button>
-                    </div>
-                    <div class="chart-container">
-                    </div>
-                </div>
-            </td>
-            <td style="width: 20px">
-            </td>
-            <td>                
-                <div id="container2">
-                    <div style="margin: 0; padding: 5px 0px 5px 0px; height: 30px">
-                        <select class="assetpair"></select>
-                        <select class="timeinterval">
-                            <option value="sec">Sec</option>
-                            <option value="min" selected="selected">1 min</option>
-                            <option value="hour">1 hour</option>
-                            <option value="day">Day</option>
-                            <option value="month">Month</option>
-                        </select>
-                        <button class="add-line">Add line</button>
-                    </div>
-                    <div class="chart-container">
-                    </div>
-                </div>
-            </td>
-        </tr>
-    </table>
 
+    <div>
+        <div id="lsection">
+            <div id="menu">
+                <fieldset>
+                    <legend>Chart: </legend>                
+                    <select class="assetpair"></select>
+                    <select class="timeinterval">
+                        <option value="sec">Sec</option>
+                        <option value="min" selected="selected">1 min</option>
+                        <!--<option value="min5">5 min</option>
+                        <option value="min15">15 min</option>
+                        <option value="min30">30 min</option>-->
+                        <option value="hour">1 hour</option>
+                        <!--<option value="hour4">4 hours</option>
+                        <option value="hour6">6 hours</option>
+                        <option value="hour12">12 hours</option>-->
+                        <option value="day">Day</option>
+                        <!--<option value="week">Week</option>-->
+                        <option value="month">Month</option>
+                    </select>
+                    <select class="charttype">
+                        <option value="candle" selected="selected">Candles</option>
+                        <option value="heikinashi">Heikin-Ashi</option>
+                        <option value="hollow">Hollow</option>
+                        <option value="line">Line</option>
+                        <option value="mountain">Mountain</option>
+                        <option value="ohlc">OHLC</option>
+                        <option value="rangebar">Range Bars</option>
+                        <option value="renko">Renko</option>
+                        <option value="linebreak">Line Break</option>
+                    </select>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Figures: </legend>
+                    <button class="add-line">Line</button>&nbsp;
+                    <button class="add-hline">H-Line</button>&nbsp;
+                </fieldset>
+
+                <fieldset>
+                    <legend>Indicators: </legend>
+                    <label for="cbIndicatorAlligator">Alligator</label>
+                    <input type="checkbox" name="cbIndicatorAlligator" id="cbIndicatorAlligator">
+                    <label for="cbIndicatorBollinger">Bollinger</label>
+                    <input type="checkbox" name="cbIndicatorBollinger" id="cbIndicatorBollinger">
+                    <label for="cbIndicatorStochastic">Stochastic</label>
+                    <input type="checkbox" name="cbIndicatorStochastic" id="cbIndicatorStochastic">                    
+                </fieldset>                
+
+            </div>
+            <div class="chart-container">
+            </div>
+        </div>
+
+        <div id="panel">
+            <div class="tree"></div>
+            <div class="properties" style="display: none">
+                <div>
+                    <button id="applyPropsBtn">Apply</button>
+                    <button id="closePropsBtn">close</button>
+                </div>
+            </div>
+        </div>
+    <div>
     <script type="text/javascript" src="dist/sampleapp.bundle.js"></script>    
 </body>
 </html>

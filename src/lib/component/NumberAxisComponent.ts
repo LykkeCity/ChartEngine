@@ -36,7 +36,7 @@ export class NumberAxisComponent extends VisualComponent {
         if (context.renderBase) {
             //const canvas = context.getCanvas(this.target);
             const render = <IAxesRender<number>>renderLocator.getAxesRender('number');
-            render.render(this.area.baseCanvas, this.axis, { x: 0, y: 0, w: this.size.width, h: this.size.height});
+            render.render(this.area.baseCanvas, this.axis, { x: this.offset.x, y: this.offset.y, w: this.size.width, h: this.size.height});
         }
         super.render(context, renderLocator);
     }

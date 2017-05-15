@@ -1,22 +1,24 @@
 ﻿/**
  * LinestickChartRenderer
  * 
- * @classdesc Renders candlesticks in a form of line chart. Uses 'close' value as data source.
+ * @classdesc Renders candlesticks in a form of line chart.
  */
 import { ICanvas } from '../canvas/index';
-import { IAxis, IPoint } from '../core/index';
+import { IAxis, IPoint, ITimeAxis, SettingSet } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick } from '../model/index';
 import { IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
+import { RenderUtils } from './RenderUtils';
 
 export class LinestickChartRenderer implements IChartRender<Candlestick> {
 
     public render(
         canvas: ICanvas,
         dataIterator: IDataIterator<Candlestick>,
+        //data: Candlestick[],
         frame: IRect,
-        timeAxis: IAxis<Date>,
+        timeAxis: ITimeAxis,
         yAxis: IAxis<number>): void {
 
         // Render
@@ -37,39 +39,43 @@ export class LinestickChartRenderer implements IChartRender<Candlestick> {
         canvas.beginPath();
         canvas.setStrokeStyle('#555555');
 
-        if (dataIterator.moveNext()) {
-            let x = timeAxis.toX(dataIterator.current.date);
-            let y = yAxis.toX(<number>dataIterator.current.c);
-            canvas.moveTo(x, y);
-            while (dataIterator.moveNext()) {
-                if (dataIterator.current.c) {
-                    x = timeAxis.toX(dataIterator.current.date);
-                    y = yAxis.toX(<number>dataIterator.current.c);
-                    canvas.lineTo(x, y);
-                }
+        RenderUtils.renderLineChart(canvas, dataIterator, item => {
+            if (item.c !== undefined) {
+                return { uid: item.uid, v: item.c };
             }
-        }
+        }, frame, timeAxis, yAxis, false);
+
         canvas.stroke();
     }
 
     public testHitArea(
         hitPoint: IPoint,
         dataIterator: IDataIterator<Candlestick>,
+        //data: Candlestick[],
         frame: IRect,
-        timeAxis: IAxis<Date>,
+        timeAxis: ITimeAxis,
         yAxis: IAxis<number>): Candlestick | undefined {
 
-        while (dataIterator.moveNext()) {
-            if (dataIterator.current.c) {
+        // while (dataIterator.moveNext()) {
+        //     if (dataIterator.current.c !== undefined) {
 
-                const x = timeAxis.toX(dataIterator.current.date);
-                const y = yAxis.toX(dataIterator.current.c);
+        //         const x = timeAxis.toX(dataIterator.current.date);
+        //         const y = yAxis.toX(dataIterator.current.c);
 
-                const R = Math.sqrt(Math.pow(Math.abs(x - hitPoint.x), 2) + Math.pow(Math.abs(y - hitPoint.y), 2));
-                if (R < 2) {
-                    return dataIterator.current;
-                }
-            }
-        }
+        //         const R = Math.sqrt(Math.pow(Math.abs(x - hitPoint.x), 2) + Math.pow(Math.abs(y - hitPoint.y), 2));
+        //         if (R < 2) {
+        //             return dataIterator.current;
+        //         }
+        //     }
+        // }
+        return undefined;
+    }
+
+
+    public getSettings(): SettingSet {
+        return new SettingSet('renderer');
+    }
+
+    public setSettings(settings: SettingSet): void {
     }
 }

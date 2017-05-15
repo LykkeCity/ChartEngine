@@ -3,30 +3,52 @@
  * 
  * @classdesc Contains methods for rendering axes.
  */
+import { TimeAutoGrid } from '../axes/index';
 import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
-import { IAxis } from '../core/index';
+import { IAxis, ITimeAxis } from '../core/index';
 import { IRect } from '../shared/index';
-import { IAxesRender } from './Interfaces';
+import { DateUtils } from '../utils/index';
+import { IAxesRender, ITimeAxisRender } from './Interfaces';
 
-export class TimeAxisRenderer implements IAxesRender<Date> {
+export class TimeAxisRenderer implements ITimeAxisRender {
 
     private readonly monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    public render(canvas: ICanvas, axis: IAxis<Date>, frame: IRect): void {
+    public render(canvas: ICanvas, axis: ITimeAxis, frame: IRect): void {
 
-        const bars: Date[] = axis.getGrid();
+        //const bars: Date[] = axis.getGrid();
+
+        const range = axis.range;
+        const scale = TimeAutoGrid.selectScale(frame.w, axis.interval, { start: range.start.t, end: range.end.t });
 
         canvas.font = '11px Arial';
         canvas.fillStyle = '#000000';
         canvas.setStrokeStyle('black');
         canvas.beginPath();
 
-        for (const bar of bars) {
-            if (bar) {
-                const x = axis.toX(bar);
-                this.drawBar(canvas, bar, x);
+        let space = 0;
+        axis.reset();
+        while (axis.moveNext()) {
+
+            const curTime = axis.current.t;
+            const curX = axis.currentX;
+
+            const isRound = DateUtils.isRound(curTime, scale);
+            if (isRound) {
+                this.drawBar(canvas, curTime, curX);
+                space = 0;
+            //else if (space > )
+            } else {
+                space += 75;
             }
         }
+
+        // bars.forEach((bar, index) => {
+        //     if (bar) {
+        //         const x = axis.toX(;
+        //         this.drawBar(canvas, bar, x);
+        //     }
+        // });
 
         canvas.stroke();
         canvas.closePath();

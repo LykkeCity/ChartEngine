@@ -3,20 +3,31 @@
  * 
  * @classdesc Facade for the chart library.
  */
-import { TimeAxis } from '../axes/index';
-import { ChartType, IStorage, Mouse, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
-import { DataChangedArgument, IDataSource, IDataSourceUntyped } from '../data/index';
+import { ChartType, IQuicktip, IQuicktipBuilder, IStorage, Mouse, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { DataChangedArgument, DataSourceFactory, IDataSource } from '../data/index';
+import { IndicatorDataSource, IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
-import { Point } from '../model/index';
+import { Candlestick, Point } from '../model/index';
 import { RenderLocator } from '../render/index';
-import { IHashTable, Point as IPoint } from '../shared/index';
+import { IHashTable, IRange, Point as IPoint } from '../shared/index';
+import { DateUtils, UidUtils } from '../utils/index';
 import { ChartStack } from './ChartStack';
 import { IChartBoard, IDrawing, isStateController, IStateController } from './Interfaces';
 import { StateFabric } from './StateFabric';
 import { HoverState, MoveChartState } from './States';
+import { TimeAxis } from './TimeAxis';
 import { TimeAxisComponent } from './TimeAxisComponent';
 
 import * as $ from 'jquery';
+
+class IndicatorDescription {
+    public uid: string;
+    public indicatorType: string;
+    constructor(uid: string, indicatorType: string) {
+        this.uid = uid;
+        this.indicatorType = indicatorType;
+    }
+}
 
 export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard {
 
@@ -25,11 +36,16 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private readonly timeAxis: TimeAxis;
     private readonly timeAxisComponent: TimeAxisComponent;
 
-    private readonly dataSources: IHashTable<IDataSourceUntyped> = { };
-    private readonly indicators: IHashTable<IDataSourceUntyped> = { };
+    private originalName: string;
+    private originalDataSource: IDataSource<Candlestick>;
+    private primaryDataSource: IDataSource<Candlestick>;
+    private readonly dataSources: IHashTable<IDataSource<Candlestick>> = { };
+    private readonly indicators: IHashTable<IDataSource<Candlestick>> = { };
+    private readonly indicatorDescriptions: IndicatorDescription[][] = [];
 
     private state: IStateController;
     private storage: Storage;
+    protected timeRange: IRange<Date>;
 
     constructor(
         private readonly container: HTMLElement,
@@ -42,20 +58,23 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     ) {
         super({ x: offsetLeft, y: offsetTop}, { width: Math.max(w, 100), height: Math.max(h, 50)});
 
+        const N = 5;
         this.storage = new Storage(storage);
         this.area = new BoardArea(container, this._size);
 
         const start = new Date();
         start.setUTCHours(start.getUTCHours() - 2);
         const now = new Date();
-        this.timeAxis = new TimeAxis(this.area.timeAxisLength, interval, { start: start, end: now });
+
+        this.timeRange = { start: start, end: now };
+        this.timeAxis = new TimeAxis(interval, now, N, this.area.chartLength);
 
         this.timeAxisComponent = new TimeAxisComponent(this.area, this.timeAxis);
         this.addChild(this.timeAxisComponent);
 
         // Create main chart area
         //
-        const chartStack = new ChartStack(this.area, this.timeAxis, true);
+        const chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
 
@@ -74,40 +93,185 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.state = HoverState.instance;
     }
 
-    public addChart<T>(uid: string, chartType: string, dataSource: IDataSource<T>) {
-        this.dataSources[uid] = dataSource;
-        // add event handlers
-        dataSource.dateChanged.on(this.onDataChanged);
-        this.chartStacks[0].addChart(uid, chartType, dataSource);
+    public get stacks(): ChartStack[] {
+        return this.chartStacks.slice();
+    }
+
+    public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
+        // TODO: Store original datasource
+        dataSource = DataSourceFactory.CREATE(chartType, dataSource, this.timeRange);
+
+        this.insertChart(uid, name, chartType, dataSource);
+
         // re-render charts
         this.render();
     }
 
-    public removeChart(uid: string) {
+    private insertChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
+
+        this.dataSources[uid] = dataSource;
+        // add event handlers
+        dataSource.dataChanged.on(this.onDataChanged);
+        this.chartStacks[0].addChart(uid, name, chartType, dataSource);
+    }
+
+    private removeChart(uid: string) {
         // get data source
         const dataSource = this.dataSources[uid];
         if (dataSource) {
-            dataSource.dateChanged.off(this.onDataChanged);
+            dataSource.dataChanged.off(this.onDataChanged);
             this.chartStacks[0].removeChart(uid);
         }
+        // // re-render charts
+        // this.render();
+    }
+
+    public setDataSource(name: string, chartType: string, dataSource: IDataSource<Candlestick>, keepFigures: boolean) {
+
+        this.originalDataSource = dataSource;
+        this.originalName = name;
+
+        // TODO: Store original datasource
+        dataSource = DataSourceFactory.CREATE(chartType, dataSource, this.timeRange);
+
+        this.timeAxis.setDataSource(dataSource);
+
+        // remove figures
+        if (!keepFigures) {
+            this.chartStacks.forEach(cs => cs.removeFigures());
+        }
+
+        // replace primary data source
+        this.removeChart('primary-data-source');
+        this.insertChart<Candlestick>('primary-data-source', name, chartType, dataSource);
+        this.primaryDataSource = dataSource;
+
+        // remove existing indicators and recreate on base of new data source.
+        this.indicatorDescriptions.forEach((array, stackIndex) => {
+            array.forEach((desc, index) => {
+                this.deleteIndicator(desc.uid);
+                this.insertIndicator(desc.uid, desc.indicatorType, stackIndex);
+            });
+        });
+
         // re-render charts
+        this.resize(this._size.width, this._size.height);
         this.render();
     }
 
-    public addIndicator(uid: string, indicatorDataSource: IDataSource<Point>) {
-        this.indicators[uid] = indicatorDataSource;
+    public setChartType(chartType: string) {
+        if (this.originalDataSource) {
+            this.setDataSource(this.originalName, chartType, this.originalDataSource, true); // keep figures
+            // this.removeChart('primary-data-source');
+            // this.addChart<Candlestick>('primary-data-source', chartType, this.primaryDataSource);
+        }
+        // TODO: Remove existing indicators and recreate on base of new data source.
+    }
 
-        const chartStack = new ChartStack(this.area, this.timeAxis, true);
-        chartStack.addChart(uid, ChartType.line, indicatorDataSource);
-        this.chartStacks.push(chartStack);
-        this.addChild(chartStack);
+    public setTimeRange(range: IRange<Date>): void {
+        this.timeRange = range;
+
+        this.primaryDataSource.setTimeRange(range);
+        // for (const uid of Object.keys(this.dataSources)) {
+        //     const ext = this.extensions[uid];
+    }
+
+    public addIndicator(uid: string, indicatorType: string, index: number) {
+
+        if (!this.primaryDataSource) {
+            throw new Error('Primary data source is not set');
+        }
+
+        this.insertIndicator(uid, indicatorType, index);
+
+        // Update indicator's description
+        const arr = this.indicatorDescriptions[index];
+        if (!arr) { this.indicatorDescriptions[index] = []; }
+        this.indicatorDescriptions[index].push(new IndicatorDescription(uid, indicatorType));
 
         // recalculate size of all elements
         this.resize(this._size.width, this._size.height);
-
         this.render();
     }
 
+    public removeIndicator(uid: string) {
+        if (!uid || !this.indicators[uid]) {
+            return;
+        }
+
+        this.deleteIndicator(uid);
+
+        // remove indicator's description
+        this.indicatorDescriptions.some((value, index, array) => {
+            return value.some((v, i, a) => {
+                if (v.uid === uid) {
+                    a.splice(i, 1);
+                    return true;
+                }
+                return false;
+            });
+        });
+
+        // recalculate size of all elements
+        this.resize(this._size.width, this._size.height);
+        this.render();
+    }
+
+    private insertIndicator(uid: string, indicatorType: string, index: number) {
+        // Create indicator
+        //
+        const indicatorDataSource = IndicatorFabric.instance.instantiate(indicatorType, this.primaryDataSource, this.addInterval);
+        this.indicators[uid] = indicatorDataSource;
+        indicatorDataSource.dataChanged.on(this.onDataChanged);
+
+        // Update stack. Use existing or add new one.
+        //
+        let chartStack;
+        if (index >= 0 && index < this.chartStacks.length ) {
+            chartStack = this.chartStacks[index];
+        } else {
+            index = this.chartStacks.length;
+            chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true);
+            chartStack.setFixedRange({ start: -10, end: 110});
+            this.chartStacks.push(chartStack);
+            this.addChild(chartStack);
+        }
+
+        chartStack.addChart(uid, indicatorType, indicatorType, indicatorDataSource);
+    }
+
+    private deleteIndicator(uid: string) {
+        // remove indicator from board
+        // ... find stack
+        this.chartStacks.some((cs, stackIndex) => {
+            if (cs.chartIds.indexOf(uid) !== -1) {
+                cs.removeChart(uid);
+
+                // If chart stack is empty remove it. Do not remove first stack.
+                if (stackIndex !== 0 && cs.chartIds.length === 0) {
+                    cs.dispose();
+                    this.chartStacks.splice(stackIndex, 1);
+                    this.removeChild(cs);
+                }
+                return true;
+            }
+            return false;
+        });
+
+        // remove indicator
+        //
+        const indicator = this.indicators[uid];
+        // ... unsubscribe from events
+        indicator.dataChanged.off(this.onDataChanged);
+
+        // ... dispose indicator
+        indicator.dispose();
+        //this.indicators[uid] = undefined;
+    }
+
+    private addInterval = (date: Date) => {
+        return DateUtils.addInterval(date, this.timeAxis.interval);
+    }
 
     public render(): void {
         this.renderLayers(true, true);
@@ -124,7 +288,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
             this.area.clearFront();
         }
 
-        let mouse;// = { x: this.mouse.x, y: this.mouse.y };
+        let mouse; // = { x: this.mouse.x, y: this.mouse.y };
         if (this.mouse.isEntered && this.mouse.x && this.mouse.y) {
             mouse = new IPoint(
                 this.mouse.x - this.offset.x, // - this.container.offsetLeft,
@@ -170,7 +334,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
         this.area.resize(w, h);
 
-        this.timeAxis.length = this.area.timeAxisLength;
+        this.timeAxis.width = this.area.chartLength;
     }
 
     public setTimeInterval(interval: TimeInterval) {
@@ -182,14 +346,18 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private onDataChanged = (arg: DataChangedArgument) => {
 
         // Check if need to automove time range
-        if (arg.lastDateBefore && arg.lastDateAfter
-            && this.timeAxis.contains(arg.lastDateBefore)
-            && !this.timeAxis.contains(arg.lastDateAfter)) {
-            this.timeAxis.moveTo(arg.lastDateAfter);
-        }
+        // if (arg.lastDateBefore && arg.lastDateAfter
+        //     && this.frame.contains(arg.lastDateBefore)
+        //     && !this.frame.contains(arg.lastDateAfter)) {
+
+        //     //this.frame.moveTo(arg.lastDateAfter);
+        // }
+        //this.frame.automove(arg);
 
         this.render();
     }
+
+    private mouse: Mouse = new Mouse();
 
     private onMouseWheel = (event: any) => {
         if (false == !!event) { event = window.event; }
@@ -202,8 +370,6 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
             this.render();
         }
     }
-
-    private mouse: Mouse = new Mouse();
 
     private onMouseMove = (event: any) => {
         [this.mouse.x, this.mouse.y] = [event.pageX, event.pageY]; // [event.pageX - this.offset.x, event.pageY - this.offset.y];
@@ -239,9 +405,9 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     }
 
     public moveX(diffX: number) {
-        if (this.timeAxis) {
+        //if (this.timeAxis) {
             this.timeAxis.move(diffX);
-        }
+        //}
     }
 
     public getHitStack(localX: number, localY: number): ChartStack | undefined {
@@ -271,7 +437,6 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     public cancel(): void {
         this.changeState('hover');
     }
-
 
     public changeState(state: string | IStateController, activationParameters?: IHashTable<any>): void {
         let stateInstance;

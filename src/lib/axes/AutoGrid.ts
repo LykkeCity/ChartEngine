@@ -11,6 +11,7 @@ export class NumberAutoGrid {
     private readonly minInterval: number;
     private readonly range: IRange<number>;
     private static readonly scales = [
+        0.0001,
         0.0005,
         0.0010,
         0.0025,
@@ -103,11 +104,8 @@ export class TimeAutoGrid {
 
     private readonly width: number;
     private readonly minInterval: TimeInterval;
-    private readonly range: IRange<Date>;
-    // private readonly convertToMsTable: IHashTable<number> = {
-    //     min: 60000
-    // };
-
+    // private readonly range: IRange<Date>;
+    private readonly timeRow: Date[];
     private static readonly scales: TimeInterval[] = [
         TimeInterval.sec,
         TimeInterval.min,
@@ -125,25 +123,94 @@ export class TimeAutoGrid {
         TimeInterval.month
     ];
 
-    constructor(width: number, minInterval: TimeInterval, range: IRange<Date>) {
+    constructor(width: number, minInterval: TimeInterval, timeRow: Date[]) {
+
         if (!width || width <= 0) { throw new Error(`Argument "width" ${ width } is out of range.`); }
         if (!minInterval || minInterval < 0) { throw new Error(`Argument "minInterval" ${ minInterval } is out of range.`); }
-        if (!range || range.end === undefined || range.start === undefined) { throw new Error('Argument "range" is not specified.'); }
+        // if (!range || range.end === undefined || range.start === undefined) { throw new Error('Argument "range" is not specified.'); }
 
         this.width = width;
         this.minInterval = minInterval;
-        this.range = range;
+        // this.range = range;
+
+        this.timeRow = timeRow;
     }
 
+    public static selectScale(width: number, minInterval: TimeInterval, range: IRange<Date>): TimeInterval {
+
+        const grid: Date[] = [];
+
+        // 1. Define how many bars can be fitted
+        const [minBars, maxBars] = [1, Math.floor(width / 75)];
+
+        // 2. Choose fitting scale
+        const rangeInMs = Math.abs(range.end.getTime() - range.start.getTime());
+        let selectedScale = 0;
+        for (const scale of TimeAutoGrid.scales) {
+            if (scale < minInterval) {
+                continue;
+            }
+
+            // how many bars does this scale require:
+            const barsRequired = Math.floor(rangeInMs / scale) + 1;
+
+            if (barsRequired >= minBars && barsRequired <= maxBars) {
+                selectedScale = scale;
+                break;
+            }
+        }
+        //if (selectedScale === 0) { return TimeInterval.notSet; }
+        return selectedScale;
+
+        // 3. Return only those dates that are round by selected scale
+        // 
+        // return this.timeRow.map((value: Date, index: number) => {
+        //     return (DateUtils.isRound(value, selectedScale)) ? value : undefined;
+        // });
+
+        // return this.timeRow.filter((value: Date, index: number) => {
+        //     return (DateUtils.isRound(value, selectedScale));
+        // });
+
+        // // 3. Calculate first bar
+        // // ... truncate date to the nearest round date.
+        // const startBar = DateUtils.truncateToInterval(this.range.start, selectedScale);
+
+        // // 4. Calculate remaining bars
+        // let t: Date = startBar;
+        // while (t <= this.range.end) {
+        //     if (t >= this.range.start) {
+        //         grid.push(t);
+        //     }
+        //     t = DateUtils.addInterval(t, selectedScale);
+        // }
+
+        // return grid;
+    }
 
     public getGrid(): Date[] {
+
+        if (!this.timeRow || this.timeRow.length === 0) {
+            return [];
+        }
+
+        // //-----------------------
+        // const maxCount = Math.floor(this.width / 50) || 1;
+        // const coeff = Math.ceil(this.timeRow.length / maxCount);   // 10/100 => 1     120/100 => 2      220/100 => 3
+
+        // const res = this.timeRow.map((value: Date, index: number) => index % coeff == 0 ? value : undefined);
+
+        // return res;
+        // // ---------------------------------------
+
+
         const grid: Date[] = [];
 
         // 1. Define how many bars can be fitted
         const [minBars, maxBars] = [1, Math.floor(this.width / 75)];
 
         // 2. Choose fitting scale
-        const rangeInMs = Math.abs(this.range.end.getTime() - this.range.start.getTime());
+        const rangeInMs = Math.abs(this.timeRow[this.timeRow.length - 1].getTime() - this.timeRow[0].getTime());
         let selectedScale = 0;
         for (const scale of TimeAutoGrid.scales) {
             if (scale < this.minInterval) {
@@ -160,19 +227,29 @@ export class TimeAutoGrid {
         }
         if (selectedScale === 0) { return []; }
 
-        // 3. Calculate first bar
-        // ... truncate date to the nearest round date.
-        const startBar = DateUtils.truncateToInterval(this.range.start, selectedScale);
+        // 3. Return only those dates that are round by selected scale
+        // 
+        // return this.timeRow.map((value: Date, index: number) => {
+        //     return (DateUtils.isRound(value, selectedScale)) ? value : undefined;
+        // });
 
-        // 4. Calculate remaining bars
-        let t: Date = startBar;
-        while (t <= this.range.end) {
-            if (t >= this.range.start) {
-                grid.push(t);
-            }
-            t = DateUtils.addInterval(t, selectedScale);
-        }
+        return this.timeRow.filter((value: Date, index: number) => {
+            return (DateUtils.isRound(value, selectedScale));
+        });
 
-        return grid;
+        // // 3. Calculate first bar
+        // // ... truncate date to the nearest round date.
+        // const startBar = DateUtils.truncateToInterval(this.range.start, selectedScale);
+
+        // // 4. Calculate remaining bars
+        // let t: Date = startBar;
+        // while (t <= this.range.end) {
+        //     if (t >= this.range.start) {
+        //         grid.push(t);
+        //     }
+        //     t = DateUtils.addInterval(t, selectedScale);
+        // }
+
+        // return grid;
     }
 }

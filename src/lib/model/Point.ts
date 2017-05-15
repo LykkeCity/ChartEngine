@@ -4,6 +4,7 @@
 import { ITimeValue } from './Interfaces';
 
 export class Point implements ITimeValue {
+    public uid: string = '0';
     public date: Date;
     public value?: number;
 

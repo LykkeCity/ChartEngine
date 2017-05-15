@@ -41,7 +41,7 @@ describe('ArrayDataSource tests', () => {
     });
 
     it('Empty points source', () => {
-        const ads = new data.ArrayDataSource<model.Point>(model.Point, new data.DataSourceConfig(), []);
+        const ads = new data.ArrayDataSource(model.Candlestick, new data.DataSourceConfig(), []);
         const iterator = ads.getData({ start: makeUtcDate(2017, 0, 1), end: makeUtcDate(2017, 0, 2) }, core.TimeInterval.day);
 
         expect(iterator).toBeDefined();

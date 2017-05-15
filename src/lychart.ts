@@ -32,10 +32,21 @@ register('movechart', MoveChartState.instance);
 
 // Register built-in drawing tools
 register('line', drawing.DrawLineState.instance);
+register('horizon-line', drawing.DrawHorizontalLineState.instance);
 
 const states = {
     register: register
 };
+
+// Registor built-in indicators
+indicator.register('alligator', indicator.AlligatorIndicator);
+indicator.register('bollinger', indicator.BollingerIndicator);
+indicator.register('stochastic-osc', indicator.StochasticOscillator);
+
+// Register built-in renderers
+render.RenderLocator.Instance.register('alligator', indicator.AlligatorIndicatorRenderer);
+render.RenderLocator.Instance.register('bollinger', indicator.BollingerIndicatorRenderer);
+render.RenderLocator.Instance.register('stochastic-osc', indicator.StochasticOscillatorRenderer);
 
 const lychart = {
     // types:

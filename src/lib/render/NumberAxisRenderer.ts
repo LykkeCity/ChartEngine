@@ -12,7 +12,7 @@ export class NumberAxisRenderer implements IAxesRender<number> {
 
     public render(canvas: ICanvas, axis: IAxis<number>, frame: IRect): void {
 
-        const bars: number[] = axis.getGrid();
+        const bars = axis.getGrid();
 
         canvas.font = '11px Arial';
         canvas.fillStyle = '#000000';
@@ -20,9 +20,11 @@ export class NumberAxisRenderer implements IAxesRender<number> {
         canvas.beginPath();
 
         for (const bar of bars) {
-            const y = axis.toX(bar);
-            if (y !== undefined) {
-                this.drawBar(canvas, bar, y);
+            if (bar !== undefined) {
+                const y = axis.toX(bar);
+                if (y !== undefined) {
+                    this.drawBar(canvas, bar, y);
+                }
             }
         }
 

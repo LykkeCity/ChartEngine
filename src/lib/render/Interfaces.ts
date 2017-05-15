@@ -2,8 +2,9 @@
  * Interfaces related to rendering.
  */
 import { ICanvas } from '../canvas/index';
-import { IAxis, IPoint } from '../core/index';
+import { IAxis, IConfigurable, IPoint, ITimeAxis } from '../core/index';
 import { IDataIterator } from '../data/index';
+import { Candlestick } from '../model/index';
 import { IRect, ISize } from '../shared/index';
 
 export interface IRenderLocator {
@@ -15,17 +16,17 @@ export interface IRenderLocator {
     getGridRender(): any;
 }
 
-export interface IChartRender<T> {
+export interface IChartRender<T> extends IConfigurable {
     render(canvas: ICanvas,
-           data: IDataIterator<T>,
+           dataIterator: IDataIterator<T>,
            frame: IRect,
-           timeAxis: IAxis<Date>,
+           timeAxis: ITimeAxis,
            yAxis: IAxis<number>): void;
     testHitArea(
            hitPoint: IPoint,
-           data: IDataIterator<T>,
+           dataIterator: IDataIterator<T>,
            frame: IRect,
-           timeAxis: IAxis<Date>,
+           timeAxis: ITimeAxis,
            yAxis: IAxis<number>): T | undefined;
 }
 
@@ -33,6 +34,13 @@ export interface IAxesRender<T> {
     render(
         canvas: ICanvas,
         axis: IAxis<T>,
+        frame: IRect): void;
+}
+
+export interface ITimeAxisRender {
+    render(
+        canvas: ICanvas,
+        axis: ITimeAxis,
         frame: IRect): void;
 }
 

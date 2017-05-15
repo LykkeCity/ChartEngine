@@ -41,11 +41,13 @@ export class PriceAxis implements IAxis<number> {
         return autoGrid.getGrid();
     }
 
-    public getValuesRange(fromX: number, toX: number): IRange<number> | undefined {
+    public getValuesRange(fromX: number, toX: number): IRange<number | undefined> {
         if (fromX > 0 && toX > 0 && fromX < this._length && toX < this._length) {
             return {
                 start: this.toValue(Math.max(fromX, toX)),
                 end: this.toValue(Math.min(fromX, toX)) };
+        } else {
+            return { start: undefined, end: undefined };
         }
     }
 
@@ -61,6 +63,10 @@ export class PriceAxis implements IAxis<number> {
         const max = Math.max(this.range.end, this.range.start);
         const d = (max - value) / range; // inverted Y
         return d * this._length;
+    }
+
+    public toIndex(x: number): number | undefined {
+        return this.toValue(x);
     }
 
     public move(direction: number): void {

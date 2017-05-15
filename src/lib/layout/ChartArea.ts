@@ -83,6 +83,7 @@ export class ChartArea extends Area {
     private row: HTMLTableRowElement;
     private yArea: YArea;
     private yAxisWidth: number;
+    private qtContater: HTMLElement;
 
     constructor(
         row: HTMLTableRowElement,
@@ -97,6 +98,7 @@ export class ChartArea extends Area {
 
         const cell = row.insertCell(0);
         cell.style.setProperty('padding', '0');
+        cell.style.setProperty('position', 'relative');
 
         const div = document.createElement('div');
         cell.appendChild(div);
@@ -107,6 +109,17 @@ export class ChartArea extends Area {
         div.style.setProperty('cursor', 'crosshair');
 
         this.appendCanvases(div, this._size.width, this._size.height);
+
+        // Create container for quicktips
+        this.qtContater = document.createElement('div');
+        this.qtContater.style.setProperty('position', 'absolute');
+        this.qtContater.style.setProperty('top', '5px');
+        this.qtContater.style.setProperty('left', '5px');
+        cell.appendChild(this.qtContater);
+    }
+
+    public get qtipContainer(): HTMLElement {
+        return this.qtContater;
     }
 
     public addYAxis() : YArea {

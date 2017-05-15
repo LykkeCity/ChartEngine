@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chart demo</title>
+	<meta charset="utf-8" />
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 0.9em;            
+        }
+
+        fieldset {
+            padding: 1px;
+        }
+    </style>
+</head>
+<body>
+    <table style="margin: 0; padding: 5px 0px 0px 25px; height: 60px">
+        <tr>
+            <td>
+                <fieldset>
+                    <legend>Chart: </legend>                
+                    <select id="assetpair"></select>
+                    <select id="timeinterval">
+                        <option value="sec">Sec</option>
+                        <option value="min" selected="selected">1 min</option>
+                        <!--<option value="min5">5 min</option>
+                        <option value="min15">15 min</option>
+                        <option value="min30">30 min</option>-->
+                        <option value="hour">1 hour</option>
+                        <!--<option value="hour4">4 hours</option>
+                        <option value="hour6">6 hours</option>
+                        <option value="hour12">12 hours</option>-->
+                        <option value="day">Day</option>
+                        <!--<option value="week">Week</option>-->
+                        <option value="month">Month</option>
+                    </select>
+                    <select id="charttype">
+                        <option value="candle" selected="selected">Candles</option>
+                        <option value="heikinashi">Heikin-Ashi</option>
+                        <option value="hollow">Hollow</option>
+                        <option value="line">Line</option>
+                        <option value="mountain">Mountain</option>
+                        <option value="ohlc">OHLC</option>
+                        <option value="renko">Renko</option>
+                    </select>
+                </fieldset>
+            </td>
+            <td>
+                <fieldset>
+                    <legend>Figures: </legend>
+                    <button id="btnAddLine">Line</button>&nbsp;
+                    <button id="btnAddHLine">H-Line</button>&nbsp;
+                </fieldset>
+            </td>
+            <td>
+                <fieldset>
+                    <legend>Indicators: </legend>
+                    <label for="cbIndicatorAlligator">Alligator</label>
+                    <input type="checkbox" name="cbIndicatorAlligator" id="cbIndicatorAlligator">
+                    <label for="cbIndicatorBollinger">Bollinger</label>
+                    <input type="checkbox" name="cbIndicatorBollinger" id="cbIndicatorBollinger">
+                    <label for="cbIndicatorStochastic">Stochastic</label>
+                    <input type="checkbox" name="cbIndicatorStochastic" id="cbIndicatorStochastic">                    
+                </fieldset>
+            </td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 0px; margin-left: 25px;">
+        <div id="chart-container" style="float: left">
+        </div>
+        <div id="panel" style="width: 200px; float: left">
+            <div id="tree"></div>
+            <div id="properties">
+
+            </div>
+        </div>
+        
+        <div style="clear: both"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="../dist/bundle.js?v=6"></script>
+
+    <script type="text/javascript">
+        let urls = {
+            assets: 'http://localhost:8000/mock/assetpairs/dictionary',
+            candles: 'http://localhost:8000/mock/candles/history/'
+        };
+    </script>
+
+    <script type="text/javascript">
+        
+        function intervalToPeriod(interval) {
+            switch (interval) {
+                case lychart.core.TimeInterval.sec: return 'Sec';
+                case lychart.core.TimeInterval.min: return 'Minute';
+                case lychart.core.TimeInterval.hour: return 'Hour';
+                case lychart.core.TimeInterval.day: return 'Day';
+                case lychart.core.TimeInterval.month: return 'Month';
+            }
+        }
+
+        function periodToInterval(period) {
+            switch (period) {
+                case 'Sec': return lychart.core.TimeInterval.sec;
+                case 'Minute': return lychart.core.TimeInterval.min;
+                case 'Hour': return lychart.core.TimeInterval.hour;
+                case 'Day': return lychart.core.TimeInterval.day;
+                case 'Month': return lychart.core.TimeInterval.month;
+            }
+        }
+
+        let chart = (function() { 
+
+            var
+                board = null,
+                url = '',
+                uid = '1',
+                dataSource = null,
+
+                getBoard = function() {
+                    return board;
+                },
+
+                readData = function (timeStart, timeEnd, interval) {
+                    $.support.cors = true;
+
+                    let settings = {
+                        method: 'POST',
+                        crossDomain: true,
+                        dataType: 'json',
+                        url: url,
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            period: intervalToPeriod(interval),
+                            type: 'Bid',
+                            dateFrom: timeStart.toISOString(),
+                            dateTo: timeEnd.toISOString()
+                        })
+                    };
+                    return $.ajax(settings);
+                },
+
+                resolveData = function(response) {
+                    if (response) {
+                        const data = response.data
+                            .map(function(item) {
+                                let date = new Date(item.t);
+                                let stick = new lychart.model.Candlestick(date, item.c, item.o, item.h, item.l);
+                                return stick;
+                            });
+
+                        return {
+                            startDateTime: response.dateFrom,
+                            endDateTime: response.dateTo,
+                            interval: periodToInterval(response.period),
+                            data: data
+                        };
+                    }
+                },
+
+                init = function($containerEl, w, h, left, top, timeInterval) {
+                    board = new lychart.ChartBoard($containerEl, left, top, w, h, timeInterval);
+                },
+
+                setChart = function(assetPairId, timeInterval, keepFigures) {
+
+                    url = urls.candles + assetPairId;
+
+                    if (dataSource) {
+                        console.debug('removing chart = ' + uid)
+                        //board.removeChart(uid);
+                        dataSource.dispose();
+                    }
+
+                    // recreate data source
+                    dataSource = new lychart.data.HttpDataSource(
+                        lychart.model.Candlestick,
+                        {
+                            autoupdate: false,
+                            readData: readData,
+                            resolveData: resolveData,
+                            timeInterval: timeInterval
+                        });
+
+                    board.setTimeInterval(timeInterval);
+                    board.setDataSource(
+                        assetPairId,
+                        (timeInterval === lychart.core.TimeInterval.sec) ? lychart.core.ChartType.line : lychart.core.ChartType.candle,
+                        dataSource,
+                        keepFigures);
+                },
+
+                setChartType = function(chartType) {
+                    board.setChartType(chartType);
+                },
+
+                desc = {
+                    "alligator": { uid: 3, index: 0 },
+                    "bollinger": { uid: 4, index: 0 },
+                    "stochastic-osc": { uid: 5, index: 1 },
+                },
+
+                setIndicator = function(indicatorId, state) {
+                    if (state) {
+                        board.addIndicator(desc[indicatorId].uid, indicatorId, desc[indicatorId].index);
+                    } else {
+                        board.removeIndicator(desc[indicatorId].uid);
+                    }
+                },
+
+                addline = function() { board.drawing.start('line'); },
+
+                addhline = function() { board.drawing.start('horizon-line'); },
+
+                render = function() {
+                    board.render();
+                },
+
+                resize = function(w, h) {
+                    board.resize(w, h);
+                    board.render();
+                };
+
+            return {
+                addline,
+                addhline,
+                getBoard: getBoard,
+                init: init,
+                setChart: setChart,
+                setIndicator: setIndicator,
+                setChartType: setChartType,
+                render: render,
+                resize: resize
+            };
+        })();
+    </script>
+
+    <script type="text/javascript">
+
+        /**
+         * Manages objects tree
+         */
+        let tree = (function($container) {
+
+            let
+                /**
+                 * rebuilds objects tree
+                 */
+                update = function(board) {
+
+                    $container.empty();
+                    buildList($container, board.children, 0)
+                },
+                
+                buildList = function($container, components, margin) {
+                    for(let component of components) {
+                        let item = document.createElement('div');
+                        item.style.setProperty('margin-left', margin + 'px');
+                        let caption = document.createElement('div');
+                        caption.innerHTML = 'caption';
+                        item.appendChild(caption);
+                        $container.append(item);
+                        buildList(item, component.children, margin + 10);
+                    }
+                }
+                ;
+
+            return {
+                update: update
+            };
+        })($('#tree'));
+    </script>
+
+    <script type="text/javascript">
+        $(function() {
+            function loadAssets() {
+                console.debug('loading assets list');
+                $.support.cors = true; // Otherwise "no transport" in IE 11.
+                return $.ajax({
+                    method: 'GET',
+                    dataType: 'json',
+                    url: urls.assets,
+                    contentType: "application/json"
+                });
+            }
+
+            function getSelectedTimeInterval() {
+                let timeinterval = $("#timeinterval option:selected").val();
+                return lychart.core.TimeInterval[timeinterval]
+            }
+
+            function getSelectedAssetPair() {
+                let assetPair = $("#assetpair option:selected").val();
+                return assetPair;
+            }
+
+            function initForm(assets) {
+                var defaultPair = "BTCUSD";
+
+                $('#cbIndicatorAlligator').change(function() { 
+                    chart.setIndicator('alligator', $('#cbIndicatorAlligator').is(':checked') );
+                    tree.update(chart.getBoard());
+                });
+                $('#cbIndicatorBollinger').change(function() { 
+                    chart.setIndicator('bollinger', $('#cbIndicatorBollinger').is(':checked') );
+                    tree.update(chart.getBoard());
+                });
+                $('#cbIndicatorStochastic').change(function() { 
+                    chart.setIndicator('stochastic-osc', $('#cbIndicatorStochastic').is(':checked') ); 
+                    tree.update(chart.getBoard());
+                });
+                $("#btnAddLine").click(function() { chart.addline(); tree.update(chart.getBoard()); });
+                $("#btnAddHLine").click(function() { chart.addhline(); tree.update(chart.getBoard()); });
+
+                // init <select>
+                $.each(assets, function(i, item) {
+                    $('#assetpair').append($('<option></option>').val(item.id).html(item.name));
+                });
+                $("#assetpair").val(defaultPair); // select default value
+                $('#assetpair').change(function() {
+                    updateChart(false);
+                });
+
+                $('#timeinterval').change(function() {
+                    updateChart(true);
+                });
+
+                $('#charttype').change(function(){
+                    chart.setChartType( $("#charttype option:selected").val() );
+                    chart.render();
+                });
+
+                updateChart();
+                tree.update(chart.getBoard());
+            }
+
+            function updateChart(keepFigures) {
+                chart.setChart(getSelectedAssetPair(), getSelectedTimeInterval(), keepFigures);
+                chart.render();
+            }
+
+            let top = 60;
+            let bottom = 20;
+            let left = 25;
+
+            function width() {
+                let panelWidth = 200;
+                return Math.max(window.innerWidth - left * 2 - panelWidth, 100); // min chart width is 100
+            }
+            function height() {
+                return Math.max(window.innerHeight - (top + bottom), 100); // min chart height is 100
+            }
+
+            chart.init($("#chart-container")[0], width(), height(), left, top, lychart.core.TimeInterval.min);
+
+            window.onresize = function(event) {
+                chart.resize(width(), height());
+            };
+
+            loadAssets()
+                .then(function(assets) {
+                    initForm(assets);
+                })
+                .fail(function(jqXhr, textStatus, errorThrown) {
+                    console.debug('Request failed:' + textStatus + ' ' + errorThrown);
+                });
+        });
+    </script>
+
+
+</body>
+</html>

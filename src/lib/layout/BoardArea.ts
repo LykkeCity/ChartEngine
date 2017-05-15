@@ -44,6 +44,14 @@ export class BoardArea {
         return area;
     }
 
+    public remove(area: ChartArea) {
+        const index = this.chartAreas.indexOf(area);
+        if (index !== -1) {
+            this.chartAreas.splice(index, 1);
+            this.table.deleteRow(index);
+        }
+    }
+
     public addXAxis() : XArea {
         if (this.timeArea) {
             throw new Error('XArea is already defined.');
@@ -73,9 +81,13 @@ export class BoardArea {
         this.timeArea.clearFront();
     }
 
-    public get timeAxisLength() {
+    public get chartLength() {
         return this.chartWidth;
     }
+
+    // public get timeAxisLength() {
+    //     return this.chartWidth;
+    // }
 
     public resize(w: number, h: number): void {
 

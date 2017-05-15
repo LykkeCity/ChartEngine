@@ -47,7 +47,7 @@
         "no-bitwise": true,
         "no-conditional-assignment": true,
         "no-console": [true, "debug", "info", "log", "time", "timeEnd", "trace"],
-        "no-constant-condition": true,
+        "no-constant-condition": false,
         "no-control-regex": true,
         "no-debugger": true,
         "no-duplicate-case": true,
@@ -100,7 +100,7 @@
         "jsdoc-format": true,
         "max-classes-per-file": [true, 100],  // we generally recommend making one public class per file 
         "max-file-line-count": true,
-        "max-func-body-length": [true, 100, {"ignore-parameters-to-function-regex": "describe"}],
+        "max-func-body-length": [false, 100, {"ignore-parameters-to-function-regex": "describe"}],
         "max-line-length": [true, 140],
         "member-access": true,
         "member-ordering": true,
@@ -187,7 +187,7 @@
          * Controversial/Configurable rules.
          */
         "ban": false,                // only enable this if you have some code pattern that you want to ban
-        "cyclomatic-complexity": true,
+        "cyclomatic-complexity": false,
         "file-header": false,  // enable this rule only if you are legally required to add a file header
         "no-angle-bracket-type-assertion": false,  // pick either type-cast format and use it consistently
         "no-internal-module": false, // only enable this if you are not using internal modules

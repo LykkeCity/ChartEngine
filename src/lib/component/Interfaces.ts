@@ -1,7 +1,7 @@
 /**
  * 
  */
-import { ChartPoint, IAxis, IMouse, IPoint, VisualComponent } from '../core/index';
+import { ChartPoint, IAxis, ICoordsConverter, IMouse, IPoint, VisualComponent } from '../core/index';
 import { Area } from '../layout/index';
 import { IHashTable, ISize } from '../shared/index';
 import { FigureComponent } from './FigureComponent';
@@ -38,10 +38,11 @@ export interface IChartBoard {
     moveX(shift: number): void;
 }
 
-export interface IChartStack {
+export interface IChartStack extends ICoordsConverter {
+    uid: string;
     offset: IPoint;
-    addFigure(ctor: {(area: Area, offset: IPoint, size: ISize, timeAxis: IAxis<Date>, yAxis: IAxis<number>): FigureComponent}) : FigureComponent;
-    mouseToCoords(mouseX: number, mouseY: number): ChartPoint;
+    addFigure(ctor: {(area: Area, offset: IPoint, size: ISize, coords: ICoordsConverter): FigureComponent}) : FigureComponent;
+    //mouseToCoords(mouseX: number, mouseY: number): ChartPoint;
 }
 
 export interface IStateController {

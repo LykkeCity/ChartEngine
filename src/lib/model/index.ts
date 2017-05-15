@@ -2,12 +2,14 @@
  * 
  */
 
-import { Candlestick } from './Candlestick';
-import { ITimeValue } from './Interfaces';
+import { Candlestick, Uid } from './Candlestick';
+import { ITimeValue, IUidValue } from './Interfaces';
 import { Point } from './Point';
 
 export {
     Candlestick,
     ITimeValue,
-    Point
+    IUidValue,
+    Point,
+    Uid
 };

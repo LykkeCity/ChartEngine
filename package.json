@@ -1,6 +1,6 @@
 {
   "name": "chartengine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "desc",
   "repository": {
     "type": "git",
@@ -38,7 +38,7 @@
     "tsify": "^3.0.0",
     "tslint": "^4.3.1",
     "tslint-microsoft-contrib": "^4.0.0",
-    "typescript": "^2.1.6",
+    "typescript": "^2.2.2",
     "typing": "^0.1.9",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"

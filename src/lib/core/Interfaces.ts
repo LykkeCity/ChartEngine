@@ -1,17 +1,46 @@
 /**
  * Core interfaces.
  */
-import { IRange } from '../shared/index';
+import { Candlestick, Uid } from '../model/index';
+import { FixedSizeArray, IRange } from '../shared/index';
+import { SettingSet } from './SettingSet';
+
+export interface ITimeAxis {
+    range: IRange<Uid>;
+    interval: number;
+    count: number;
+    reset(): void;
+    moveNext(): boolean;
+    current: Uid;
+    currentX: number;
+    toX(uid: Uid): number|undefined;
+    toValue(x: number): Uid|undefined;
+    move(direction: number): void;
+    scale(direction: number): void;
+    lock(uid: Uid): void;
+    /**
+     * For rendering grid
+     */
+    getGrid(): Date[];
+}
 
 export interface IAxis<T> {
     range: IRange<T>;
     interval: number;
-    toX(value: T): number;
-    toValue(x: number): T;
-    getGrid(): T[];
-    getValuesRange(fromX: number, toX: number): IRange<T> | undefined;
+    toX(index: number): number;
+    toValue(x: number): T | undefined;
+    getGrid(): (T|undefined)[];
+    getValuesRange(fromX: number, toX: number): IRange<T | undefined>;
     move(direction: number): void;
     scale(direction: number): void;
+}
+
+export interface ICoordsConverter {
+    toX(value: Uid): number|undefined;
+    xToValue(x: number): Uid|undefined;
+
+    toY(value: number): number;
+    yToValue(y: number): number|undefined;
 }
 
 export interface IPoint {
@@ -29,4 +58,25 @@ export interface IMouse {
 export interface IStorage {
     getItem(key: string): string | null;
     setItem(key: string, value: string): void;
+}
+
+export interface IIndicatorExtension {
+    amountRequires: number;
+    extend(line: FixedSizeArray<Candlestick>): void;
+}
+
+export interface IQuicktipBuilder {
+    addQuicktip(uid: string): IQuicktip;
+    removeQuicktip(uid: string): void;
+}
+
+export interface IQuicktip {
+    addTextBlock(uid: string, text: string): void;
+    removeTextBlock(uid: string): void;
+    addButton(uid: string, click: () => void): void;
+}
+
+export interface IConfigurable {
+    getSettings(): SettingSet;
+    setSettings(settings: SettingSet): void;
 }

@@ -4,9 +4,13 @@
 import * as lychart from '../../src/lychart';
 import ChartBoard = lychart.ChartBoard;
 import Candlestick = lychart.model.Candlestick;
+import Uid = lychart.model.Uid;
 import { Asset } from './Asset';
 import { Settings } from './Settings';
 import { Utils } from './Utils';
+
+import { FormProps } from './FormProps';
+import { FormTree, ItemSelectedArg } from './FormTree';
 
 /**
  * Creates and handles one chart and its controls.
@@ -16,11 +20,14 @@ export class ChartController {
     private autoupdateTimer?: number;
     private board: ChartBoard;
     private container: HTMLElement;
-    private dataSource?: lychart.data.HttpDataSource<lychart.model.Candlestick>;
+    private dataSource?: lychart.data.HttpDataSource; //<lychart.model.Candlestick>;
     private selectedInterval: lychart.core.TimeInterval;
     private selectedAsset: string;
     private storage = new Storage();
     private readonly uid: string = '1';
+
+    private tree: FormTree;
+    private props: FormProps;
 
     constructor(container: HTMLElement, offsetLeft: number, offsetTop: number, assets: Asset[], selectedAsset: string) {
         this.container = container;
@@ -42,13 +49,61 @@ export class ChartController {
 
         // Hook up event handlers
         $('.add-line', container).click(this.onAddLine);
+        $('.add-hline', container).click(this.onAddHLine);
+
+        $('#cbIndicatorAlligator').change(
+            () => { this.changeIndicator('101', 'alligator', 0, $('#cbIndicatorAlligator').is(':checked')); });
+        $('#cbIndicatorBollinger').change(
+            () => { this.changeIndicator('102', 'bollinger', 0, $('#cbIndicatorBollinger').is(':checked')); });
+        $('#cbIndicatorStochastic').change(
+            () => { this.changeIndicator('103', 'stochastic-osc', 1, $('#cbIndicatorStochastic').is(':checked')); });
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);
+        $('.charttype', this.container).change(this.onChartTypeChange);
         this.updateChart();
 
+        this.tree = new FormTree($('.tree', '#panel')[0], this.board);
+        //this.props = new FormProps($('.props', '#panel')[0]);
+        this.tree.itemSelected.on(this.onItemSelected);
+
+        this.tree.update();
+
         // Set up auto update timer
-        this.autoupdateTimer = setTimeout(this.autoUpdate, this.autoupdatePeriod * 1000);
+        // this.autoupdateTimer = setTimeout(this.autoUpdate, this.autoupdatePeriod * 1000);
+    }
+
+    private changeIndicator = (uid: string, indicatorType: string, index: number, state: boolean) => {
+        if (state) {
+            this.board.addIndicator(uid, indicatorType, index);
+        } else {
+            this.board.removeIndicator(uid);
+        }
+        this.tree.update();
+        this.board.render();
+    }
+
+    private onItemSelected = (arg: ItemSelectedArg) => {
+        this.tree.hide();
+        this.props = new FormProps($('.properties', '#panel')[0], this.board, arg.uid, arg.object);
+        this.props.propsClosingEvent.on(this.onPropsClosing);
+        this.props.propsAppliedEvent.on(this.onPropsApplied);
+        this.props.show();
+    }
+
+    private onChartTypeChange = () => {
+        this.board.setChartType( this.getSelectedChartType() );
+        this.tree.update();
+        this.board.render();
+    }
+
+    private onPropsClosing = () => {
+        this.props.hide();
+        this.tree.show();
+    }
+
+    private onPropsApplied = () => {
+        this.board.render();
     }
 
     /**
@@ -58,7 +113,7 @@ export class ChartController {
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
 
-        const chartW = (windowWidth - 30) / 2;
+        const chartW = this.container.clientWidth - 20; // (windowWidth - 30) - 200 ; // /2
         const chartH = windowHeight - 60;
 
         // Update board's size
@@ -66,7 +121,7 @@ export class ChartController {
 
         // Update board's offset
         const rect = this.container.getBoundingClientRect();
-        this.board.offset = new lychart.shared.Point(rect.left, rect.top + 40);
+        this.board.offset = new lychart.shared.Point(rect.left, rect.top + 50);
 
         // Re-render
         this.board.render();
@@ -106,8 +161,16 @@ export class ChartController {
         return $('.assetpair option:selected', this.container).val();
     }
 
+    private getSelectedChartType(): string {
+        return $('.charttype option:selected', this.container).val();
+    }
+
     private onAddLine = (evt: JQueryEventObject) => {
         this.board.drawing.start('line');
+    }
+
+    private onAddHLine = (evt: JQueryEventObject) => {
+        this.board.drawing.start('horizon-line');
     }
 
     private readData = (timeStart: Date, timeEnd: Date, interval: lychart.core.TimeInterval) => {
@@ -136,7 +199,12 @@ export class ChartController {
         if (response) {
             const data = response.data
                 .map((item: any) => {
-                    return new lychart.model.Candlestick(new Date(item.t), item.c, item.o, item.h, item.l);
+
+                    const date = new Date(item.t);
+                    const stick = new lychart.model.Candlestick(date, item.c, item.o, item.h, item.l);
+                    // init uid
+                    stick.uid = new Uid(date); // date.getTime().toString();
+                    return stick;
                 });
 
             return {
@@ -164,7 +232,7 @@ export class ChartController {
         this.selectedInterval = timeInterval;
 
         if (this.dataSource) {
-            this.board.removeChart(this.uid);
+            //this.board.removeChart(this.uid);
             this.dataSource.dispose();
         }
 
@@ -180,9 +248,11 @@ export class ChartController {
             });
 
         this.board.setTimeInterval(timeInterval);
-        this.board.addChart(this.uid,
-                            (timeInterval === lychart.core.TimeInterval.sec) ? lychart.core.ChartType.line : lychart.core.ChartType.candle,
-                            this.dataSource);
+        this.board.setDataSource(assetPairId,
+                                 (timeInterval === lychart.core.TimeInterval.sec) ? lychart.core.ChartType.line : lychart.core.ChartType.candle,
+                                 this.dataSource, false);
+
+        //this.board.addChart('addchart', 'ORIGINAL', lychart.core.ChartType.candle, this.dataSource);
     }
 
     private updateChart = () => {

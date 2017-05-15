@@ -1,80 +1,86 @@
 ﻿/**
- * CandleArrayDataSource class.
+ * ArrayDataSource class.
  */
 import { TimeInterval } from '../core/index';
-import { ITimeValue } from '../model/index';
+import { Candlestick, ITimeValue, IUidValue, Uid } from '../model/index';
 import { IRange } from '../shared/index';
+import { DateUtils } from '../utils/index';
 import { ArrayDataStorage } from './ArrayDataStorage';
 import { DataSource } from './DataSource';
 import { DataSourceConfig } from './DataSourceConfig';
 import { IDataIterator } from './Interfaces';
 
-export class ArrayDataSource<T extends ITimeValue> extends DataSource<T> {
+export class ArrayDataSource extends DataSource {
 
-    protected readonly dataStorage: ArrayDataStorage<T>;
-    private readonly defaultMinValue = 0;
-    private readonly defaultMaxValue = 100;
+    protected readonly dataStorage: ArrayDataStorage<Candlestick>;
+    // private readonly defaultMinValue = 0;
+    // private readonly defaultMaxValue = 100;
 
-    protected comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
+    protected comparer = (item1: IUidValue, item2: IUidValue) => { return item1.uid.compare(item2.uid); };
+//    protected readonly comparer = (item1: IUidValue, item2: IUidValue) => { return item1.date.getTime() - item2.date.getTime(); };
 
     constructor(
-        dataType: { new(d: Date): T },
+        dataType: { new(d: Date): Candlestick },
         config: DataSourceConfig,
-        data: T[]) {
+        data: Candlestick[],
+        comparer?: (item1: IUidValue, item2: IUidValue) => number
+        ) {
             super(dataType, config);
 
-            this.dataStorage = new ArrayDataStorage<T>(this.comparer, data);
+            if (comparer) {
+                this.comparer = comparer;
+            }
+
+            const initData = data.slice();
+            initData.sort(this.comparer);
+            // initData.forEach(item => {
+            //     item.uid = DateUtils.format14(item.date);
+            // });
+
+            this.dataStorage = new ArrayDataStorage<Candlestick>(this.comparer, initData);
     }
 
-    public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {
-
-        this.validateRange(range);
-        this.validateInterval(interval);
-
-        const startTime = range.start.getTime();
-        const endTime = range.end.getTime();
-
-        return this.dataStorage.getIterator((item: T) => {
-                const itemTime = item.date.getTime();
-                return (itemTime >= startTime && itemTime <= endTime);
-            });
+    public load(uid: Uid, count: number): void {
+        //return this.dataStorage.getIterator((item: T) => item.uid === itemUid, count);
     }
 
-    public getValuesRange(range: IRange<Date>, interval: TimeInterval): IRange<number> {
-
-        this.validateRange(range);
-        this.validateInterval(interval);
-
-        if (this.dataStorage.isEmpty) {
-            return { start: this.defaultMinValue, end: this.defaultMaxValue };
-        }
-
-        let minValue = Number.MAX_VALUE;
-        let maxValue = Number.MIN_VALUE;
-
-        // Filter data by date and find min/max price
-        //
-        const startTime = range.start.getTime();
-        const endTime = range.end.getTime();
-        const iterator = this.dataStorage.getIterator((item: T) => {
-            const itemTime = item.date.getTime();
-            return (itemTime >= startTime && itemTime <= endTime);
-        });
-
-        while (iterator.moveNext()) {
-            // update min / max values
-            const values = iterator.current.getValues();
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            if (min < minValue) { minValue = min; }
-            if (max > maxValue) { maxValue = max; }
-        }
-
-        return { start: minValue, end: maxValue };
+    public loadRange(uidFirst: Uid, uidLast: Uid): void {
+        // if (this.dataStorage.last) {
+        //     //const lastUid = this.dataStorage.last.uid;
+        //     //return this.dataStorage.getIterator((item: T) => item.uid === lastUid, count);
+        //     return this.dataStorage.getIterator((item: T) => item.date.getTime() === date.getTime(), count);
+        // } else {
+        //     return this.dataStorage.getIterator((item: T) => false, count); // empty iterator
+        // }
     }
+
+    public getIterator(filter?: (item: Candlestick) => boolean): IDataIterator<Candlestick> {
+        // return everything
+        return this.dataStorage.getIterator(filter);
+    }
+
+    public lock(uid: Uid): void { }
+
+    // public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {
+
+    //     this.validateRange(range);
+    //     this.validateInterval(interval);
+
+    //     const startTime = range.start.getTime();
+    //     const endTime = range.end.getTime();
+
+    //     return this.dataStorage.getIterator((item: T) => {
+    //             const itemTime = item.date.getTime();
+    //             return (itemTime >= startTime && itemTime <= endTime);
+    //         });
+    // }
+
+
 
     protected getDefaultConfig(): DataSourceConfig {
         return new DataSourceConfig(
         );
     }
+
+    public dispose(): void { }
 }

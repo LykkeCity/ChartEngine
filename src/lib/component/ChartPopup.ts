@@ -1,7 +1,7 @@
 /**
  * ChartPopup class.
  */
-import { IAxis, VisualComponent, VisualContext } from '../core/index';
+import { IAxis, ITimeAxis, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
@@ -9,16 +9,16 @@ import { ISize, Point } from '../shared/index';
 
 export class ChartPopup<T> extends VisualComponent {
 
-    private _visible = false;
+    //private _visible = false;
     private _item?: T;
 
-    public get visible() {
-        return this._visible;
-    }
+    // public get visible() {
+    //     return this._visible;
+    // }
 
-    public set visible(value: boolean) {
-        this._visible = value;
-    }
+    // public set visible(value: boolean) {
+    //     this._visible = value;
+    // }
 
     public get item(): T | undefined {
         return this._item;
@@ -34,7 +34,7 @@ export class ChartPopup<T> extends VisualComponent {
         offset: Point,
         size: ISize,
         private dataSource: IDataSource<T>,
-        private timeAxis: IAxis<Date>,
+        private timeAxis: ITimeAxis,
         private yAxis: IAxis<number>
         ) {
         super(offset, size);
@@ -43,7 +43,7 @@ export class ChartPopup<T> extends VisualComponent {
     public render(context: VisualContext, renderLocator: IRenderLocator) {
 
         // only render on front
-        if (!context.renderFront || !context.mousePosition || !this._visible) {
+        if (!context.renderFront || !context.mousePosition || !this.visible) {
             return;
         }
         const mouseX = context.mousePosition.x;

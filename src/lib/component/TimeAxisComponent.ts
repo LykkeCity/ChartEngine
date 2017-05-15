@@ -1,20 +1,19 @@
 /**
  * TimeAxisComponent class.
  */
-import { TimeAxis } from '../axes/index';
-import { VisualComponent, VisualContext } from '../core/index';
+import { IAxis, ITimeAxis, VisualComponent, VisualContext } from '../core/index';
 import { BoardArea, SizeChangedArgument, XArea } from '../layout/index';
-import { IAxesRender, IRenderLocator } from '../render/index';
+import { IAxesRender, IRenderLocator, ITimeAxisRender } from '../render/index';
 import { TimeMarker } from './TimeMarker';
 
 export class TimeAxisComponent extends VisualComponent {
 
-    private readonly tAxis: TimeAxis;
+    private readonly tAxis: ITimeAxis;
     private readonly area: XArea;
 
     constructor(
         area: BoardArea,
-        timeAxis: TimeAxis
+        timeAxis: ITimeAxis
         ) {
         super();
         this.tAxis = timeAxis;
@@ -35,7 +34,7 @@ export class TimeAxisComponent extends VisualComponent {
     public render(context: VisualContext, renderLocator: IRenderLocator) {
         if (context.renderBase) {
             //const canvas = context.getCanvas(this.target);
-            const render = <IAxesRender<Date>>renderLocator.getAxesRender('date');
+            const render = <ITimeAxisRender>renderLocator.getAxesRender('date');
             render.render(this.area.baseCanvas, this.tAxis, { x: 0, y: 0, w: this.size.width, h: this.size.height});
         }
 

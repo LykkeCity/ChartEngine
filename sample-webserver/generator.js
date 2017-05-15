@@ -11,22 +11,25 @@ module.exports = {
         var list = [];
         var startDate = utils.roundToNearest(dateFrom, period);
         var cur = startDate;
+        var close = undefined;
 
         while (cur.getTime() < dateTo.getTime() && cur.getTime() < (new Date()).getTime()) {
             var c = {
                 t: cur
             };
 
+            var fixed = Math.abs(Math.cos(cur.getTime() / 100)) * 1000000 + 1; // cur.getTime() % 999998 + 1;
+
             if (cur > new Date(2010, 1, 1)) {
-                var border = Math.round(999999.0 * (0.1 + Math.abs(Math.cos(cur.getTime()))));
+                //var border = Math.round(999999.0 * (0.1 + Math.abs(Math.cos(cur.getTime()))));
 
-                var r1 = Math.floor((Math.random() * 999998) + 1);
-                var r2 = Math.floor((Math.random() * 999998) + 1);
+                var r1 = fixed; // Math.floor((Math.random() * 999998) + 1);
+                var r2 = Math.floor(fixed / 2); // Math.floor((Math.random() * 999998) + 1);
 
-                var low = Math.min(r1, r2);
-                var high = Math.max(r1, r2);
-                var open = low + Math.floor(Math.random() * (high - low + 1));
-                var close = low + Math.floor(Math.random() * (high - low + 1));
+                var low = Math.min(r1, r2, isNaN(close) ? Infinity : close);
+                var high = Math.max(r1, r2, isNaN(close) ? -Infinity : close);
+                var open = isNaN(close) ? low + Math.floor(Math.random() * (high - low + 1)) : close;
+                close = low + Math.floor(Math.random() * (high - low + 1));
                 c.h = high / 10000.0;
                 c.l = low / 10000.0;
                 c.o = open / 10000.0;
@@ -40,7 +43,7 @@ module.exports = {
                 c.v = null;
             }
 
-            if (cur.getTime() > dateFrom.getTime() && cur.getTime() < dateTo.getTime()) {
+            if (cur.getTime() >= dateFrom.getTime() && cur.getTime() <= dateTo.getTime()) {
                 list.push(c);
             }
             cur = utils.addInterval(cur, period);

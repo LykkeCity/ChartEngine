@@ -6,6 +6,7 @@ import ChartBoard = lychart.ChartBoard;
 import Candlestick = lychart.model.Candlestick;
 import { Asset } from './Asset';
 import { ChartController } from './ChartController';
+import { FormController } from './FormController';
 import { Settings } from './Settings';
 import { Utils } from './Utils';
 
@@ -13,16 +14,17 @@ import * as $ from 'jquery';
 
 class Main {
     private charts: ChartController[] = [];
+    private formController: FormController;
 
     public async startup() {
 
-        // Shift sample data to current time
-        const now = new Date();
-        this.sampleCandles.forEach(c => {
-            c.date.setUTCMonth(now.getUTCMonth());
-            c.date.setUTCDate(now.getUTCDate());
-            c.date.setUTCHours(c.date.getUTCHours() + now.getUTCHours() - 2);
-        });
+        // // Shift sample data to current time
+        // const now = new Date();
+        // this.sampleCandles.forEach(c => {
+        //     c.date.setUTCMonth(now.getUTCMonth());
+        //     c.date.setUTCDate(now.getUTCDate());
+        //     c.date.setUTCHours(c.date.getUTCHours() + now.getUTCHours() - 2);
+        // });
 
         // Load assets list from server
         let assets: Asset[] = [];
@@ -36,21 +38,29 @@ class Main {
             assets = data;
         });
 
-        // Create charts
-        const div1 = document.getElementById('container1');
-        const div2 = document.getElementById('container2');
-        if (!div1 || !div2) {
+        // Create CHART(s)
+        const div1 = document.getElementById('lsection');
+        //const div2 = document.getElementById('container2');
+        if (!div1) { // || !div2) {
             console.error('ERROR: container element is not found.');
             return;
         }
 
         this.charts[0] = new ChartController(div1, 5, 45, assets, 'EURUSD');    // "left" and "top" depend from layout
-        this.charts[1] = new ChartController(div2, 240, 45, assets, 'BTCUSD');
+        //this.charts[1] = new ChartController(div2, 240, 45, assets, 'BTCUSD');
 
-        // Define event handlers
+        // // Create FORM
+        // const formContainer = document.getElementById('panel1');
+        // if (!formContainer) {
+        //     console.error('ERROR: container element is not found.');
+        //     return;
+        // }
+        // this.formController = new FormController(formContainer);
+
+        // Define EVENT HANDLERS
         const onresize = () => {
             this.charts[0].resize();
-            this.charts[1].resize();
+            //this.charts[1].resize();
         };
 
         window.onresize = onresize;

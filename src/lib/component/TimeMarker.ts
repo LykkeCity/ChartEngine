@@ -1,7 +1,7 @@
 /**
  * TimeMarker class.
  */
-import { IAxis, VisualComponent, VisualContext } from '../core/index';
+import { IAxis, ITimeAxis, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
@@ -9,9 +9,9 @@ import { ISize, Point } from '../shared/index';
 export class TimeMarker extends VisualComponent {
 
     private readonly area: Area;
-    private readonly axis: IAxis<Date>;
+    private readonly axis: ITimeAxis;
 
-    constructor(area: Area, offset: Point, size: ISize, axis: IAxis<Date>) {
+    constructor(area: Area, offset: Point, size: ISize, axis: ITimeAxis) {
         super(offset, size);
         this.area = area;
         this.axis = axis;
@@ -30,8 +30,11 @@ export class TimeMarker extends VisualComponent {
 
                 //const canvas = context.getCanvas(this.target);
                 const render = renderLocator.getMarkRender('date');
-                const date = this.axis.toValue(mouseX);
-                render.render(this.area.frontCanvas, date, { x: mouseX, y: 0 }, this.size);
+                const uid = this.axis.toValue(mouseX);
+                if (uid) {
+                    const newX = this.axis.toX(uid);
+                    render.render(this.area.frontCanvas, uid.t, { x: newX, y: 0 }, this.size);
+                }
             }
         }
     }
