@@ -269,8 +269,8 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         //this.indicators[uid] = undefined;
     }
 
-    private addInterval = (date: Date) => {
-        return DateUtils.addInterval(date, this.timeAxis.interval);
+    private addInterval = (date: Date, times: number) => {
+        return DateUtils.addInterval(date, this.timeAxis.interval, times);
     }
 
     public render(): void {

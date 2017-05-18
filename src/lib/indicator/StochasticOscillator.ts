@@ -59,7 +59,10 @@ export class StochasticOscillator extends IndicatorDataSource<DoubleCandlestick>
 
         // Select last source values
         if (arg) {
-            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1, arg);
+            if (!iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0)) {
+                throw new Error('Source does not contain updated data');
+            }
+            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1);
             fsarray.pushRange(prev);
         }
 
@@ -108,7 +111,7 @@ export class StochasticOscillator extends IndicatorDataSource<DoubleCandlestick>
 
                 karray.push(computed.fast);
 
-                computed.slow.c = ma.compute(N, karray, candle => candle.c, prevMA);
+                computed.slow.c = ma.compute(N, karray, candle => candle.c, undefined, prevMA);
                 computed.slow.h = computed.slow.c;
                 computed.slow.l = computed.slow.c;
 

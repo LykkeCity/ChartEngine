@@ -60,7 +60,10 @@ export class AlligatorIndicator extends IndicatorDataSource<TripleCandlestick> {
 
         // Select last source values
         if (arg) {
-            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1, arg);
+            if (!iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0)) {
+                throw new Error('Source does not contain updated data');
+            }
+            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1);
             fsarray.pushRange(prev);
         }
 
@@ -121,9 +124,9 @@ export class AlligatorIndicator extends IndicatorDataSource<TripleCandlestick> {
             l.uid.n = source.uid.n;
 
             if (source.c !== undefined) {
-                j.c = ma.compute(13, fsarray, accessor, prevJaw);  prevJaw = j.c;
-                t.c = ma.compute(8, fsarray, accessor, prevTeeth); prevTeeth = t.c;
-                l.c = ma.compute(5, fsarray, accessor, prevLips);  prevLips = l.c;
+                j.c = ma.compute(13, fsarray, accessor, undefined, prevJaw);  prevJaw = j.c;
+                t.c = ma.compute(8, fsarray, accessor, undefined, prevTeeth); prevTeeth = t.c;
+                l.c = ma.compute(5, fsarray, accessor, undefined, prevLips);  prevLips = l.c;
 
                 j.h = j.c;
                 j.l = j.c;
@@ -150,21 +153,21 @@ export class AlligatorIndicator extends IndicatorDataSource<TripleCandlestick> {
         // Make fake candles on the right side.
         let lastDate = jaw[jaw.length - 1].date;
         for (let i = 0; i < 8; i += 1) {
-            lastDate = this.addInterval(lastDate);
+            lastDate = this.addInterval(lastDate, 1);
             const fake = new Candlestick(lastDate);
             //fake.uid.t = lastDate.getTime().toString();
             jaw.push(fake);
         }
         lastDate = teeth[teeth.length - 1].date;
         for (let i = 0; i < 5; i += 1) {
-            lastDate = this.addInterval(lastDate);
+            lastDate = this.addInterval(lastDate, 1);
             const fake = new Candlestick(lastDate);
             //fake.uid = lastDate.getTime().toString();
             teeth.push(fake);
         }
         lastDate = lips[lips.length - 1].date;
         for (let i = 0; i < 3; i += 1) {
-            lastDate = this.addInterval(lastDate);
+            lastDate = this.addInterval(lastDate, 1);
             const fake = new Candlestick(lastDate);
             //fake.uid = lastDate.getTime().toString();
             lips.push(fake);

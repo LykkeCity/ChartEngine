@@ -10,12 +10,12 @@ import { IHashTable } from '../shared/index';
 import { IndicatorDataSource } from './IndicatorDataSource';
 
 export interface IInstanceCreator {
-    new(source: IDataSource<Candlestick>, addInterval: (date: Date) => Date): IDataSource<Candlestick>;
+    new(source: IDataSource<Candlestick>, addInterval: (date: Date, times: number) => Date): IDataSource<Candlestick>;
 }
 
 export function register(
     indicatorId: string,
-    creator: { new(source: IDataSource<Candlestick>, addInterval: (date: Date) => Date): IDataSource<Candlestick> }) {
+    creator: { new(source: IDataSource<Candlestick>, addInterval: (date: Date, times: number) => Date): IDataSource<Candlestick> }) {
 
     IndicatorFabric.instance.register(indicatorId, creator);
 }
@@ -33,11 +33,11 @@ export class IndicatorFabric {
         return this.inst;
     }
 
-    public register(indicatorId: string, creator: { new(source: IDataSource<Candlestick>, addInterval: (date: Date) => Date): IDataSource<Candlestick> }) {
+    public register(indicatorId: string, creator: { new(source: IDataSource<Candlestick>, addInterval: (date: Date, times: number) => Date): IDataSource<Candlestick> }) {
         this.ctors[indicatorId] = creator;
     }
 
-    public instantiate(indicatorId: string, source: IDataSource<Candlestick>, addInterval: (date: Date) => Date): IDataSource<Candlestick> {
+    public instantiate(indicatorId: string, source: IDataSource<Candlestick>, addInterval: (date: Date, times: number) => Date): IDataSource<Candlestick> {
         const ctor = this.ctors[indicatorId];
         if (ctor) {
             return new ctor(source, addInterval);

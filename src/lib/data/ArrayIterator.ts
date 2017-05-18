@@ -177,6 +177,11 @@ export class ArrayIterator<T> implements IDataIterator<T> {
             return false;
         }
 
+        // Current index must not get greater then length
+        if (this.currentIndex === this.dataSnapshot.data.length) {
+            return false;
+        }
+
         do {
             this.currentIndex += 1;
         }
@@ -194,6 +199,11 @@ export class ArrayIterator<T> implements IDataIterator<T> {
         this.checkTimestamp();
 
         if (this.dataSnapshot.data.length === 0) {
+            return false;
+        }
+
+        // Current index must not get less then -1
+        if (this.currentIndex === -1) {
             return false;
         }
 

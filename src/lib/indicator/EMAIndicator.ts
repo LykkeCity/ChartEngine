@@ -1,5 +1,5 @@
 /**
- * Weighted Moving Average Indicator class.
+ * Exponential Moving Average Indicator class.
  */
 import { ICanvas } from '../canvas/index';
 import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType, TimeInterval } from '../core/index';
@@ -16,15 +16,15 @@ import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
 import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
-export class WMAIndicator extends SimpleIndicator<CandlestickExt> {
+export class EMAIndicator extends SimpleIndicator<CandlestickExt> {
 
     private ma: IMovingAverageStrategy;
 
     constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
         super(CandlestickExt, source, addInterval);
-        this.name = 'WMA';
+        this.name = 'EMA';
 
-        this.ma = MovingAverageFactory.instance.create(MovingAverageType.Weight);
+        this.ma = MovingAverageFactory.instance.create(MovingAverageType.Exponential);
 
         // Build initial data set
         this.compute();
@@ -37,7 +37,7 @@ export class WMAIndicator extends SimpleIndicator<CandlestickExt> {
             const N = this.settings.period;
 
             const source = sourceItems.last();
-            const lastComputed = computedArray.lastOrDefault(); //computedArray.length > 0 ? computedArray[computedArray.length - 1] : undefined;
+            const lastComputed = computedArray.lastOrDefault();
 
             const computed = new CandlestickExt(source.date);
             computed.uidOrig.t = source.uid.t;

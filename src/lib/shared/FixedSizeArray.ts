@@ -40,6 +40,14 @@ export class FixedSizeArray<T> {
         }
     }
 
+    public lastOrDefault(): T|undefined {
+        if (this._length > 0) {
+            return this.container[this._length - 1];
+        } else {
+            return undefined;
+        }
+    }
+
     /**
      * Appends specified element to the end of array.
      * If amount of elements exceeds allowed amount, first element is removed.

@@ -22,18 +22,21 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
     protected source: IDataSource<Candlestick>;
     protected dataStorage: ArrayDataStorage<C>;
     //private indicator: IIndicator;
-    protected addInterval: (date: Date) => Date;
+    protected addInterval: (date: Date, times: number) => Date;
 
-    constructor (dataType: new(date: Date) => C, source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
+    constructor (dataType: new(date: Date) => C,
+                 source: IDataSource<Candlestick>,
+                 addInterval: (date: Date, times: number) => Date,
+                 comparer?: (lhs: C, rhs: C) => number) {
+
         super(dataType, new DataSourceConfig());
-        this.dataStorage = new ArrayDataStorage<C>(this.comparer);
+        this.dataStorage = new ArrayDataStorage<C>(comparer || this.defaultComparer);
         this.source = source;
         this.source.dataChanged.on(this.onDataSourceChanged);
-        //this.indicator = indicator;
         this.addInterval = addInterval; // should be initialized before computing
     }
 
-    private comparer = (lhs: C, rhs: C) => { return lhs.uid.compare(rhs.uid); };
+    private defaultComparer = (lhs: C, rhs: C) => { return lhs.uid.compare(rhs.uid); };
 
     public getIterator(filter?: (item: C) => boolean): IDataIterator<C> {
         return this.dataStorage.getIterator(filter);
@@ -69,11 +72,11 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
     /**
      * Returns last values from source
      */
-    protected static getPreviousValues(
-        iterator: IDataIterator<Candlestick>,
+    protected static getPreviousValues<T extends Candlestick>(
+        iterator: IDataIterator<T>,
         N: number,
         arg: DataChangedArgument,
-        accessor: (candle: Candlestick) => number|undefined): number[] {
+        accessor: (candle: T) => number|undefined): number[] {
 
         if (!iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0)) {
             throw new Error('Source does not contain updated data');
@@ -93,16 +96,11 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
         return array;
     }
 
-    protected static getPreviousItems(
-        iterator: IDataIterator<Candlestick>,
-        N: number,
-        arg: DataChangedArgument): Candlestick[] {
+    protected static getPreviousItems<T extends Candlestick>(
+        iterator: IDataIterator<T>,
+        N: number): T[] {
 
-        if (!iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0)) {
-            throw new Error('Source does not contain updated data');
-        }
-
-        const array: Candlestick[] = [];
+        const array: T[] = [];
         iterator.somebackward((item, counter) => {
             if (counter > N) { return false; }
             if (counter > 0) {

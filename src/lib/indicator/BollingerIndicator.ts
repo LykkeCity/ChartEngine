@@ -60,7 +60,10 @@ export class BollingerIndicator extends IndicatorDataSource<TripleCandlestick> {
 
         // Select last source values
         if (arg) {
-            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1, arg);
+            if (!iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0)) {
+                throw new Error('Source does not contain updated data');
+            }
+            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1);
             fsarray.pushRange(prev);
         }
 
@@ -100,7 +103,7 @@ export class BollingerIndicator extends IndicatorDataSource<TripleCandlestick> {
             fsarray.push(source);
 
             if (value !== undefined) { // has value
-                computed.middle.c = ma.compute(N, fsarray, accessor, prevMA);
+                computed.middle.c = ma.compute(N, fsarray, accessor, undefined, prevMA);
                 computed.middle.h = computed.middle.c;
                 computed.middle.l = computed.middle.c;
 

@@ -42,14 +42,24 @@ const states = {
 indicator.register('alligator', indicator.AlligatorIndicator);
 indicator.register('bollinger', indicator.BollingerIndicator);
 indicator.register('stochastic-osc', indicator.StochasticOscillator);
+indicator.register('DEMA', indicator.DEMAIndicator);
+indicator.register('EMA', indicator.EMAIndicator);
 indicator.register('SMA', indicator.SMAIndicator);
+indicator.register('SMMA', indicator.SMMAIndicator);
+indicator.register('TEMA', indicator.TEMAIndicator);
+indicator.register('TMA', indicator.TMAIndicator);
 indicator.register('WMA', indicator.WMAIndicator);
 
 // Register built-in renderers
 render.RenderLocator.Instance.register('alligator', indicator.AlligatorIndicatorRenderer);
 render.RenderLocator.Instance.register('bollinger', indicator.BollingerIndicatorRenderer);
 render.RenderLocator.Instance.register('stochastic-osc', indicator.StochasticOscillatorRenderer);
+render.RenderLocator.Instance.register('DEMA', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('EMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('SMA', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('SMMA', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('TEMA', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('TMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('WMA', render.LinestickChartRenderer);
 
 const lychart = {

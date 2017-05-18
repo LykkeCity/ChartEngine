@@ -5,8 +5,12 @@ import { Candlestick } from '../model/index';
 import { FixedSizeArray } from '../shared/index';
 
 export enum MovingAverageType {
+    DoubleExponential,
+    Exponential,
     Simple,
     Smoothed,
+    Triangular,
+    TripleExponential,
     Weight
 }
 
@@ -14,20 +18,24 @@ export interface IMovingAverageStrategy {
     /**
      * 
      * @param n Range
-     * @param value Current item for which to calculate MA.
+     * @param value Current item for which to calculate MA. If not specified, then last value from FSArray is considered current.
      * @param precedingValues Items before current item.
      * @param precedingMovingAverage MA value for previous item.
      */
-    compute(n: number, precedingValues: FixedSizeArray<Candlestick>,
+    compute(n: number,
+            precedingValues: FixedSizeArray<Candlestick>,
             accessor: (c: Candlestick) => number|undefined,
+            value?: Candlestick,
             precedingMovingAverage?: number): number|undefined;
 }
 
 export class MovingAverageFactory {
     private static inst?: MovingAverageFactory;
 
+    private ema = new ExponentialMovingAverage();
     private sma = new SimpleMovingAverage();
     private smma = new SmoothedMovingAverage();
+    private tma = new TriangularMovingAverage();
     private wma = new WeightMovingAverage();
 
     private constructor() { }
@@ -41,84 +49,175 @@ export class MovingAverageFactory {
 
     public create(maType: MovingAverageType): IMovingAverageStrategy {
         switch (maType) {
+            case MovingAverageType.Exponential: return this.ema;
             case MovingAverageType.Simple: return this.sma;
             case MovingAverageType.Smoothed: return this.smma;
+            case MovingAverageType.Triangular: return this.tma;
             case MovingAverageType.Weight: return this.wma;
             default: throw new Error('Unexpected moving average type=' + maType);
         }
     }
 }
 
-class SimpleMovingAverage implements IMovingAverageStrategy {
-    public compute(n: number, precedingValues: FixedSizeArray<Candlestick>,
+class ExponentialMovingAverage implements IMovingAverageStrategy {
+    private sma = new SimpleMovingAverage();
+    public compute(n: number,
+                   precedingValues: FixedSizeArray<Candlestick>,
                    accessor: (c: Candlestick) => number|undefined,
+                   value?: Candlestick,
+                   precedingMovingAverage?: number): number|undefined {
+
+        const haveCount = precedingValues.length + (value !== undefined ? 1 : 0);
+
+        if (haveCount === 0) {
+            return undefined;
+        }
+
+        // Calculate first 4 MA as Simple MA
+        if (precedingMovingAverage !== undefined && haveCount > 4) {
+            // St = a * Yt + (1 - a) * St-1;
+            const a = 2 / (n + 1);
+            const lastValue = accessor(value !== undefined ? value : precedingValues.last());
+
+            return lastValue !== undefined
+                    ? a * lastValue + (1 - a) * precedingMovingAverage
+                    : undefined;
+        } else {
+            // If no previous MA value, calculate as simple ma;
+            return this.sma.compute(n, precedingValues, accessor, value, precedingMovingAverage);
+        }
+    }
+}
+
+class SimpleMovingAverage implements IMovingAverageStrategy {
+    public compute(n: number,
+                   precedingValues: FixedSizeArray<Candlestick>,
+                   accessor: (c: Candlestick) => number|undefined,
+                   value?: Candlestick,
                    precedingMovingAverage?: number): number|undefined {
         let takeCount = 0;
-        if (precedingValues.length === 0) {
+        const haveCount = precedingValues.length + (value !== undefined ? 1 : 0);
+        if (precedingValues.length === 0 && value === undefined) {
             return undefined;
-        } else if (precedingValues.length === 1) {
+        } else if (precedingValues.length === 1 && value === undefined) {
             // if no previous values, return the only value
             return accessor(precedingValues.last());
-        } else if (n > precedingValues.length) {
+        } else if (precedingValues.length === 0 && value !== undefined) {
+            // if no previous values, return the only value
+            return accessor(value);
+        } else if (n > haveCount) {
             // if not enough values to build moving average use as much as we can get
-            takeCount = precedingValues.length;
+            takeCount = haveCount;
         } else {
             // we have enough values 
             takeCount = n;
         }
 
-        let sum = 0;
+        let sum = (value !== undefined ? accessor(value) || 0 : 0);
+        let counter = (value !== undefined ? 1 : 0);
+        takeCount = takeCount - (value !== undefined ? 1 : 0);
         // Add last values
         for (let i = 0; i < takeCount; i += 1) {
             const v = accessor(precedingValues.getItem(precedingValues.length - (i + 1)));
             if (v !== undefined) {
                 sum += v;
+                counter += 1;
             }
         }
-        return sum / takeCount;
+        return sum / counter;
     }
 }
 
 class SmoothedMovingAverage implements IMovingAverageStrategy {
     private sma = new SimpleMovingAverage();
-    public compute(n: number, precedingValues: FixedSizeArray<Candlestick>,
+    public compute(n: number,
+                   precedingValues: FixedSizeArray<Candlestick>,
                    accessor: (c: Candlestick) => number|undefined,
+                   value?: Candlestick,
                    precedingMovingAverage?: number): number|undefined {
 
-        if (precedingValues.length < n) {
+        const haveCount = precedingValues.length + (value !== undefined ? 1 : 0);
+
+        if (haveCount < n) {
             // use Simple Moving Average if not enough data
-            return this.sma.compute(n, precedingValues, accessor, precedingMovingAverage);
+            return this.sma.compute(n, precedingValues, accessor, value, precedingMovingAverage);
         }
 
         if (!precedingMovingAverage) {
             throw new Error('Previous moving average must be specified.');
         }
 
-        const curValue = accessor(precedingValues.last());
+        const curValue = accessor(value !== undefined ? value : precedingValues.last());
         return curValue !== undefined
                ? (precedingMovingAverage * (n - 1) + curValue) / n
                : precedingMovingAverage;
     }
 }
 
-class WeightMovingAverage implements IMovingAverageStrategy {
-    public compute(n: number, precedingValues: FixedSizeArray<Candlestick>,
+class TriangularMovingAverage implements IMovingAverageStrategy {
+    public compute(n: number,
+                   precedingValues: FixedSizeArray<Candlestick>,
                    accessor: (c: Candlestick) => number|undefined,
+                   value?: Candlestick,
                    precedingMovingAverage?: number): number|undefined {
-        // If amount of items is not enough then calculate for decreased N value.
-        if (n > precedingValues.length) {
-            n = precedingValues.length;
+
+        const haveCount = precedingValues.length + (value !== undefined ? 1 : 0);
+
+        // If amount of items is not enough do not make computation.
+        if (n > haveCount) {
+            return undefined;
         }
 
-        let sum = 0;
-        for (let i = 0; i < n; i += 1) {
-            const v = accessor(precedingValues.getItem(precedingValues.length - (i + 1)));
+        const mid = Math.round(n / 2);
+
+        let sum = (value !== undefined ? n * (accessor(value) || 0) : 0);
+        let divider = 0;
+        const startIndex = (value !== undefined ? 2 : 1);
+        let triang;
+        for (let i = startIndex; i <= n; i += 1) {
+            if (i <= mid) {
+                triang = i;
+            } else {
+                triang = mid - (i - mid) + ((n + 1) % 2);
+            }
+
+            const v = accessor(precedingValues.getItem(precedingValues.length - ((i - startIndex) + 1)));
             if (v !== undefined) {
-                sum += (n - i) * v;
+                sum += triang * v;
+                divider += triang;
             }
         }
 
-        return sum / this.divider(n);
+        return sum / divider;
+    }
+}
+
+class WeightMovingAverage implements IMovingAverageStrategy {
+    public compute(n: number,
+                   precedingValues: FixedSizeArray<Candlestick>,
+                   accessor: (c: Candlestick) => number|undefined,
+                   value?: Candlestick,
+                   precedingMovingAverage?: number): number|undefined {
+
+        const haveCount = precedingValues.length + (value !== undefined ? 1 : 0);
+
+        // If amount of items is not enough then calculate for decreased N value.
+        if (n > haveCount) {
+            n = haveCount;
+        }
+
+        let sum = (value !== undefined ? n * (accessor(value) || 0) : 0);
+        let counter = (value !== undefined ? 1 : 0);
+        n = n - (value !== undefined ? 1 : 0);
+        for (let i = 0; i < n; i += 1) {
+            const v = accessor(precedingValues.getItem(precedingValues.length - (i + 1)));
+            if (v !== undefined) {
+                sum += (n - counter) * v;
+                counter += 1;
+            }
+        }
+
+        return sum / this.divider(counter);
     }
 
     private divider(n: number) {

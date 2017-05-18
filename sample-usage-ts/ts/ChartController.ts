@@ -58,7 +58,12 @@ export class ChartController {
         $('#cbIndicatorStochastic').change(
             () => { this.changeIndicator('103', 'stochastic-osc', 1, $('#cbIndicatorStochastic').is(':checked')); });
         $('#cbIndicatorSMA').change(() => { this.changeIndicator('104', 'SMA', 0, $('#cbIndicatorSMA').is(':checked')); });
-        $('#cbIndicatorWMA').change(() => { this.changeIndicator('105', 'WMA', 0, $('#cbIndicatorWMA').is(':checked')); });
+        $('#cbIndicatorSMMA').change(() => { this.changeIndicator('105', 'SMMA', 0, $('#cbIndicatorSMMA').is(':checked')); });
+        $('#cbIndicatorWMA').change(() => { this.changeIndicator('106', 'WMA', 0, $('#cbIndicatorWMA').is(':checked')); });
+        $('#cbIndicatorEMA').change(() => { this.changeIndicator('107', 'EMA', 0, $('#cbIndicatorEMA').is(':checked')); });
+        $('#cbIndicatorDEMA').change(() => { this.changeIndicator('108', 'DEMA', 0, $('#cbIndicatorDEMA').is(':checked')); });
+        $('#cbIndicatorTMA').change(() => { this.changeIndicator('109', 'TMA', 0, $('#cbIndicatorTMA').is(':checked')); });
+        $('#cbIndicatorTEMA').change(() => { this.changeIndicator('110', 'TEMA', 0, $('#cbIndicatorTEMA').is(':checked')); });
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);
