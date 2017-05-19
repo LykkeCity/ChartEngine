@@ -31,9 +31,6 @@ export class TMAIndicator extends SimpleIndicator<TMACandlestick> {
 
         this.sma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
         this.tma = MovingAverageFactory.instance.create(MovingAverageType.Triangular);
-
-        // Build initial data set
-        this.compute();
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,

@@ -39,7 +39,7 @@ export class TrueRangeExtension extends IndicatorExtension {
 /**
  * +DM
  */
-export class PlusDirectionalMovementExtension extends IndicatorExtension {
+export class UpDirectionalMovementExtension extends IndicatorExtension {
     public static readonly uname = 'pdm';
 
     public get amountRequires(): number {
@@ -54,8 +54,14 @@ export class PlusDirectionalMovementExtension extends IndicatorExtension {
         const current = line.getItem(line.length - 1); // last is current
         const prev = line.getItem(line.length - 2); // Take previous;
 
-        if (current && current.h !== undefined && prev && prev.h !== undefined) {
-            current.ext['pdm'] = (current.h - prev.h) > 0 ? (current.h - prev.h) : 0; // H[t] - H[t-1]
+        if (current && current.h !== undefined && current.l !== undefined
+            && prev && prev.h !== undefined && prev.l !== undefined) {
+            // UpMove = Current High - Previous High
+            // DownMove = Previous Low - Current Low
+            const upmove = current.h - prev.h;
+            const downmove = prev.l - current.l;
+            // If UpMove > DownMove and UpMove > 0, then +DM = UpMove, else +DM = 0
+            current.ext['pdm'] = (upmove > downmove && upmove > 0) ? upmove : 0;
         }
     }
 }
@@ -63,7 +69,7 @@ export class PlusDirectionalMovementExtension extends IndicatorExtension {
 /**
  * -DM
  */
-export class MinusDirectionalMovementExtension extends IndicatorExtension {
+export class DownDirectionalMovementExtension extends IndicatorExtension {
     public static readonly uname = 'mdm';
 
     public get amountRequires(): number {
@@ -78,8 +84,14 @@ export class MinusDirectionalMovementExtension extends IndicatorExtension {
         const current = line.getItem(line.length - 1); // last is current
         const prev = line.getItem(line.length - 2); // Take previous;
 
-        if (current && current.l !== undefined && prev && prev.l !== undefined) {
-            current.ext['mdm'] = (prev.l - current.l) > 0 ? (prev.l - current.l) : 0; // L[t-1] - L[t]
+        if (current && current.h !== undefined && current.l !== undefined
+            && prev && prev.h !== undefined && prev.l !== undefined) {
+            // UpMove = Current High - Previous High
+            // DownMove = Previous Low - Current Low            
+            const upmove = current.h - prev.h;
+            const downmove = prev.l - current.l;
+            // If DownMove > Upmove and Downmove > 0, then -DM = DownMove, else -DM = 0
+            current.ext['mdm'] = (downmove > upmove && downmove > 0) ? downmove : 0;
         }
     }
 }

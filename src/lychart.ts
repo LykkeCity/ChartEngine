@@ -43,6 +43,7 @@ indicator.register('alligator', indicator.AlligatorIndicator);
 indicator.register('bollinger', indicator.BollingerIndicator);
 indicator.register('stochastic-osc', indicator.StochasticOscillator);
 indicator.register('DEMA', indicator.DEMAIndicator);
+indicator.register('DMI', indicator.DMIIndicator);
 indicator.register('EMA', indicator.EMAIndicator);
 indicator.register('SMA', indicator.SMAIndicator);
 indicator.register('SMMA', indicator.SMMAIndicator);
@@ -57,6 +58,7 @@ render.RenderLocator.Instance.register('alligator', indicator.AlligatorIndicator
 render.RenderLocator.Instance.register('bollinger', indicator.BollingerIndicatorRenderer);
 render.RenderLocator.Instance.register('stochastic-osc', indicator.StochasticOscillatorRenderer);
 render.RenderLocator.Instance.register('DEMA', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('DMI', indicator.DMIIndicatorRenderer);
 render.RenderLocator.Instance.register('EMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('SMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('SMMA', render.LinestickChartRenderer);

@@ -25,9 +25,6 @@ export class WMAIndicator extends SimpleIndicator<CandlestickExt> {
         this.name = 'WMA';
 
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Weight);
-
-        // Build initial data set
-        this.compute();
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,

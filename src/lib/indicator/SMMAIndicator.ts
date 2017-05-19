@@ -25,9 +25,6 @@ export class SMMAIndicator extends SimpleIndicator<CandlestickExt> {
         this.name = 'SMMA';
 
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Smoothed);
-
-        // Build initial data set
-        this.compute();
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,

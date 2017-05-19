@@ -3,14 +3,14 @@
  */
 import {
     AvgTrueRangeExtension,
-    MinusDirectionalMovementExtension,
-    PlusDirectionalMovementExtension,
-    TrueRangeExtension
+    DownDirectionalMovementExtension,
+    TrueRangeExtension,
+    UpDirectionalMovementExtension
 } from './IndicatorExtension';
 
 export {
     AvgTrueRangeExtension,
-    MinusDirectionalMovementExtension,
-    PlusDirectionalMovementExtension,
+    DownDirectionalMovementExtension,
+    UpDirectionalMovementExtension,
     TrueRangeExtension
 };

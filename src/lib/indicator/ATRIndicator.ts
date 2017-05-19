@@ -32,9 +32,6 @@ export class ATRIndicator extends SimpleIndicator<CandlestickExt> {
 
         // Set default settings
         this.settings.period = 14;
-
-        // Build initial data set
-        this.compute();
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,

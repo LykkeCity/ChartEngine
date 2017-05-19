@@ -41,9 +41,6 @@ export class BollingerIndicator extends IndicatorDataSource<TripleCandlestick> {
     constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
         super(TripleCandlestick, source, addInterval);
         this.name = 'bollinger';
-
-        // BUILD Initial data set
-        this.compute();
     }
 
     protected compute(arg?: DataChangedArgument): DataChangedArgument | undefined {

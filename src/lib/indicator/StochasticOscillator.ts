@@ -39,9 +39,6 @@ export class StochasticOscillator extends IndicatorDataSource<DoubleCandlestick>
     constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
         super(DoubleCandlestick, source, addInterval);
         this.name = 'stoch';
-
-        // BUILD Initial data set
-        this.compute();
     }
 
     protected compute(arg?: DataChangedArgument): DataChangedArgument | undefined {

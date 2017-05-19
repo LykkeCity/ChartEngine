@@ -19,6 +19,7 @@ import { IIndicator } from './Interfaces';
  */
 export abstract class IndicatorDataSource<C extends Candlestick> extends DataSource {
 
+    protected isInitialized = false;
     protected source: IDataSource<Candlestick>;
     protected dataStorage: ArrayDataStorage<C>;
     //private indicator: IIndicator;
@@ -39,6 +40,10 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
     private defaultComparer = (lhs: C, rhs: C) => { return lhs.uid.compare(rhs.uid); };
 
     public getIterator(filter?: (item: C) => boolean): IDataIterator<C> {
+        if (!this.isInitialized) {
+            this.compute();
+            this.isInitialized = true;
+        }
         return this.dataStorage.getIterator(filter);
     }
 

@@ -6,6 +6,7 @@ import { AlligatorIndicator, AlligatorIndicatorRenderer } from './AlligatorIndic
 import { ATRIndicator } from './ATRIndicator';
 import { BollingerIndicator, BollingerIndicatorRenderer } from './BollingerIndicator';
 import { DEMAIndicator } from './DEMAIndicator';
+import { DMIIndicator, DMIIndicatorRenderer } from './DMIIndicator';
 import { EMAIndicator } from './EMAIndicator';
 import { HeikinAshiDataSource } from './HeikinAshiDataSource';
 import { IndicatorDataSource } from './IndicatorDataSource';
@@ -26,6 +27,8 @@ export {
     BollingerIndicator,
     BollingerIndicatorRenderer,
     DEMAIndicator,
+    DMIIndicator,
+    DMIIndicatorRenderer,
     EMAIndicator,
     HeikinAshiDataSource,
     IndicatorDataSource,

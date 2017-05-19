@@ -3,8 +3,8 @@
  */
 import { ICanvas } from '../canvas/index';
 import {
-    MinusDirectionalMovementExtension,
-    PlusDirectionalMovementExtension,
+    DownDirectionalMovementExtension,
+    UpDirectionalMovementExtension,
     TrueRangeExtension } from '../compute/index';
 import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType, TimeInterval } from '../core/index';
 import { ArrayDataStorage, DataChangedArgument, DataSource,
@@ -13,6 +13,7 @@ import { Candlestick, Point } from '../model/index';
 import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
+import { DMICandlestick, DMIIndicator } from './DMIIndicator';
 import { IndicatorDataSource } from './IndicatorDataSource';
 import { IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
@@ -20,45 +21,44 @@ import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
 import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
-export class ADXCandlestick extends CandlestickExt {
-    /** 
-     * Smoothed TR
-     */
-    public TRA: number | undefined;
-    /**
-     * Smoothed +DM
-     */
-    public pDMA: number | undefined;
-    /**
-     * Smoothed -DM
-     */
-    public mDMA: number | undefined;
+// export class ADXCandlestick extends CandlestickExt {
+//     /** 
+//      * Smoothed TR
+//      */
+//     public TRA: number | undefined;
+//     /**
+//      * Smoothed +DM
+//      */
+//     public pDMA: number | undefined;
+//     /**
+//      * Smoothed -DM
+//      */
+//     public mDMA: number | undefined;
 
+//     public DX: number | undefined;
+// }
+
+export class ADXCandlestick extends DMICandlestick {
     public DX: number | undefined;
 }
 
-export class ADXIndicator extends SimpleIndicator<ADXCandlestick> {
+export class ADXIndicator extends DMIIndicator {
 
     private adxma: IMovingAverageStrategy;
-    private wma: IMovingAverageStrategy;
 
     constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(ADXCandlestick, source, addInterval);
+        super(source, addInterval);
         this.name = 'ADX';
 
-        this.wma = MovingAverageFactory.instance.create(MovingAverageType.Wilder);
         this.adxma = MovingAverageFactory.instance.create(MovingAverageType.ADX);
 
         // ADX requires TR, +DM, -DM
         this.source.addExtension(TrueRangeExtension.uname, new TrueRangeExtension());
-        this.source.addExtension(PlusDirectionalMovementExtension.uname, new PlusDirectionalMovementExtension());
-        this.source.addExtension(MinusDirectionalMovementExtension.uname, new MinusDirectionalMovementExtension());
+        this.source.addExtension(UpDirectionalMovementExtension.uname, new UpDirectionalMovementExtension());
+        this.source.addExtension(DownDirectionalMovementExtension.uname, new DownDirectionalMovementExtension());
 
         // Set default settings
         this.settings.period = 14;
-
-        // Build initial data set
-        this.compute();
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
@@ -67,42 +67,25 @@ export class ADXIndicator extends SimpleIndicator<ADXCandlestick> {
 
             const N = this.settings.period;
 
-            const source = sourceItems.last();
             const lastComputed = computedArray.lastOrDefault();
 
-            const computed = new ADXCandlestick(source.date);
-            computed.uidOrig.t = source.uid.t;
-            computed.uidOrig.n = source.uid.n;
+            const computedDMI = super.computeOne(sourceItems, accessor, computedArray);
 
-            const value = accessor(source);
-            if (value !== undefined) {
+            // Copy values from computed DMI
+            const computed = new ADXCandlestick(computedDMI.date);
+            computed.uidOrig.t = computedDMI.uid.t;
+            computed.uidOrig.n = computedDMI.uid.n;
 
-                // Using Wilder for smoothing +DM, -DM, TR
-                //
-                const lastComputedPDMA = lastComputed !== undefined ? lastComputed.ext['pdm'] : undefined;
-                computed.pDMA = this.wma.compute(N, sourceItems, item => item.ext['pdm'], undefined, lastComputedPDMA);
+            computed.TRA = computedDMI.TRA;
+            computed.pDMA = computedDMI.pDMA;
+            computed.mDMA = computedDMI.mDMA;
+            computed.DX = computedDMI.c;
 
-                const lastComputedMDMA = lastComputed !== undefined ? lastComputed.ext['mdm'] : undefined;
-                computed.mDMA = this.wma.compute(N, sourceItems, item => item.ext['mdm'], undefined, lastComputedMDMA);
-
-                const lastComputedTRA = lastComputed !== undefined ? lastComputed.ext['tr'] : undefined;
-                computed.TRA = this.wma.compute(N, sourceItems, item => item.ext['tr'], undefined, lastComputedTRA);
-
-                if (computed.pDMA !== undefined && computed.mDMA !== undefined && computed.TRA !== undefined) {
-                    // Compute smoothed +DI, -DI
-                    const pDI = (computed.pDMA / computed.TRA) * 100;
-                    const mDI = (computed.mDMA / computed.TRA) * 100;
-
-                    // Compute DX
-                    computed.DX = 100 * Math.abs(pDI - mDI) / (pDI + mDI);
-
-                    // Computed ADX
-                    const lastComputedADX = lastComputed !== undefined ? lastComputed.c : undefined;
-                    computed.c = this.adxma.compute(N, computedArray, item => (<ADXCandlestick>item).DX, computed, lastComputedADX);
-                    computed.h = computed.c;
-                    computed.l = computed.c;
-                }
-            }
+            // Compute ADX
+            const lastComputedADX = lastComputed !== undefined ? lastComputed.c : undefined;
+            computed.c = this.adxma.compute(N, computedArray, item => (<ADXCandlestick>item).DX, computed, lastComputedADX);
+            computed.h = computed.c;
+            computed.l = computed.c;
 
             return computed;
     }

@@ -25,9 +25,6 @@ export class EMAIndicator extends SimpleIndicator<CandlestickExt> {
         this.name = 'EMA';
 
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Exponential);
-
-        // Build initial data set
-        this.compute();
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,

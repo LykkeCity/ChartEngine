@@ -64,8 +64,9 @@ export class ChartController {
         $('#cbIndicatorDEMA').change(() => { this.changeIndicator('108', 'DEMA', 0, $('#cbIndicatorDEMA').is(':checked')); });
         $('#cbIndicatorTMA').change(() => { this.changeIndicator('109', 'TMA', 0, $('#cbIndicatorTMA').is(':checked')); });
         $('#cbIndicatorTEMA').change(() => { this.changeIndicator('110', 'TEMA', 0, $('#cbIndicatorTEMA').is(':checked')); });
-        $('#cbIndicatorADX').change(() => { this.changeIndicator('111', 'ADX', 1, $('#cbIndicatorADX').is(':checked')); });
-        $('#cbIndicatorATR').change(() => { this.changeIndicator('112', 'ATR', 0, $('#cbIndicatorATR').is(':checked')); });
+        $('#cbIndicatorATR').change(() => { this.changeIndicator('111', 'ATR', 0, $('#cbIndicatorATR').is(':checked')); });
+        $('#cbIndicatorADX').change(() => { this.changeIndicator('112', 'ADX', 1, $('#cbIndicatorADX').is(':checked')); });
+        $('#cbIndicatorDMI').change(() => { this.changeIndicator('113', 'DMI', 1, $('#cbIndicatorDMI').is(':checked')); });
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);

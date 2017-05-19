@@ -12,9 +12,6 @@ export class HeikinAshiDataSource extends IndicatorDataSource<Candlestick> {
 
     constructor (source: IDataSource<Candlestick>) {
         super(Candlestick, source, d => d); // fake addInterval function
-
-        // BUILD Initial data set
-        this.compute();
     }
 
     protected compute(arg?: DataChangedArgument): DataChangedArgument | undefined {

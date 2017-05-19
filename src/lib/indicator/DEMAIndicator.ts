@@ -30,9 +30,6 @@ export class DEMAIndicator extends SimpleIndicator<DEMACandlestick> {
         this.name = 'DEMA';
 
         this.ema = MovingAverageFactory.instance.create(MovingAverageType.Exponential);
-
-        // Build initial data set
-        this.compute();
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
