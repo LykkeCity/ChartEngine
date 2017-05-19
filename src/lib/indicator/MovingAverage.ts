@@ -263,6 +263,10 @@ class WilderMovingAverage implements IMovingAverageStrategy {
     }
 }
 
+/**
+ * First - simple average.
+ * Next - (prev avg x (n - 1) + current) / n
+ */
 class ADXMovingAverage implements IMovingAverageStrategy {
     private sma = new SimpleMovingAverage();
     public compute(n: number,

@@ -50,6 +50,7 @@ indicator.register('TEMA', indicator.TEMAIndicator);
 indicator.register('TMA', indicator.TMAIndicator);
 indicator.register('WMA', indicator.WMAIndicator);
 indicator.register('ADX', indicator.ADXIndicator);
+indicator.register('ATR', indicator.ATRIndicator);
 
 // Register built-in renderers
 render.RenderLocator.Instance.register('alligator', indicator.AlligatorIndicatorRenderer);
@@ -63,6 +64,7 @@ render.RenderLocator.Instance.register('TEMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('TMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('WMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('ADX', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('ATR', render.LinestickChartRenderer);
 
 const lychart = {
     // types:

@@ -3,6 +3,7 @@
  */
 import { ADXIndicator } from './ADXIndicator';
 import { AlligatorIndicator, AlligatorIndicatorRenderer } from './AlligatorIndicator';
+import { ATRIndicator } from './ATRIndicator';
 import { BollingerIndicator, BollingerIndicatorRenderer } from './BollingerIndicator';
 import { DEMAIndicator } from './DEMAIndicator';
 import { EMAIndicator } from './EMAIndicator';
@@ -21,6 +22,7 @@ export {
     ADXIndicator,
     AlligatorIndicator,
     AlligatorIndicatorRenderer,
+    ATRIndicator,
     BollingerIndicator,
     BollingerIndicatorRenderer,
     DEMAIndicator,
