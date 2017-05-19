@@ -37,7 +37,7 @@ export class SMAIndicator extends SimpleIndicator<CandlestickExt> {
             const N = this.settings.period;
 
             const source = sourceItems.last();
-            const lastComputed = computedArray.lastOrDefault(); //computedArray.length > 0 ? computedArray[computedArray.length - 1] : undefined;
+            const lastComputed = computedArray.lastOrDefault();
 
             const computed = new CandlestickExt(source.date);
             computed.uidOrig.t = source.uid.t;

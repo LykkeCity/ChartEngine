@@ -5,13 +5,15 @@ import { Candlestick } from '../model/index';
 import { FixedSizeArray } from '../shared/index';
 
 export enum MovingAverageType {
+    ADX,
     DoubleExponential,
     Exponential,
     Simple,
     Smoothed,
     Triangular,
     TripleExponential,
-    Weight
+    Weight,
+    Wilder
 }
 
 export interface IMovingAverageStrategy {
@@ -32,11 +34,13 @@ export interface IMovingAverageStrategy {
 export class MovingAverageFactory {
     private static inst?: MovingAverageFactory;
 
+    private adxma = new ADXMovingAverage();
     private ema = new ExponentialMovingAverage();
     private sma = new SimpleMovingAverage();
     private smma = new SmoothedMovingAverage();
     private tma = new TriangularMovingAverage();
     private wma = new WeightMovingAverage();
+    private wilderma = new WilderMovingAverage();
 
     private constructor() { }
 
@@ -49,11 +53,13 @@ export class MovingAverageFactory {
 
     public create(maType: MovingAverageType): IMovingAverageStrategy {
         switch (maType) {
+            case MovingAverageType.ADX: return this.adxma;
             case MovingAverageType.Exponential: return this.ema;
             case MovingAverageType.Simple: return this.sma;
             case MovingAverageType.Smoothed: return this.smma;
             case MovingAverageType.Triangular: return this.tma;
             case MovingAverageType.Weight: return this.wma;
+            case MovingAverageType.Wilder: return this.wilderma;
             default: throw new Error('Unexpected moving average type=' + maType);
         }
     }
@@ -143,7 +149,7 @@ class SmoothedMovingAverage implements IMovingAverageStrategy {
             return this.sma.compute(n, precedingValues, accessor, value, precedingMovingAverage);
         }
 
-        if (!precedingMovingAverage) {
+        if (precedingMovingAverage === undefined) {
             throw new Error('Previous moving average must be specified.');
         }
 
@@ -222,5 +228,69 @@ class WeightMovingAverage implements IMovingAverageStrategy {
 
     private divider(n: number) {
         return n * (n + 1) / 2;
+    }
+}
+
+class WilderMovingAverage implements IMovingAverageStrategy {
+    private sma = new SimpleMovingAverage();
+    public compute(n: number,
+                   precedingValues: FixedSizeArray<Candlestick>,
+                   accessor: (c: Candlestick) => number|undefined,
+                   value?: Candlestick,
+                   precedingMovingAverage?: number): number|undefined {
+
+        const haveCount = precedingValues.length + (value !== undefined ? 1 : 0);
+
+        if (haveCount === 0) {
+            return undefined;
+        }
+
+        // If there is previous MA then use it
+        if (precedingMovingAverage !== undefined) {
+            const curValue = accessor(value !== undefined ? value : precedingValues.last());
+            return curValue !== undefined
+                ? (precedingMovingAverage + (precedingMovingAverage / n) + curValue)
+                : precedingMovingAverage;
+        }
+
+        if (haveCount >= n) {
+            // First average calculate as simple average
+            return this.sma.compute(n, precedingValues, accessor, value, precedingMovingAverage);
+        } else {
+            // If not enought data do not compute
+            return undefined;
+        }
+    }
+}
+
+class ADXMovingAverage implements IMovingAverageStrategy {
+    private sma = new SimpleMovingAverage();
+    public compute(n: number,
+                   precedingValues: FixedSizeArray<Candlestick>,
+                   accessor: (c: Candlestick) => number|undefined,
+                   value?: Candlestick,
+                   precedingMovingAverage?: number): number|undefined {
+
+        const haveCount = precedingValues.length + (value !== undefined ? 1 : 0);
+
+        if (haveCount === 0) {
+            return undefined;
+        }
+
+        // If there is previous MA then use it
+        if (precedingMovingAverage !== undefined) {
+            const curValue = accessor(value !== undefined ? value : precedingValues.last());
+            return curValue !== undefined
+                ? (precedingMovingAverage * (n - 1) + curValue) / n
+                : precedingMovingAverage;
+        }
+
+        if (haveCount >= n) {
+            // First average calculate as simple average
+            return this.sma.compute(n, precedingValues, accessor, value, precedingMovingAverage);
+        } else {
+            // If not enought data do not compute
+            return undefined;
+        }
     }
 }

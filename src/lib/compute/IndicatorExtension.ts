@@ -11,6 +11,9 @@ export abstract class IndicatorExtension implements IIndicatorExtension {
     public abstract extend(line: FixedSizeArray<Candlestick>): void;
 }
 
+/**
+ * TR
+ */
 export class TrueRangeExtension extends IndicatorExtension {
     public static readonly uname = 'truerange';
 
@@ -33,6 +36,57 @@ export class TrueRangeExtension extends IndicatorExtension {
     }
 }
 
+/**
+ * +DM
+ */
+export class PlusDirectionalMovementExtension extends IndicatorExtension {
+    public static readonly uname = 'pdm';
+
+    public get amountRequires(): number {
+        return 2;
+    }
+
+    public extend(line: FixedSizeArray<Candlestick>): void {
+        if (line.length < 2) {
+            return;
+        }
+
+        const current = line.getItem(line.length - 1); // last is current
+        const prev = line.getItem(line.length - 2); // Take previous;
+
+        if (current && current.h !== undefined && prev && prev.h !== undefined) {
+            current.ext['pdm'] = (current.h - prev.h) > 0 ? (current.h - prev.h) : 0; // H[t] - H[t-1]
+        }
+    }
+}
+
+/**
+ * -DM
+ */
+export class MinusDirectionalMovementExtension extends IndicatorExtension {
+    public static readonly uname = 'mdm';
+
+    public get amountRequires(): number {
+        return 2;
+    }
+
+    public extend(line: FixedSizeArray<Candlestick>): void {
+        if (line.length < 2) {
+            return;
+        }
+
+        const current = line.getItem(line.length - 1); // last is current
+        const prev = line.getItem(line.length - 2); // Take previous;
+
+        if (current && current.l !== undefined && prev && prev.l !== undefined) {
+            current.ext['mdm'] = (prev.l - current.l) > 0 ? (prev.l - current.l) : 0; // L[t-1] - L[t]
+        }
+    }
+}
+
+/**
+ * ATR
+ */
 export class AvgTrueRangeExtension extends IndicatorExtension {
     public static readonly uname = 'avgtruerange';
     private readonly period: number;
