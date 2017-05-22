@@ -10,6 +10,7 @@ import { DEMAIndicator } from './DEMAIndicator';
 import { DMIIndicator, DMIIndicatorRenderer } from './DMIIndicator';
 import { EMAIndicator } from './EMAIndicator';
 import { HeikinAshiDataSource } from './HeikinAshiDataSource';
+import { HHLLIndicator, HHLLIndicatorRenderer } from './HHLLIndicator';
 import { IndicatorDataSource } from './IndicatorDataSource';
 import { IndicatorFabric, register } from './IndicatorFabric';
 import { IIndicator } from './Interfaces';
@@ -30,6 +31,7 @@ export {
     DMIIndicator, DMIIndicatorRenderer,
     EMAIndicator,
     HeikinAshiDataSource,
+    HHLLIndicator, HHLLIndicatorRenderer,
     IndicatorDataSource,
     IndicatorFabric,
     IIndicator,
