@@ -62,7 +62,7 @@ export class AroonIndicator extends SimpleIndicator<DoubleCandlestick> {
             const indexOfLowest = sourceItems.minIndex(item => item.l);
 
             if (indexOfHighest >= 0) {
-                const daySince = sourceItems.length - indexOfHighest;
+                const daySince = sourceItems.length - (indexOfHighest + 1);
                 const indicator = 100 * (N - daySince) / N;
                 computed.up.c = indicator;
                 computed.up.h = indicator;
@@ -70,7 +70,7 @@ export class AroonIndicator extends SimpleIndicator<DoubleCandlestick> {
             }
 
             if (indexOfLowest >= 0) {
-                const daySince = sourceItems.length - indexOfLowest;
+                const daySince = sourceItems.length - (indexOfLowest + 1);
                 const indicator = 100 * (N - daySince) / N;
                 computed.down.c = indicator;
                 computed.down.h = indicator;
