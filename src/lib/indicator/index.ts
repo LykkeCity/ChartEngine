@@ -3,6 +3,7 @@
  */
 import { ADXIndicator } from './ADXIndicator';
 import { AlligatorIndicator, AlligatorIndicatorRenderer } from './AlligatorIndicator';
+import { AroonIndicator, AroonIndicatorRenderer } from './AroonIndicator';
 import { ATRIndicator } from './ATRIndicator';
 import { BollingerIndicator, BollingerIndicatorRenderer } from './BollingerIndicator';
 import { DEMAIndicator } from './DEMAIndicator';
@@ -21,14 +22,12 @@ import { WMAIndicator } from './WMAIndicator';
 
 export {
     ADXIndicator,
-    AlligatorIndicator,
-    AlligatorIndicatorRenderer,
+    AlligatorIndicator, AlligatorIndicatorRenderer,
+    AroonIndicator, AroonIndicatorRenderer,
     ATRIndicator,
-    BollingerIndicator,
-    BollingerIndicatorRenderer,
+    BollingerIndicator, BollingerIndicatorRenderer,
     DEMAIndicator,
-    DMIIndicator,
-    DMIIndicatorRenderer,
+    DMIIndicator, DMIIndicatorRenderer,
     EMAIndicator,
     HeikinAshiDataSource,
     IndicatorDataSource,
@@ -37,8 +36,7 @@ export {
     register,
     SMAIndicator,
     SMMAIndicator,
-    StochasticOscillator,
-    StochasticOscillatorRenderer,
+    StochasticOscillator, StochasticOscillatorRenderer,
     TEMAIndicator,
     TMAIndicator,
     WMAIndicator

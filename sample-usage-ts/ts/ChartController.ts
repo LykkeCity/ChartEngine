@@ -67,6 +67,7 @@ export class ChartController {
         $('#cbIndicatorATR').change(() => { this.changeIndicator('111', 'ATR', 0, $('#cbIndicatorATR').is(':checked')); });
         $('#cbIndicatorADX').change(() => { this.changeIndicator('112', 'ADX', 1, $('#cbIndicatorADX').is(':checked')); });
         $('#cbIndicatorDMI').change(() => { this.changeIndicator('113', 'DMI', 1, $('#cbIndicatorDMI').is(':checked')); });
+        $('#cbIndicatorAroon').change(() => { this.changeIndicator('114', 'Aroon', 1, $('#cbIndicatorAroon').is(':checked')); });
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);

@@ -97,4 +97,38 @@ export class FixedSizeArray<T> {
         });
         return min;
     }
+
+    /**
+     * Returns index of max element or -1
+     * @param accessor
+     */
+    public maxIndex(accessor: (item: T) => number|undefined): number {
+        let max: number|undefined = undefined;
+        let maxIndex = -1;
+        this.container.forEach((el, index) => {
+            const value = accessor(el);
+            if (value !== undefined && (max === undefined || (max !== undefined && value > max))) {
+                max = value;
+                maxIndex = index;
+            }
+        });
+        return maxIndex;
+    }
+
+    /**
+     * Returns index of min element or -1
+     * @param accessor
+     */
+    public minIndex(accessor: (item: T) => number|undefined): number {
+        let min: number|undefined = undefined;
+        let minIndex = -1;
+        this.container.forEach((el, index) => {
+            const value = accessor(el);
+            if (value !== undefined && (min === undefined || (min !== undefined && value < min))) {
+                min = value;
+                minIndex = index;
+            }
+        });
+        return minIndex;
+    }
 }

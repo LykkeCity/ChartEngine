@@ -255,5 +255,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
 export class SimpleSettings {
     public period: number = 20;
     public displacement: number = 0;
+    public upperThreshold: number = 0;
+    public lowerThreshold: number = 0;
     constructor() { }
 }
