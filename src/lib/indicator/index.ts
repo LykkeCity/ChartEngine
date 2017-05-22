@@ -14,6 +14,7 @@ import { HHLLIndicator, HHLLIndicatorRenderer } from './HHLLIndicator';
 import { IndicatorDataSource } from './IndicatorDataSource';
 import { IndicatorFabric, register } from './IndicatorFabric';
 import { IIndicator } from './Interfaces';
+import { RBIndicator, RBIndicatorRenderer } from './RBIndicator';
 import { SMAIndicator } from './SMAIndicator';
 import { SMMAIndicator } from './SMMAIndicator';
 import { StochasticOscillator, StochasticOscillatorRenderer } from './StochasticOscillator';
@@ -35,6 +36,7 @@ export {
     IndicatorDataSource,
     IndicatorFabric,
     IIndicator,
+    RBIndicator, RBIndicatorRenderer,
     register,
     SMAIndicator,
     SMMAIndicator,
