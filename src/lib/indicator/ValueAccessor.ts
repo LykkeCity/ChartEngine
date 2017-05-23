@@ -10,9 +10,9 @@ export enum ValueAccessorType {
     ohlc4
 }
 
-// export interface IValueAccessorStrategy {
-//     accessor(candle: Candlestick): number|undefined;
-// }
+export interface IValueAccessor {
+    (candle: Candlestick): number|undefined;
+}
 
 export class ValueAccessorFactory {
     private static inst?: ValueAccessorFactory;
@@ -31,7 +31,7 @@ export class ValueAccessorFactory {
         return this.inst;
     }
 
-    public create(vaType: ValueAccessorType): (candle: Candlestick) => number|undefined {
+    public create(vaType: ValueAccessorType): IValueAccessor {
         switch (vaType) {
             case ValueAccessorType.close: return this.close;
             case ValueAccessorType.hl2: return this.hl2;

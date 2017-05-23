@@ -12,7 +12,7 @@ import { IndicatorDataSource } from './IndicatorDataSource';
 import { IIndicator } from './Interfaces';
 import { MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { Utils } from './Utils';
-import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
+import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
 export class DoubleCandlestick extends Candlestick {
     public fast: Candlestick;

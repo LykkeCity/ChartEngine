@@ -55,6 +55,9 @@ indicator.register('ATR', indicator.ATRIndicator);
 indicator.register('Aroon', indicator.AroonIndicator);
 indicator.register('HHLL', indicator.HHLLIndicator);
 indicator.register('RB', indicator.RBIndicator);
+indicator.register('STDEV', indicator.STDEVIndicator);
+indicator.register('TP', indicator.TPIndicator);
+indicator.register('RSI', indicator.RSIOscillator);
 
 // Register built-in renderers
 render.RenderLocator.Instance.register('alligator', indicator.AlligatorIndicatorRenderer);
@@ -73,6 +76,9 @@ render.RenderLocator.Instance.register('ATR', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('Aroon', indicator.AroonIndicatorRenderer);
 render.RenderLocator.Instance.register('HHLL', indicator.HHLLIndicatorRenderer);
 render.RenderLocator.Instance.register('RB', indicator.RBIndicatorRenderer);
+render.RenderLocator.Instance.register('STDEV', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('TP', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('RSI', render.LinestickChartRenderer);
 
 const lychart = {
     // types:

@@ -14,7 +14,7 @@ import { IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
-import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
+import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
 export class TMACandlestick extends CandlestickExt {
     public SMA: number | undefined;
@@ -34,7 +34,6 @@ export class TMAIndicator extends SimpleIndicator<TMACandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         accessor: (candle: Candlestick) => number|undefined,
                          computedArray: FixedSizeArray<TMACandlestick>
                          ): TMACandlestick {
 
@@ -47,13 +46,13 @@ export class TMAIndicator extends SimpleIndicator<TMACandlestick> {
             computed.uidOrig.t = source.uid.t;
             computed.uidOrig.n = source.uid.n;
 
-            const value = accessor(source);
+            const value = this.accessor(source);
             if (value !== undefined) {
 
                 const lastComputedSMA = lastComputed !== undefined ? lastComputed.SMA : undefined;
 
                 // 1. Compute SMA
-                computed.SMA = this.sma.compute(N, sourceItems, accessor, undefined, lastComputedSMA);
+                computed.SMA = this.sma.compute(N, sourceItems, this.accessor, undefined, lastComputedSMA);
 
                 if (computed.SMA !== undefined) {
                     // 2. Compute TMA. On base of computed TMA

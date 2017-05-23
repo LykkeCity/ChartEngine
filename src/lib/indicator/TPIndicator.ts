@@ -1,5 +1,5 @@
 /**
- * Exponential Moving Average Indicator class.
+ * Typical Price Indicator class.
  */
 import { ICanvas } from '../canvas/index';
 import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType, TimeInterval } from '../core/index';
@@ -16,37 +16,38 @@ import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
 import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
-export class EMAIndicator extends SimpleIndicator<CandlestickExt> {
+export class TPIndicator extends SimpleIndicator<CandlestickExt> {
 
     private ma: IMovingAverageStrategy;
 
     constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
         super(CandlestickExt, source, addInterval);
-        this.name = 'EMA';
-
-        this.ma = MovingAverageFactory.instance.create(MovingAverageType.Exponential);
+        this.name = 'TP';
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
                          computedArray: FixedSizeArray<CandlestickExt>): CandlestickExt {
 
-            const N = this.settings.period;
+        const source = sourceItems.last();
 
-            const source = sourceItems.last();
-            const lastComputed = computedArray.lastOrDefault();
+        const computed = new CandlestickExt(source.date);
+        computed.uidOrig.t = source.uid.t;
+        computed.uidOrig.n = source.uid.n;
 
-            const computed = new CandlestickExt(source.date);
-            computed.uidOrig.t = source.uid.t;
-            computed.uidOrig.n = source.uid.n;
+        if (source.h !== undefined && source.l !== undefined && source.c !== undefined) {
+            computed.c = (source.h + source.l + source.c) / 3;
+            computed.h = computed.c;
+            computed.l = computed.c;
+        }
+        return computed;
+    }
 
-            const value = this.accessor(source);
-            if (value !== undefined) {
-                const lastComputedValue = lastComputed !== undefined ? lastComputed.c : undefined;
-                computed.c = this.ma.compute(N, sourceItems, this.accessor, undefined, lastComputedValue);
-                computed.h = computed.c;
-                computed.l = computed.c;
-            }
+    public getSettings(): SettingSet {
+        return new SettingSet({ name: 'datasource', group: true });
+    }
 
-            return computed;
+    public setSettings(value: SettingSet): void {
+        // recompute
+        this.compute();
     }
 }

@@ -13,10 +13,11 @@ import { IndicatorDataSource } from './IndicatorDataSource';
 import { IIndicator } from './Interfaces';
 import { MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { Utils } from './Utils';
-import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
+import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
 export abstract class SimpleIndicator<T extends CandlestickExt> extends IndicatorDataSource<T> {
 
+    protected accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
     protected settings: SimpleSettings = new SimpleSettings();
 
     constructor (dataType: new(date: Date) => T, source: IDataSource<Candlestick>, addInterval: (date: Date, times: number) => Date) {
@@ -28,7 +29,6 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         // Compute data till the end (update data from current place to end)
 
         let computedArray: T[] = [];
-        const accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
 
         const N = this.settings.period;
         const sourceItems = new FixedSizeArray<Candlestick>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
@@ -71,7 +71,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
             lastUid = iterator.current.uid;
             sourceItems.push(iterator.current);
 
-            const computed = this.computeOne(sourceItems, accessor, computedItems);
+            const computed = this.computeOne(sourceItems, computedItems);
 
             computedArray.push(computed);
             computedItems.push(computed);
@@ -87,12 +87,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         return shiftedArg;
     }
 
-    protected abstract computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                                  accessor: (candle: Candlestick) => number|undefined,
-                                  //computed: T[]
-                                  computed: FixedSizeArray<T>
-                                  ): T;
-
+    protected abstract computeOne(sourceItems: FixedSizeArray<Candlestick>, computed: FixedSizeArray<T>): T;
 
     protected shift(arg: DataChangedArgument, shift: number): DataChangedArgument {
         // TODO: arg can narrow shift area

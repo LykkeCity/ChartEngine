@@ -70,6 +70,9 @@ export class ChartController {
         $('#cbIndicatorAroon').change(() => { this.changeIndicator('114', 'Aroon', 1, $('#cbIndicatorAroon').is(':checked')); });
         $('#cbIndicatorHHLL').change(() => { this.changeIndicator('115', 'HHLL', 0, $('#cbIndicatorHHLL').is(':checked')); });
         $('#cbIndicatorRB').change(() => { this.changeIndicator('116', 'RB', 0, $('#cbIndicatorRB').is(':checked')); });
+        $('#cbIndicatorSTDEV').change(() => { this.changeIndicator('117', 'STDEV', 1, $('#cbIndicatorSTDEV').is(':checked')); });
+        $('#cbIndicatorTP').change(() => { this.changeIndicator('118', 'TP', 0, $('#cbIndicatorTP').is(':checked')); });
+        $('#cbIndicatorRSI').change(() => { this.changeIndicator('119', 'RSI', 1, $('#cbIndicatorRSI').is(':checked')); });
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);

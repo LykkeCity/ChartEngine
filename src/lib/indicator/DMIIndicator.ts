@@ -18,7 +18,7 @@ import { IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
-import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
+import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
 export class DMICandlestick extends CandlestickExt {
     /** 
@@ -55,6 +55,7 @@ export class DMICandlestick extends CandlestickExt {
 
 export class DMIIndicator extends SimpleIndicator<DMICandlestick> {
 
+    protected accessor: IValueAccessor;
     protected wma: IMovingAverageStrategy;
 
     constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
@@ -74,7 +75,6 @@ export class DMIIndicator extends SimpleIndicator<DMICandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         accessor: (candle: Candlestick) => number|undefined,
                          computedArray: FixedSizeArray<DMICandlestick>): DMICandlestick {
 
             const N = this.settings.period;
@@ -86,7 +86,7 @@ export class DMIIndicator extends SimpleIndicator<DMICandlestick> {
             computed.uidOrig.t = source.uid.t;
             computed.uidOrig.n = source.uid.n;
 
-            const value = accessor(source);
+            const value = this.accessor(source);
             if (value !== undefined) {
 
                 // Using Wilder for smoothing +DM, -DM, TR

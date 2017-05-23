@@ -19,7 +19,7 @@ import { IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
-import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
+import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
 // export class ADXCandlestick extends CandlestickExt {
 //     /** 
@@ -62,14 +62,13 @@ export class ADXIndicator extends DMIIndicator {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         accessor: (candle: Candlestick) => number|undefined,
                          computedArray: FixedSizeArray<ADXCandlestick>): ADXCandlestick {
 
             const N = this.settings.period;
 
             const lastComputed = computedArray.lastOrDefault();
 
-            const computedDMI = super.computeOne(sourceItems, accessor, computedArray);
+            const computedDMI = super.computeOne(sourceItems, computedArray);
 
             // Copy values from computed DMI
             const computed = new ADXCandlestick(computedDMI.date);

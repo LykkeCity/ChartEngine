@@ -14,7 +14,7 @@ import { IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
-import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
+import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
 export class SMMAIndicator extends SimpleIndicator<CandlestickExt> {
 
@@ -28,7 +28,6 @@ export class SMMAIndicator extends SimpleIndicator<CandlestickExt> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         accessor: (candle: Candlestick) => number|undefined,
                          computedArray: FixedSizeArray<CandlestickExt>): CandlestickExt {
 
             const N = this.settings.period;
@@ -40,10 +39,10 @@ export class SMMAIndicator extends SimpleIndicator<CandlestickExt> {
             computed.uidOrig.t = source.uid.t;
             computed.uidOrig.n = source.uid.n;
 
-            const value = accessor(source);
+            const value = this.accessor(source);
             if (value !== undefined) {
                 const lastComputedValue = lastComputed !== undefined ? lastComputed.c : undefined;
-                computed.c = this.ma.compute(N, sourceItems, accessor, undefined, lastComputedValue);
+                computed.c = this.ma.compute(N, sourceItems, this.accessor, undefined, lastComputedValue);
                 computed.h = computed.c;
                 computed.l = computed.c;
             }

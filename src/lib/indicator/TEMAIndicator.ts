@@ -14,7 +14,7 @@ import { IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
-import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
+import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
 export class TEMACandlestick extends CandlestickExt {
     public EMA: number | undefined;
@@ -34,8 +34,6 @@ export class TEMAIndicator extends SimpleIndicator<TEMACandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         accessor: (candle: Candlestick) => number|undefined,
-                         //computedArray: DEMACandlestick[]
                          computedArray: FixedSizeArray<TEMACandlestick>
                          ): TEMACandlestick {
 
@@ -48,13 +46,13 @@ export class TEMAIndicator extends SimpleIndicator<TEMACandlestick> {
             computed.uidOrig.t = source.uid.t;
             computed.uidOrig.n = source.uid.n;
 
-            const value = accessor(source);
+            const value = this.accessor(source);
             if (value !== undefined) {
 
                 const lastComputedEMA = lastComputed !== undefined ? lastComputed.EMA : undefined;
 
                 // 1. Compute EMA
-                computed.EMA = this.ema.compute(N, sourceItems, accessor, undefined, lastComputedEMA);
+                computed.EMA = this.ema.compute(N, sourceItems, this.accessor, undefined, lastComputedEMA);
 
                 if (computed.EMA !== undefined) {
                     // 2. Compute DEMA. On base of computed EMA

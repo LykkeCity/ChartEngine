@@ -4,6 +4,7 @@
 import { IIndicatorExtension } from '../core/index';
 import { Candlestick } from '../model/index';
 import { FixedSizeArray } from '../shared/index';
+import { UidUtils } from '../utils/index';
 
 export abstract class IndicatorExtension implements IIndicatorExtension {
     public abstract amountRequires: number;
@@ -90,7 +91,7 @@ export class DownDirectionalMovementExtension extends IndicatorExtension {
             // DownMove = Previous Low - Current Low            
             const upmove = current.h - prev.h;
             const downmove = prev.l - current.l;
-            // If DownMove > Upmove and Downmove > 0, then -DM = DownMove, else -DM = 0
+            // If DownMove > Upmove and Downmove > 0, then -DM = DownMove, else -DM = 0 
             current.ext['mdm'] = (downmove > upmove && downmove > 0) ? downmove : 0;
         }
     }
@@ -163,4 +164,66 @@ export class AvgTrueRangeExtension extends IndicatorExtension {
             //console.log('atr = ' + current.ext['atr']);
         }
     }
+}
+
+/**
+ * Gain/Loss
+ */
+export class GainLossExtension extends IndicatorExtension {
+    //public static readonly uname = 'gainloss';
+    private uid: string;
+    private accessor: (c: Candlestick) => number|undefined;
+
+    /**
+     * Creates extension
+     * @param fieldName Name of the field to use
+     */
+    constructor (accessor: (c: Candlestick) => number|undefined) {
+        super();
+        this.accessor = accessor;
+        this.uid = UidUtils.NEWUID();
+    }
+
+    public get amountRequires(): number {
+        return 2;
+    }
+
+    public get uname(): string {
+        return 'gainloss' + this.uid;
+    }
+
+    public extend(line: FixedSizeArray<Candlestick>): void {
+        if (line.length < 2) {
+            return;
+        }
+
+        const current = line.getItem(line.length - 1); // last is current
+        const prev = line.getItem(line.length - 2); // Take previous;
+        const curValue = this.accessor(current);
+        const prevValue = this.accessor(prev);
+
+        if (curValue && prevValue) {
+            let gain = 0;
+            let loss = 0;
+            if (curValue > prevValue) {
+                gain = curValue - prevValue;
+            } else if (curValue < prevValue) {
+                loss = prevValue - curValue;
+            }
+            current.ext['gain_' + this.uid] = gain;
+            current.ext['loss_' + this.uid] = loss;
+        }
+    }
+
+    public value(c: Candlestick): IGainLoss {
+        return {
+            gain: c && c.ext ? c.ext['gain_' + this.uid] : undefined,
+            loss: c && c.ext ? c.ext['loss_' + this.uid] : undefined
+        };
+    }
+}
+
+export interface IGainLoss {
+    gain: number | undefined;
+    loss: number | undefined;
 }

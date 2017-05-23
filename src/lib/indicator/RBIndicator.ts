@@ -14,7 +14,7 @@ import { IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
-import { ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
+import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
 export class RainbowCandlestick extends CandlestickExt {
 
@@ -45,7 +45,6 @@ export class RBIndicator extends SimpleIndicator<RainbowCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         accessor: (candle: Candlestick) => number|undefined,
                          computedArray: FixedSizeArray<RainbowCandlestick>): RainbowCandlestick {
 
         const source = sourceItems.last();
@@ -55,12 +54,12 @@ export class RBIndicator extends SimpleIndicator<RainbowCandlestick> {
         computed.uidOrig.t = source.uid.t;
         computed.uidOrig.n = source.uid.n;
 
-        const value = accessor(source);
+        const value = this.accessor(source);
         if (value !== undefined) {
 
             for (let i = 0; i < RBIndicator.K; i += 1) {
                 const lastComputedValue = lastComputed !== undefined ? lastComputed.line[i] : undefined;
-                computed.line[i] = this.ma.compute(RBIndicator.periods[i], sourceItems, accessor, undefined, lastComputedValue);
+                computed.line[i] = this.ma.compute(RBIndicator.periods[i], sourceItems, this.accessor, undefined, lastComputedValue);
             }
         }
 
