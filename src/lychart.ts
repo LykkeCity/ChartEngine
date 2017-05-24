@@ -41,7 +41,8 @@ const states = {
 // Registor built-in indicators
 indicator.register('alligator', indicator.AlligatorIndicator);
 indicator.register('bollinger', indicator.BollingerIndicator);
-indicator.register('stochastic-osc', indicator.StochasticOscillator);
+indicator.register('SSTOC', indicator.SlowStochasticOscillator);
+indicator.register('FSTOC', indicator.FastStochasticOscillator);
 indicator.register('DEMA', indicator.DEMAIndicator);
 indicator.register('DMI', indicator.DMIIndicator);
 indicator.register('EMA', indicator.EMAIndicator);
@@ -62,7 +63,8 @@ indicator.register('RSI', indicator.RSIOscillator);
 // Register built-in renderers
 render.RenderLocator.Instance.register('alligator', indicator.AlligatorIndicatorRenderer);
 render.RenderLocator.Instance.register('bollinger', indicator.BollingerIndicatorRenderer);
-render.RenderLocator.Instance.register('stochastic-osc', indicator.StochasticOscillatorRenderer);
+render.RenderLocator.Instance.register('SSTOC', indicator.StochasticOscillatorRenderer);
+render.RenderLocator.Instance.register('FSTOC', indicator.StochasticOscillatorRenderer);
 render.RenderLocator.Instance.register('DEMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('DMI', indicator.DMIIndicatorRenderer);
 render.RenderLocator.Instance.register('EMA', render.LinestickChartRenderer);

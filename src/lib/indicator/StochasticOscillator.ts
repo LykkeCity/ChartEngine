@@ -8,150 +8,242 @@ import { ArrayDataStorage, DataChangedArgument, DataSource,
 import { Candlestick, Point } from '../model/index';
 import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
+import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
 import { IIndicator } from './Interfaces';
-import { MovingAverageFactory, MovingAverageType } from './MovingAverage';
+import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
+import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
 import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
-export class DoubleCandlestick extends Candlestick {
-    public fast: Candlestick;
-    public slow: Candlestick;
+// Fast %K = 100 x (C-L) / (H-L) // highest high, lowest low
+// Fast %D = SMA (Fast %K, 3)
+//
+// Slow %K = SMA (Fast %K, 3)
+// Slow %D = SMA (Slow %K, 3)
+
+export class DoubleCandlestick extends CandlestickExt {
+    public fastK: number|undefined;
+    public fastD: number|undefined;
+    public K: number|undefined;
+    public D: number|undefined;
 
     public constructor(date: Date, c?: number, o?: number, h?: number, l?: number) {
         super(date, c, o, h, l);
-
-        this.fast = new Candlestick(date);
-        this.slow = new Candlestick(date);
     }
 
     public toString() {
-        return `${this.fast && this.fast.c !== undefined ? this.fast.c.toFixed(4) : 'n/a'}`
+        return `${this.K !== undefined ? this.K.toFixed(4) : 'n/a'}`
             + ' / '
-            + `${this.slow && this.slow.c !== undefined ? this.slow.c.toFixed(4) : 'n/a'}`;
+            + `${this.D !== undefined ? this.D.toFixed(4) : 'n/a'}`;
+        // return `${this.fast && this.fast.c !== undefined ? this.fast.c.toFixed(4) : 'n/a'}`
+        //     + ' / '
+        //     + `${this.slow && this.slow.c !== undefined ? this.slow.c.toFixed(4) : 'n/a'}`;
     }
 }
 
-export class StochasticOscillator extends IndicatorDataSource<DoubleCandlestick> {
+export class FastStochasticOscillator extends SimpleIndicator<DoubleCandlestick> {
 
-    private settings: StochasticSettings = new StochasticSettings();
+    private ma: IMovingAverageStrategy;
+    private extsettings: FastStochasticSettings = new FastStochasticSettings();
 
     constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
         super(DoubleCandlestick, source, addInterval);
-        this.name = 'stoch';
+        this.name = 'FSTOC';
+
+        this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
+
+        // Default settings
+        this.extsettings.periodK = 14;
+        this.extsettings.periodD = 3;
     }
 
-    protected compute(arg?: DataChangedArgument): DataChangedArgument | undefined {
-        // If arg is not defined build all data
-        // Compute data till the end (update data from current place to end)
-
-        const accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
+    protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
+                         computedArray: FixedSizeArray<DoubleCandlestick>
+                         ): DoubleCandlestick {
 
         const N = this.settings.period;
-        const fsarray = new FixedSizeArray<Candlestick>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
-        const karray = new FixedSizeArray<Candlestick>(N - 1, (lhs, rhs) => { throw new Error('Not implemented.'); });
+        const periodK = this.extsettings.periodK;
+        const periodD = this.extsettings.periodD;
 
-        // Get source data without loading
-        const iterator: IDataIterator<Candlestick> = this.source.getIterator();
+        const source = sourceItems.last(); // source must contain at least one item.
+        const lastComputed = computedArray.lastOrDefault(); // computed can contain no items.
 
-        // Select last source values
-        if (arg) {
-            if (!iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0)) {
-                throw new Error('Source does not contain updated data');
+        const computed = new DoubleCandlestick(source.date);
+        computed.uidOrig.t = source.uid.t;
+        computed.uidOrig.n = source.uid.n;
+
+        const value = this.accessor(source);
+        if (value !== undefined) {
+
+            // calculating min/max with current value
+            const H = sourceItems.max(c => c.h, periodK);   // highest high for the period
+            const L = sourceItems.min(c => c.l, periodK);   // lowest low for the period
+
+            if (H !== undefined && L !== undefined) {
+                computed.fastK = (L !== H) ? 100 * (value - L) / (H - L) : 100; // fast %K
+
+                // TODO: Slow %K should start computing only when there is enough values. Not from the start
+
+                const lastComputedSlowK = lastComputed !== undefined ? lastComputed.K : undefined;
+                computed.fastD = this.ma.compute(periodD, computedArray, c => (<DoubleCandlestick>c).fastK, computed, lastComputedSlowK);
+
+                computed.K = computed.fastK;
+                computed.D = computed.fastD;
+
+                // computed.c = undefined;
+                // computed.h = computed.c;
+                // computed.l = computed.c;
             }
-            const prev = IndicatorDataSource.getPreviousItems(iterator, N - 1);
-            fsarray.pushRange(prev);
         }
 
-        // Get last moving average
-        let prevMA: number | undefined;
-        if (arg) {
-            const iter = this.dataStorage.getIterator();
-            if (iter.goTo(item => item.uid.compare(arg.uidFirst) === 0) && iter.movePrev()) {
-                prevMA = iter.current.slow.c;
-            }
-        }
-
-        // Go to first element
-        if (arg) {
-            iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0);
-        } else {
-            if (!iterator.moveNext()) { throw new Error('Source does not contain updated data'); }
-        }
-
-        // Calculations
-        // 
-        const computedArray: DoubleCandlestick[] = [];
-        const ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
-        const firstUid = iterator.current.uid;
-        let lastUid;
-        do {
-            lastUid = iterator.current.uid;
-            const source = iterator.current;
-            const value = accessor(source);
-            fsarray.push(source);
-
-            const computed = new DoubleCandlestick(source.date);
-            computed.uid.t = source.uid.t;
-            computed.uid.n = source.uid.n;
-
-            if (value !== undefined) { // has value
-                 // calculating min/max with current value
-
-                const H = <number>fsarray.max(accessor);
-                const L = <number>fsarray.min(accessor);
-                const K = (L !== H) ? 100 * (value - L) / (H - L) : 100;
-
-                computed.fast.c = K;
-                computed.fast.h = K;
-                computed.fast.l = K;
-
-                karray.push(computed.fast);
-
-                computed.slow.c = ma.compute(N, karray, candle => candle.c, undefined, prevMA);
-                computed.slow.h = computed.slow.c;
-                computed.slow.l = computed.slow.c;
-
-                computed.h = Math.max(computed.fast.c, computed.slow.c !== undefined ? computed.slow.c : Number.NEGATIVE_INFINITY);
-                computed.l = Math.min(computed.fast.c, computed.slow.c !== undefined ? computed.slow.c : Number.POSITIVE_INFINITY);
-
-                prevMA = computed.slow.c;
-            }
-
-            computedArray.push(computed);
-        } while (iterator.moveNext());
-
-        // Merge
-        this.dataStorage.merge(computedArray);
-
-        // Merge new data and notify subscribers
-        return new DataChangedArgument(firstUid, lastUid, computedArray.length);
+        return computed;
     }
 
     public getSettings(): SettingSet {
         const group = new SettingSet({ name: 'datasource', group: true });
 
-        group.setSetting('period', new SettingSet({
-            name: 'period',
-            value: this.settings.period.toString(),
+        group.setSetting('periodK', new SettingSet({
+            name: 'periodK',
+            value: this.extsettings.periodK.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            dispalyName: '%K period'
+        }));
+
+        group.setSetting('periodD', new SettingSet({
+            name: 'periodD',
+            value: this.extsettings.periodD.toString(),
+            settingType: SettingType.numeric,
+            dispalyName: '%D period'
         }));
 
         return group;
     }
 
     public setSettings(value: SettingSet): void {
-        const period = value.getSetting('datasource.period');
-        this.settings.period = (period && period.value) ? parseInt(period.value, 10) : this.settings.period;
+        const periodK = value.getSetting('datasource.periodK');
+        this.extsettings.periodK = (periodK && periodK.value) ? parseInt(periodK.value, 10) : this.extsettings.periodK;
+
+        const periodD = value.getSetting('datasource.period');
+        this.extsettings.periodD = (periodD && periodD.value) ? parseInt(periodD.value, 10) : this.extsettings.periodD;
 
         // recompute
         this.compute();
     }
 }
 
-class StochasticSettings {
-    public period: number = 20;
+export class SlowStochasticOscillator extends SimpleIndicator<DoubleCandlestick> {
+
+    private ma: IMovingAverageStrategy;
+    private extsettings: SlowStochasticSettings = new SlowStochasticSettings();
+
+    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
+        super(DoubleCandlestick, source, addInterval);
+        this.name = 'SSTOC';
+
+        this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
+
+        // Default settings
+        this.extsettings.periodK = 14;
+        this.extsettings.periodD = 3;
+        this.extsettings.period2D = 3;
+    }
+
+    protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
+                         computedArray: FixedSizeArray<DoubleCandlestick>
+                         ): DoubleCandlestick {
+
+        const N = this.settings.period;
+        const periodK = this.extsettings.periodK;
+        const periodD = this.extsettings.periodD;
+        const period2D = this.extsettings.period2D;
+
+        const source = sourceItems.last(); // source must contain at least one item.
+        const lastComputed = computedArray.lastOrDefault(); // computed can contain no items.
+
+        const computed = new DoubleCandlestick(source.date);
+        computed.uidOrig.t = source.uid.t;
+        computed.uidOrig.n = source.uid.n;
+
+        const value = this.accessor(source);
+        if (value !== undefined) {
+
+            // calculating min/max with current value
+            const H = sourceItems.max(c => c.h, periodK);   // highest high for the period
+            const L = sourceItems.min(c => c.l, periodK);   // lowest low for the period
+
+            if (H !== undefined && L !== undefined) {
+                computed.fastK = (L !== H) ? 100 * (value - L) / (H - L) : 100; // fast %K
+
+                // TODO: Slow %K should start computing only when there is enough values. Not from the start
+
+                const lastComputedSlowK = lastComputed !== undefined ? lastComputed.K : undefined;
+                computed.K = this.ma.compute(periodD, computedArray, c => (<DoubleCandlestick>c).fastK, computed, lastComputedSlowK);
+
+                const lastComputedSlowD = lastComputed !== undefined ? lastComputed.D : undefined;
+                computed.D = this.ma.compute(period2D, computedArray, c => (<DoubleCandlestick>c).K, computed, lastComputedSlowD);
+
+                // computed.c = undefined;
+                // computed.h = computed.c;
+                // computed.l = computed.c;
+            }
+        }
+
+        return computed;
+    }
+
+    public getSettings(): SettingSet {
+        const group = new SettingSet({ name: 'datasource', group: true });
+
+        group.setSetting('periodK', new SettingSet({
+            name: 'periodK',
+            value: this.extsettings.periodK.toString(),
+            settingType: SettingType.numeric,
+            dispalyName: '%K period'
+        }));
+
+        group.setSetting('periodD', new SettingSet({
+            name: 'periodD',
+            value: this.extsettings.periodD.toString(),
+            settingType: SettingType.numeric,
+            dispalyName: '%D period'
+        }));
+
+        group.setSetting('period2D', new SettingSet({
+            name: 'period2D',
+            value: this.extsettings.period2D.toString(),
+            settingType: SettingType.numeric,
+            dispalyName: '2nd %D period'
+        }));
+
+        return group;
+    }
+
+    public setSettings(value: SettingSet): void {
+        const periodK = value.getSetting('datasource.periodK');
+        this.extsettings.periodK = (periodK && periodK.value) ? parseInt(periodK.value, 10) : this.extsettings.periodK;
+
+        const periodD = value.getSetting('datasource.period');
+        this.extsettings.periodD = (periodD && periodD.value) ? parseInt(periodD.value, 10) : this.extsettings.periodD;
+
+        const period2D = value.getSetting('datasource.period');
+        this.extsettings.period2D = (period2D && period2D.value) ? parseInt(period2D.value, 10) : this.extsettings.period2D;
+
+        // recompute
+        this.compute();
+    }
+}
+
+class FastStochasticSettings {
+    public periodK: number = 14;
+    public periodD: number = 3;
+    constructor() { }
+}
+
+class SlowStochasticSettings {
+    public periodK: number = 14;
+    public periodD: number = 3;
+    public period2D: number = 3;
     constructor() { }
 }
 
@@ -171,9 +263,9 @@ export class StochasticOscillatorRenderer implements IChartRender<Candlestick> {
         RenderUtils.renderLineChart(canvas, data, item => {
             if (item instanceof DoubleCandlestick) {
                 const double = <DoubleCandlestick>item;
-                if (double.fast && double.fast.c !== undefined) {
+                if (double.K !== undefined) {
                     //const x = timeAxis.toX(index);
-                    const value = double.fast.c;
+                    const value = double.K;
                     return { uid: item.uid, v: value };
                 }
             }
@@ -185,8 +277,8 @@ export class StochasticOscillatorRenderer implements IChartRender<Candlestick> {
         RenderUtils.renderLineChart(canvas, data, item => {
             if (item instanceof DoubleCandlestick) {
                 const double = <DoubleCandlestick>item;
-                if (double.slow && double.slow.c !== undefined) {
-                    const value = double.slow.c;
+                if (double.D !== undefined) {
+                    const value = double.D;
                     return { uid: item.uid, v: value };
                 }
             }

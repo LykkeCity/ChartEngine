@@ -55,8 +55,8 @@ export class ChartController {
             () => { this.changeIndicator('101', 'alligator', 0, $('#cbIndicatorAlligator').is(':checked')); });
         $('#cbIndicatorBollinger').change(
             () => { this.changeIndicator('102', 'bollinger', 0, $('#cbIndicatorBollinger').is(':checked')); });
-        $('#cbIndicatorStochastic').change(
-            () => { this.changeIndicator('103', 'stochastic-osc', 1, $('#cbIndicatorStochastic').is(':checked')); });
+        $('#cbIndicatorFSTOC').change(() => { this.changeIndicator('1031', 'FSTOC', 1, $('#cbIndicatorFSTOC').is(':checked')); });
+        $('#cbIndicatorSSTOC').change(() => { this.changeIndicator('1032', 'SSTOC', 1, $('#cbIndicatorSSTOC').is(':checked')); });
         $('#cbIndicatorSMA').change(() => { this.changeIndicator('104', 'SMA', 0, $('#cbIndicatorSMA').is(':checked')); });
         $('#cbIndicatorSMMA').change(() => { this.changeIndicator('105', 'SMMA', 0, $('#cbIndicatorSMMA').is(':checked')); });
         $('#cbIndicatorWMA').change(() => { this.changeIndicator('106', 'WMA', 0, $('#cbIndicatorWMA').is(':checked')); });

@@ -74,10 +74,18 @@ export class FixedSizeArray<T> {
         });
     }
 
-    public max(accessor: (item: T) => number|undefined): number | undefined {
+    /**
+     * Determines maximum value.
+     * @param accessor 
+     * @param take If specified, checks only last @take elements
+     */
+    public max(accessor: (item: T) => number|undefined, take?: number): number | undefined {
         let max: number|undefined = undefined;
-
-        this.container.forEach(el => {
+        const L = this.container.length;
+        this.container.forEach((el, index) => {
+            if (take !== undefined && index < (L - take)) {
+                return; // ignore element if take is specified and it is out of range
+            }
             const value = accessor(el);
             if (value !== undefined) {
                 max = Math.max(value, max !== undefined ? max : Number.NEGATIVE_INFINITY);
@@ -86,10 +94,18 @@ export class FixedSizeArray<T> {
         return max;
     }
 
-    public min(accessor: (item: T) => number|undefined): number | undefined {
+    /**
+     * Determines minimum value.
+     * @param accessor 
+     * @param take If specified, checks only last @take elements
+     */
+    public min(accessor: (item: T) => number|undefined, take?: number): number | undefined {
         let min: number|undefined = undefined;
-
-        this.container.forEach(el => {
+        const L = this.container.length;
+        this.container.forEach((el, index) => {
+            if (take !== undefined && index < (L - take)) {
+                return; // ignore element if take is specified and it is out of range
+            }
             const value = accessor(el);
             if (value !== undefined) {
                 min = Math.min(value, min !== undefined ? min : Number.POSITIVE_INFINITY);
