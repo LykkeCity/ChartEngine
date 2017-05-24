@@ -39,7 +39,7 @@ export class AroonIndicator extends SimpleIndicator<DoubleCandlestick> {
 
     constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
         super(DoubleCandlestick, source, addInterval);
-        this.name = 'Aroon';
+        this.name = 'ARO';
 
         // Set default settings
         this.settings.period = 14;
@@ -48,35 +48,7 @@ export class AroonIndicator extends SimpleIndicator<DoubleCandlestick> {
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
                          computedArray: FixedSizeArray<DoubleCandlestick>): DoubleCandlestick {
 
-            const N = this.settings.period;
-
-            const source = sourceItems.last();
-            // const lastComputed = computedArray.lastOrDefault();
-
-            const computed = new DoubleCandlestick(source.date);
-            computed.uidOrig.t = source.uid.t;
-            computed.uidOrig.n = source.uid.n;
-
-            const indexOfHighest = sourceItems.maxIndex(item => item.h);
-            const indexOfLowest = sourceItems.minIndex(item => item.l);
-
-            if (indexOfHighest >= 0) {
-                const daySince = sourceItems.length - (indexOfHighest + 1);
-                const indicator = 100 * (N - daySince) / N;
-                computed.up.c = indicator;
-                computed.up.h = indicator;
-                computed.up.l = indicator;
-            }
-
-            if (indexOfLowest >= 0) {
-                const daySince = sourceItems.length - (indexOfLowest + 1);
-                const indicator = 100 * (N - daySince) / N;
-                computed.down.c = indicator;
-                computed.down.h = indicator;
-                computed.down.l = indicator;
-            }
-
-            return computed;
+        return computeAroon(sourceItems, this.settings.period);
     }
 
     public getSettings(): SettingSet {
@@ -117,6 +89,44 @@ export class AroonIndicator extends SimpleIndicator<DoubleCandlestick> {
         const lowerthreshold = value.getSetting('datasource.lowerthreshold');
         this.settings.lowerThreshold =
             (lowerthreshold && lowerthreshold.value) ? parseInt(lowerthreshold.value, 10) : this.settings.lowerThreshold;
+
+        // recompute
+        this.compute();
+    }
+}
+
+export class AroonOscillator extends SimpleIndicator<DoubleCandlestick> {
+
+    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
+        super(DoubleCandlestick, source, addInterval);
+        this.name = 'AOS';
+
+        // Set default settings
+        this.settings.period = 14;
+    }
+
+    protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
+                         computedArray: FixedSizeArray<DoubleCandlestick>): DoubleCandlestick {
+
+        return computeAroon(sourceItems, this.settings.period);
+    }
+
+    public getSettings(): SettingSet {
+        const group = new SettingSet({ name: 'datasource', group: true });
+
+        group.setSetting('period', new SettingSet({
+            name: 'period',
+            value: this.settings.period.toString(),
+            settingType: SettingType.numeric,
+            dispalyName: 'Period'
+        }));
+
+        return group;
+    }
+
+    public setSettings(value: SettingSet): void {
+        const period = value.getSetting('datasource.period');
+        this.settings.period = (period && period.value) ? parseInt(period.value, 10) : this.settings.period;
 
         // recompute
         this.compute();
@@ -177,4 +187,42 @@ export class AroonIndicatorRenderer implements IChartRender<Candlestick> {
 
     public setSettings(settings: SettingSet): void {
     }
+}
+
+function computeAroon(sourceItems: FixedSizeArray<Candlestick>, period: number): DoubleCandlestick {
+
+    const N = period;
+    const source = sourceItems.last();
+
+    const computed = new DoubleCandlestick(source.date);
+    computed.uidOrig.t = source.uid.t;
+    computed.uidOrig.n = source.uid.n;
+
+    const indexOfHighest = sourceItems.maxIndex(item => item.h);
+    const indexOfLowest = sourceItems.minIndex(item => item.l);
+
+    if (indexOfHighest >= 0) {
+        const daySince = sourceItems.length - (indexOfHighest + 1);
+        const indicator = 100 * (N - daySince) / N;
+        computed.up.c = indicator;
+        computed.up.h = indicator;
+        computed.up.l = indicator;
+    }
+
+    if (indexOfLowest >= 0) {
+        const daySince = sourceItems.length - (indexOfLowest + 1);
+        const indicator = 100 * (N - daySince) / N;
+        computed.down.c = indicator;
+        computed.down.h = indicator;
+        computed.down.l = indicator;
+    }
+
+    // Aroon oscillator = Aroon-Up - Aroon-Down
+    if (computed.up.c !== undefined && computed.down.c !== undefined) {
+        computed.c = computed.up.c - computed.down.c;
+        computed.h = computed.c;
+        computed.l = computed.c;
+    }
+
+    return computed;
 }

@@ -67,12 +67,18 @@ export class ChartController {
         $('#cbIndicatorATR').change(() => { this.changeIndicator('111', 'ATR', 0, $('#cbIndicatorATR').is(':checked')); });
         $('#cbIndicatorADX').change(() => { this.changeIndicator('112', 'ADX', 1, $('#cbIndicatorADX').is(':checked')); });
         $('#cbIndicatorDMI').change(() => { this.changeIndicator('113', 'DMI', 1, $('#cbIndicatorDMI').is(':checked')); });
-        $('#cbIndicatorAroon').change(() => { this.changeIndicator('114', 'Aroon', 1, $('#cbIndicatorAroon').is(':checked')); });
+        $('#cbIndicatorARO').change(() => { this.changeIndicator('1141', 'ARO', 1, $('#cbIndicatorARO').is(':checked')); });
+        $('#cbIndicatorAOS').change(() => { this.changeIndicator('1142', 'AOS', 1, $('#cbIndicatorAOS').is(':checked')); });
         $('#cbIndicatorHHLL').change(() => { this.changeIndicator('115', 'HHLL', 0, $('#cbIndicatorHHLL').is(':checked')); });
         $('#cbIndicatorRB').change(() => { this.changeIndicator('116', 'RB', 0, $('#cbIndicatorRB').is(':checked')); });
         $('#cbIndicatorSTDEV').change(() => { this.changeIndicator('117', 'STDEV', 1, $('#cbIndicatorSTDEV').is(':checked')); });
         $('#cbIndicatorTP').change(() => { this.changeIndicator('118', 'TP', 0, $('#cbIndicatorTP').is(':checked')); });
         $('#cbIndicatorRSI').change(() => { this.changeIndicator('119', 'RSI', 1, $('#cbIndicatorRSI').is(':checked')); });
+        $('#cbIndicatorMOM').change(() => { this.changeIndicator('120', 'MOM', 1, $('#cbIndicatorMOM').is(':checked')); });
+        $('#cbIndicatorROC').change(() => { this.changeIndicator('121', 'ROC', 1, $('#cbIndicatorROC').is(':checked')); });
+        $('#cbIndicatorOBOS').change(() => { this.changeIndicator('122', 'OBOS', 1, $('#cbIndicatorOBOS').is(':checked')); });
+        $('#cbIndicatorDIX').change(() => { this.changeIndicator('123', 'DIX', 1, $('#cbIndicatorDIX').is(':checked')); });
+        $('#cbIndicatorDSSBR').change(() => { this.changeIndicator('124', 'DSSBR', 1, $('#cbIndicatorDSSBR').is(':checked')); });
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);

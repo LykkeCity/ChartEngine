@@ -58,6 +58,10 @@ export class FastStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
         this.extsettings.periodD = 3;
     }
 
+    protected get requiredItemsOnCompute(): number {
+        return Math.max(this.extsettings.periodK, this.extsettings.periodD);
+    }
+
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
                          computedArray: FixedSizeArray<DoubleCandlestick>
                          ): DoubleCandlestick {
@@ -69,32 +73,22 @@ export class FastStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
         const source = sourceItems.last(); // source must contain at least one item.
         const lastComputed = computedArray.lastOrDefault(); // computed can contain no items.
 
-        const computed = new DoubleCandlestick(source.date);
-        computed.uidOrig.t = source.uid.t;
-        computed.uidOrig.n = source.uid.n;
+        const computed = computeFastK(sourceItems, periodK);
 
-        const value = this.accessor(source);
+        const value = source.c; // this.accessor(source);
         if (value !== undefined) {
 
-            // calculating min/max with current value
-            const H = sourceItems.max(c => c.h, periodK);   // highest high for the period
-            const L = sourceItems.min(c => c.l, periodK);   // lowest low for the period
+            // TODO: Slow %K should start computing only when there is enough values. Not from the start
 
-            if (H !== undefined && L !== undefined) {
-                computed.fastK = (L !== H) ? 100 * (value - L) / (H - L) : 100; // fast %K
+            const lastComputedFastK = lastComputed !== undefined ? lastComputed.K : undefined;
+            computed.fastD = this.ma.compute(periodD, computedArray, c => (<DoubleCandlestick>c).fastK, computed, lastComputedFastK);
 
-                // TODO: Slow %K should start computing only when there is enough values. Not from the start
+            computed.K = computed.fastK;
+            computed.D = computed.fastD;
 
-                const lastComputedSlowK = lastComputed !== undefined ? lastComputed.K : undefined;
-                computed.fastD = this.ma.compute(periodD, computedArray, c => (<DoubleCandlestick>c).fastK, computed, lastComputedSlowK);
-
-                computed.K = computed.fastK;
-                computed.D = computed.fastD;
-
-                // computed.c = undefined;
-                // computed.h = computed.c;
-                // computed.l = computed.c;
-            }
+            // computed.c = undefined;
+            // computed.h = computed.c;
+            // computed.l = computed.c;
         }
 
         return computed;
@@ -149,6 +143,10 @@ export class SlowStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
         this.extsettings.period2D = 3;
     }
 
+    protected get requiredItemsOnCompute(): number {
+        return Math.max(this.extsettings.periodK, this.extsettings.periodD, this.extsettings.period2D);
+    }
+
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
                          computedArray: FixedSizeArray<DoubleCandlestick>
                          ): DoubleCandlestick {
@@ -161,32 +159,22 @@ export class SlowStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
         const source = sourceItems.last(); // source must contain at least one item.
         const lastComputed = computedArray.lastOrDefault(); // computed can contain no items.
 
-        const computed = new DoubleCandlestick(source.date);
-        computed.uidOrig.t = source.uid.t;
-        computed.uidOrig.n = source.uid.n;
+        const computed = computeFastK(sourceItems, periodK);
 
-        const value = this.accessor(source);
+        const value = source.c; // this.accessor(source);
         if (value !== undefined) {
 
-            // calculating min/max with current value
-            const H = sourceItems.max(c => c.h, periodK);   // highest high for the period
-            const L = sourceItems.min(c => c.l, periodK);   // lowest low for the period
+            // TODO: Slow %K should start computing only when there is enough values. Not from the start
 
-            if (H !== undefined && L !== undefined) {
-                computed.fastK = (L !== H) ? 100 * (value - L) / (H - L) : 100; // fast %K
+            const lastComputedSlowK = lastComputed !== undefined ? lastComputed.K : undefined;
+            computed.K = this.ma.compute(periodD, computedArray, c => (<DoubleCandlestick>c).fastK, computed, lastComputedSlowK);
 
-                // TODO: Slow %K should start computing only when there is enough values. Not from the start
+            const lastComputedSlowD = lastComputed !== undefined ? lastComputed.D : undefined;
+            computed.D = this.ma.compute(period2D, computedArray, c => (<DoubleCandlestick>c).K, computed, lastComputedSlowD);
 
-                const lastComputedSlowK = lastComputed !== undefined ? lastComputed.K : undefined;
-                computed.K = this.ma.compute(periodD, computedArray, c => (<DoubleCandlestick>c).fastK, computed, lastComputedSlowK);
-
-                const lastComputedSlowD = lastComputed !== undefined ? lastComputed.D : undefined;
-                computed.D = this.ma.compute(period2D, computedArray, c => (<DoubleCandlestick>c).K, computed, lastComputedSlowD);
-
-                // computed.c = undefined;
-                // computed.h = computed.c;
-                // computed.l = computed.c;
-            }
+            // computed.c = undefined;
+            // computed.h = computed.c;
+            // computed.l = computed.c;
         }
 
         return computed;
@@ -228,6 +216,62 @@ export class SlowStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
 
         const period2D = value.getSetting('datasource.period');
         this.extsettings.period2D = (period2D && period2D.value) ? parseInt(period2D.value, 10) : this.extsettings.period2D;
+
+        // recompute
+        this.compute();
+    }
+}
+
+export class OBOSOscillator extends SimpleIndicator<DoubleCandlestick> {
+
+    private ma: IMovingAverageStrategy;
+
+    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
+        super(DoubleCandlestick, source, addInterval);
+        this.name = 'OBOS';
+
+        this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
+
+        // Default settings
+        this.settings.period = 14;
+    }
+
+    protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
+                         computedArray: FixedSizeArray<DoubleCandlestick>
+                         ): DoubleCandlestick {
+
+        const periodK = this.settings.period;
+
+        const source = sourceItems.last(); // source must contain at least one item.
+        const lastComputed = computedArray.lastOrDefault(); // computed can contain no items.
+
+        const computed = computeFastK(sourceItems, periodK);
+
+        if (computed.fastK !== undefined) {
+            computed.c = computed.fastK;
+            computed.h = computed.c;
+            computed.l = computed.c;
+        }
+
+        return computed;
+    }
+
+    public getSettings(): SettingSet {
+        const group = new SettingSet({ name: 'datasource', group: true });
+
+        group.setSetting('period', new SettingSet({
+            name: 'period',
+            value: this.settings.period.toString(),
+            settingType: SettingType.numeric,
+            dispalyName: 'Period'
+        }));
+
+        return group;
+    }
+
+    public setSettings(value: SettingSet): void {
+        const period = value.getSetting('datasource.period');
+        this.settings.period = (period && period.value) ? parseInt(period.value, 10) : this.settings.period;
 
         // recompute
         this.compute();
@@ -304,3 +348,25 @@ export class StochasticOscillatorRenderer implements IChartRender<Candlestick> {
     }
 }
 
+function computeFastK(sourceItems: FixedSizeArray<Candlestick>, periodK: number): DoubleCandlestick {
+
+    const source = sourceItems.last(); // source must contain at least one item.
+
+    const computed = new DoubleCandlestick(source.date);
+    computed.uidOrig.t = source.uid.t;
+    computed.uidOrig.n = source.uid.n;
+
+    const value = source.c; // accessor(source)
+    if (value !== undefined) {
+
+        // calculating min/max with current value
+        const H = sourceItems.max(c => c.h, periodK);   // highest high for the period
+        const L = sourceItems.min(c => c.l, periodK);   // lowest low for the period
+
+        if (H !== undefined && L !== undefined) {
+            computed.fastK = (L !== H) ? 100 * (value - L) / (H - L) : 100; // fast %K
+        }
+    }
+
+    return computed;
+}

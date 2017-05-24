@@ -24,13 +24,17 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         super(dataType, source, addInterval, (lhs: T, rhs: T) => { return lhs.uidOrig.compare(rhs.uidOrig); });
     }
 
+    protected get requiredItemsOnCompute(): number {
+        return this.settings.period; // By default loading period number of items
+    }
+
     protected compute(arg?: DataChangedArgument): DataChangedArgument | undefined {
         // If arg is not defined build all data
         // Compute data till the end (update data from current place to end)
 
         let computedArray: T[] = [];
 
-        const N = this.settings.period;
+        const N = this.requiredItemsOnCompute; //this.settings.period;
         const sourceItems = new FixedSizeArray<Candlestick>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
         const computedItems = new FixedSizeArray<T>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
 

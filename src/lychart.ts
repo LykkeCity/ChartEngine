@@ -46,6 +46,7 @@ indicator.register('FSTOC', indicator.FastStochasticOscillator);
 indicator.register('DEMA', indicator.DEMAIndicator);
 indicator.register('DMI', indicator.DMIIndicator);
 indicator.register('EMA', indicator.EMAIndicator);
+indicator.register('MOM', indicator.MOMIndicator);
 indicator.register('SMA', indicator.SMAIndicator);
 indicator.register('SMMA', indicator.SMMAIndicator);
 indicator.register('TEMA', indicator.TEMAIndicator);
@@ -53,12 +54,17 @@ indicator.register('TMA', indicator.TMAIndicator);
 indicator.register('WMA', indicator.WMAIndicator);
 indicator.register('ADX', indicator.ADXIndicator);
 indicator.register('ATR', indicator.ATRIndicator);
-indicator.register('Aroon', indicator.AroonIndicator);
+indicator.register('ARO', indicator.AroonIndicator);
+indicator.register('AOS', indicator.AroonOscillator);
 indicator.register('HHLL', indicator.HHLLIndicator);
 indicator.register('RB', indicator.RBIndicator);
 indicator.register('STDEV', indicator.STDEVIndicator);
 indicator.register('TP', indicator.TPIndicator);
 indicator.register('RSI', indicator.RSIOscillator);
+indicator.register('ROC', indicator.ROCIndicator);
+indicator.register('OBOS', indicator.OBOSOscillator);
+indicator.register('DIX', indicator.DIXOscillator);
+indicator.register('DSSBR', indicator.DSSBROscillator);
 
 // Register built-in renderers
 render.RenderLocator.Instance.register('alligator', indicator.AlligatorIndicatorRenderer);
@@ -75,12 +81,18 @@ render.RenderLocator.Instance.register('TMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('WMA', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('ADX', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('ATR', render.LinestickChartRenderer);
-render.RenderLocator.Instance.register('Aroon', indicator.AroonIndicatorRenderer);
+render.RenderLocator.Instance.register('ARO', indicator.AroonIndicatorRenderer);
+render.RenderLocator.Instance.register('AOS', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('HHLL', indicator.HHLLIndicatorRenderer);
 render.RenderLocator.Instance.register('RB', indicator.RBIndicatorRenderer);
 render.RenderLocator.Instance.register('STDEV', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('TP', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('RSI', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('MOM', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('ROC', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('OBOS', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('DIX', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('DSSBR', indicator.DSSBROscillatorRenderer);
 
 const lychart = {
     // types:
