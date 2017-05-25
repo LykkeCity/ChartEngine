@@ -6,6 +6,7 @@ import { AlligatorIndicator, AlligatorIndicatorRenderer } from './AlligatorIndic
 import { AroonIndicator, AroonIndicatorRenderer, AroonOscillator } from './AroonIndicator';
 import { ATRIndicator } from './ATRIndicator';
 import { BollingerIndicator, BollingerIndicatorRenderer } from './BollingerIndicator';
+import { CCIOscillator } from './CCIOscillator';
 import { DEMAIndicator } from './DEMAIndicator';
 import { DIXOscillator } from './DIXOscillator';
 import { DMIIndicator, DMIIndicatorRenderer } from './DMIIndicator';
@@ -38,6 +39,7 @@ export {
     AroonOscillator,
     ATRIndicator,
     BollingerIndicator, BollingerIndicatorRenderer,
+    CCIOscillator,
     DEMAIndicator,
     DIXOscillator,
     DMIIndicator, DMIIndicatorRenderer,

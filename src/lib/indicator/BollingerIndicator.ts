@@ -108,19 +108,21 @@ export class BollingerIndicator extends IndicatorDataSource<TripleCandlestick> {
                     // After moving avg is computed, current value can be pushed to array, to calculate std deviation.
                     const standardDeviation = Utils.STDDEV(fsarray, accessor, computed.middle.c);
 
-                    computed.top.c = computed.middle.c + K * standardDeviation;
-                    computed.top.h = computed.top.c;
-                    computed.top.l = computed.middle.c;
+                    if (standardDeviation !== undefined) {
+                        computed.top.c = computed.middle.c + K * standardDeviation;
+                        computed.top.h = computed.top.c;
+                        computed.top.l = computed.middle.c;
 
-                    computed.bottom.c = computed.middle.c - K * standardDeviation;
-                    computed.bottom.h = computed.bottom.c;
-                    computed.bottom.l = computed.bottom.c;
+                        computed.bottom.c = computed.middle.c - K * standardDeviation;
+                        computed.bottom.h = computed.bottom.c;
+                        computed.bottom.l = computed.bottom.c;
 
-                    computed.h = Math.max(computed.top.h, computed.bottom.h,
-                                          computed.middle.h !== undefined ? computed.middle.h : Number.NEGATIVE_INFINITY);
-                    computed.l = Math.min(computed.top.l, computed.bottom.l, computed.middle.l || Number.POSITIVE_INFINITY, );
+                        computed.h = Math.max(computed.top.h, computed.bottom.h,
+                                              computed.middle.h !== undefined ? computed.middle.h : Number.NEGATIVE_INFINITY);
+                        computed.l = Math.min(computed.top.l, computed.bottom.l, computed.middle.l || Number.POSITIVE_INFINITY, );
 
-                    prevMA = computed.middle.c;
+                        prevMA = computed.middle.c;
+                    }
                 }
             }
 
