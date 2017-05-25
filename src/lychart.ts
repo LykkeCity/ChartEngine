@@ -65,6 +65,8 @@ indicator.register('ROC', indicator.ROCIndicator);
 indicator.register('OBOS', indicator.OBOSOscillator);
 indicator.register('DIX', indicator.DIXOscillator);
 indicator.register('DSSBR', indicator.DSSBROscillator);
+indicator.register('PCR', indicator.PCROscillator);
+indicator.register('MD', indicator.MDIndicator);
 
 // Register built-in renderers
 render.RenderLocator.Instance.register('alligator', indicator.AlligatorIndicatorRenderer);
@@ -93,6 +95,8 @@ render.RenderLocator.Instance.register('ROC', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('OBOS', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('DIX', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('DSSBR', indicator.DSSBROscillatorRenderer);
+render.RenderLocator.Instance.register('PCR', render.LinestickChartRenderer);
+render.RenderLocator.Instance.register('MD', render.LinestickChartRenderer);
 
 const lychart = {
     // types:

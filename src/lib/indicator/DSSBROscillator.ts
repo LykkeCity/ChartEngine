@@ -145,7 +145,7 @@ export class DSSBROscillator extends SimpleIndicator<DSSBRCandlestick> {
     }
 
     public setSettings(value: SettingSet): void {
-        const periodK = value.getSetting('datasource.period');
+        const periodK = value.getSetting('datasource.periodK');
         this.extsettings.periodK = (periodK && periodK.value) ? parseInt(periodK.value, 10) : this.extsettings.periodK;
 
         const periodX = value.getSetting('datasource.periodX');
