@@ -17,6 +17,7 @@ import { HHLLIndicator, HHLLIndicatorRenderer } from './HHLLIndicator';
 import { IndicatorDataSource } from './IndicatorDataSource';
 import { IndicatorFabric, register } from './IndicatorFabric';
 import { IIndicator } from './Interfaces';
+import { MACDIndicator, MACDIndicatorRenderer } from './MACDIndicator';
 import { MDIndicator } from './MDIndicator';
 import { MOMIndicator } from './MOMIndicator';
 import { PCROscillator } from './PCROscillator';
@@ -50,6 +51,7 @@ export {
     IndicatorDataSource,
     IndicatorFabric,
     IIndicator,
+    MACDIndicator, MACDIndicatorRenderer,
     MDIndicator,
     MOMIndicator,
     PCROscillator,
