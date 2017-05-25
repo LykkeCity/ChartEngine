@@ -16,6 +16,10 @@ import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
 import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
+// MACD Line = EMA 12 - EMA 26
+// Signal line = EMA(MACD)
+// Historgam = MACD - Signal
+
 export class MACDCandlestick extends CandlestickExt {
 
     public EMAfast: number | undefined;

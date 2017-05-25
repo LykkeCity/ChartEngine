@@ -24,6 +24,7 @@ import { PCROscillator } from './PCROscillator';
 import { RBIndicator, RBIndicatorRenderer } from './RBIndicator';
 import { ROCIndicator } from './ROCIndicator';
 import { RSIOscillator } from './RSIOscillator';
+import { RSLOscillator } from './RSLOscillator';
 import { SMAIndicator } from './SMAIndicator';
 import { SMMAIndicator } from './SMMAIndicator';
 import { STDEVIndicator } from './STDEVIndicator';
@@ -59,6 +60,7 @@ export {
     register,
     ROCIndicator,
     RSIOscillator,
+    RSLOscillator,
     SMAIndicator,
     SMMAIndicator,
     STDEVIndicator,

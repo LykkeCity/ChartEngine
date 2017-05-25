@@ -83,6 +83,7 @@ export class ChartController {
         $('#cbIndicatorMD').change(() => { this.changeIndicator('126', 'MD', 1, $('#cbIndicatorMD').is(':checked')); });
         $('#cbIndicatorCCI').change(() => { this.changeIndicator('127', 'CCI', 1, $('#cbIndicatorCCI').is(':checked')); });
         $('#cbIndicatorMACD').change(() => { this.changeIndicator('128', 'MACD', 1, $('#cbIndicatorMACD').is(':checked')); });
+        $('#cbIndicatorRSL').change(() => { this.changeIndicator('129', 'RSL', 1, $('#cbIndicatorRSL').is(':checked')); });
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);
