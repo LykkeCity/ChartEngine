@@ -13,7 +13,7 @@ export abstract class IndicatorExtension implements IIndicatorExtension {
 }
 
 /**
- * TR
+ * TR = max(H - L, |H - C prev|, |L - C prev|)
  */
 export class TrueRangeExtension extends IndicatorExtension {
     public static readonly uname = 'truerange';

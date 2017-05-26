@@ -65,16 +65,4 @@ export class RenderUtils {
             canvas.lineTo(firstPoint.x, firstPoint.y);
         }
     }
-
-    // private drawLine<T>(canvas: ICanvas, items: T[], getPoint: (item: T, index: number) => IPoint | undefined) {
-
-    //     items.forEach((item: T, index: number) => {
-    //         const point = getPoint(item, index);
-    //         if (!point) {
-    //             return;
-    //         }
-
-
-    //     });
-    // }
 }

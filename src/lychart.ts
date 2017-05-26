@@ -70,6 +70,7 @@ indicator.register('DSSBR', indicator.DSSBROscillator);
 indicator.register('PCR', indicator.PCROscillator);
 indicator.register('MD', indicator.MDIndicator);
 indicator.register('MACD', indicator.MACDIndicator);
+indicator.register('ST', indicator.STIndicator);
 
 // Register built-in renderers
 render.RenderLocator.Instance.register('alligator', indicator.AlligatorIndicatorRenderer);
@@ -103,6 +104,7 @@ render.RenderLocator.Instance.register('DSSBR', indicator.DSSBROscillatorRendere
 render.RenderLocator.Instance.register('PCR', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('MD', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('MACD', indicator.MACDIndicatorRenderer);
+render.RenderLocator.Instance.register('ST', indicator.STIndicatorRenderer);
 
 const lychart = {
     // types:

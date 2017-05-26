@@ -17,6 +17,8 @@ import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
 import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 
+// ATR = (ATR prev x (n - 1) + TR) / n
+
 export class ATRIndicator extends SimpleIndicator<CandlestickExt> {
 
     private ma: IMovingAverageStrategy;
@@ -27,7 +29,7 @@ export class ATRIndicator extends SimpleIndicator<CandlestickExt> {
 
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.ADX);
 
-        // ADX requires TR, +DM, -DM
+        // ADX requires TR
         this.source.addExtension(TrueRangeExtension.uname, new TrueRangeExtension());
 
         // Set default settings
@@ -46,13 +48,13 @@ export class ATRIndicator extends SimpleIndicator<CandlestickExt> {
             computed.uidOrig.t = source.uid.t;
             computed.uidOrig.n = source.uid.n;
 
-            const value = this.accessor(source);
-            if (value !== undefined) {
-                const lastComputedValue = lastComputed !== undefined ? lastComputed.c : undefined;
-                computed.c = this.ma.compute(N, sourceItems, this.accessor, undefined, lastComputedValue);
-                computed.h = computed.c;
-                computed.l = computed.c;
-            }
+            // const value = this.accessor(source);
+            // if (value !== undefined) {
+            const lastComputedValue = lastComputed !== undefined ? lastComputed.c : undefined;
+            computed.c = this.ma.compute(N, sourceItems, c => c.ext['tr'], undefined, lastComputedValue);
+            computed.h = computed.c;
+            computed.l = computed.c;
+            //}
 
             return computed;
     }

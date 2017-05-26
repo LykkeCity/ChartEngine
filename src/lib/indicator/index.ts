@@ -28,6 +28,7 @@ import { RSLOscillator } from './RSLOscillator';
 import { SMAIndicator } from './SMAIndicator';
 import { SMMAIndicator } from './SMMAIndicator';
 import { STDEVIndicator } from './STDEVIndicator';
+import { STIndicator, STIndicatorRenderer } from './STIndicator';
 import { FastStochasticOscillator, OBOSOscillator, SlowStochasticOscillator, StochasticOscillatorRenderer } from './StochasticOscillator';
 import { TEMAIndicator } from './TEMAIndicator';
 import { TMAIndicator } from './TMAIndicator';
@@ -63,6 +64,7 @@ export {
     RSLOscillator,
     SMAIndicator,
     SMMAIndicator,
+    STIndicator, STIndicatorRenderer,
     STDEVIndicator,
     FastStochasticOscillator, OBOSOscillator, SlowStochasticOscillator, StochasticOscillatorRenderer,
     TEMAIndicator,
