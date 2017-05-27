@@ -14,6 +14,7 @@ import { DSSBROscillator, DSSBROscillatorRenderer} from './DSSBROscillator';
 import { EMAIndicator } from './EMAIndicator';
 import { HeikinAshiDataSource } from './HeikinAshiDataSource';
 import { HHLLIndicator, HHLLIndicatorRenderer } from './HHLLIndicator';
+import { IKHIndicator, IKHIndicatorRenderer } from './IKHIndicator';
 import { IndicatorDataSource } from './IndicatorDataSource';
 import { IndicatorFabric, register } from './IndicatorFabric';
 import { IIndicator } from './Interfaces';
@@ -50,6 +51,7 @@ export {
     EMAIndicator,
     HeikinAshiDataSource,
     HHLLIndicator, HHLLIndicatorRenderer,
+    IKHIndicator, IKHIndicatorRenderer,
     IndicatorDataSource,
     IndicatorFabric,
     IIndicator,

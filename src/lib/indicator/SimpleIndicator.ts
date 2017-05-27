@@ -32,6 +32,10 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         // If arg is not defined build all data
         // Compute data till the end (update data from current place to end)
 
+        // Remove extended (fake) items
+        this.dataStorage.trimRight(item => item.isFake);
+        this.dataStorage.trimLeft(item => item.isFake);
+
         let computedArray: T[] = [];
 
         const N = this.requiredItemsOnCompute; //this.settings.period;
@@ -85,21 +89,26 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         // Merge using origUid, not uid
         this.dataStorage.merge(computedArray);
 
+        this.afterCompute(arg);
+
         const origArg = new DataChangedArgument(firstUid, lastUid, computedArray.length);
         // Update shift
-        const shiftedArg = this.shift(origArg, this.settings.displacement);
+        const shiftedArg = this.shiftTime(origArg, this.settings.displacement);
         return shiftedArg;
     }
 
     protected abstract computeOne(sourceItems: FixedSizeArray<Candlestick>, computed: FixedSizeArray<T>): T;
 
-    protected shift(arg: DataChangedArgument, shift: number): DataChangedArgument {
+    protected afterCompute(arg?: DataChangedArgument) {
+    }
+
+    protected shiftTime(arg: DataChangedArgument, shift: number): DataChangedArgument {
         // TODO: arg can narrow shift area
 
         if (shift > 0) {
-            this.shiftRight(shift);
+            this.shiftTimeRight(shift);
         } else if (shift < 0) {
-            this.shiftLeft(shift);
+            this.shiftTimeLeft(shift);
         } else {
             this.noshift();
             return arg;
@@ -133,7 +142,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
     }
 
     // TODO: Unite with shiftRight
-    private shiftLeft(shift: number) {
+    private shiftTimeLeft(shift: number) {
         let isFake = false;
         const iterFirst = this.dataStorage.getIterator();
         const iterLast = this.dataStorage.getIterator();
@@ -173,7 +182,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         } while (iterLast.movePrev());
     }
 
-    private shiftRight(shift: number) {
+    private shiftTimeRight(shift: number) {
         let isFake = false;
         const iterFirst = this.dataStorage.getIterator();
         const iterLast = this.dataStorage.getIterator();
@@ -219,6 +228,134 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         );
     }
 
+    protected shiftDataExt(shift: number, replace: (dest: T, source?: T) => void) {
+
+        const iter = this.dataStorage.getIterator();
+
+        this.extend(shift, iter);
+
+        const iterLead = this.dataStorage.getIterator();
+        const iterFollow = this.dataStorage.getIterator();
+
+        if (shift > 0) {
+
+            let lead = false;
+            let follow = false;
+
+            // Move lead iterator to the last not fake item
+            lead = iterLead.goToLast();
+
+            let counter = 0;
+            iterLead.somebackward(item => {
+                counter += 1;
+                return item.isFake;
+            });
+
+            // Follow iterator should be "shift" items back from lead
+            follow = iterFollow.goToLast();
+            counter = counter - (shift + 1);
+            while (counter > 0) { follow = iterFollow.movePrev(); counter -= 1; }
+
+            while (follow) {
+
+                const source = lead ? iterLead.current : undefined;
+                const dest = iterFollow.current;
+
+                replace(dest, source); // source can be undefined
+
+                // Move both iterators left
+                lead = iterLead.movePrev();
+                follow = iterFollow.movePrev();
+            }
+
+        } else if (shift < 0) {
+
+            let lead = false;
+            let follow = false;
+
+            // Move lead iterator to the first not fake item
+            let moves = iterLead.moveTo(item => !item.isFake);
+            lead = moves > 0;
+
+            // Follow iterator should be "shift" items back from lead
+            moves = moves - Math.abs(shift);
+            while (moves > 0) { follow = iterFollow.moveNext(); moves -= 1; }
+
+            while (follow) {
+
+                const source = lead ? iterLead.current : undefined;
+                const dest = iterFollow.current;
+
+                replace(dest, source); // source can be undefined
+
+                // Move both iterators left
+                lead = iterLead.moveNext();
+                follow = iterFollow.moveNext();
+            }
+
+        } else { // shift === 0
+            // Source and dest is the same element
+            while (iterLead.moveNext()) {
+                replace(iterLead.current, iterLead.current);
+            }
+        }
+    }
+
+    private extend(shift: number, iter: IDataIterator<T>) {
+        if (shift === 0) {
+            return;
+        }
+
+        // Add fake items. Working with uid_orig
+        // If there are already fake items, they should not be removed.
+
+        const extended: T[] = [];
+
+        if (shift < 0) {
+            // Get count of fake items
+            const moved = iter.moveTo(item => !item.isFake);
+            const fakeItems = (moved !== -1) ? moved - 1 : 0;
+
+            // Add fake items
+            const add = Math.abs(shift) - fakeItems;
+
+            // Get first element
+            if (iter.goTo(item => true)) {
+                let uid = iter.current.uid;
+
+                for (let i = 0; i < add; i += 1) {
+                    uid = this.shiftUid(uid, shift < 0 ? -1 : 1);
+                    const ext = <T>new this.dataType(uid.t);
+                    ext.isFake = true;
+                    ext.uidOrig = new Uid(uid.t);
+                    extended.push(ext);
+                }
+            }
+        } else if (shift > 0) {
+            if (iter.goToLast()) {
+                let moved = 0;
+                iter.somebackward((item, counter) => {
+                    moved = counter;
+                    return item.isFake;
+                });
+                const fakeItems = moved;
+                const add = Math.abs(shift) - fakeItems;
+
+                iter.goToLast();
+                let uid = iter.current.uid;
+                for (let i = 0; i < add; i += 1) {
+                    uid = this.shiftUid(uid, shift < 0 ? -1 : 1);
+                    const ext = <T>new this.dataType(uid.t);
+                    ext.isFake = true;
+                    ext.uidOrig = new Uid(uid.t);
+                    extended.push(ext);
+                }
+            }
+        }
+
+        this.dataStorage.merge(extended);
+    }
+
     public getSettings(): SettingSet {
         const group = new SettingSet({ name: 'datasource', group: true });
 
@@ -258,3 +395,4 @@ export class SimpleSettings {
     public lowerThreshold: number = 0;
     constructor() { }
 }
+

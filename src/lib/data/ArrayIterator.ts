@@ -220,6 +220,11 @@ export class ArrayIterator<T> implements IDataIterator<T> {
     /**
      * Iterates backwards starting from the current position.
      * Iterats till @func returns "true" and begginning of storage is not reached.
+     * Counter: [
+     *   0 - current element,
+     *   1 - previous element,
+     *   ...
+     * ]
      * @param func 
      */
     public somebackward(func: (item: T, counter: number) => boolean) {
@@ -231,7 +236,9 @@ export class ArrayIterator<T> implements IDataIterator<T> {
 
         let counter = 0;
         do {
-            func(this.current, counter);
+            if (!func(this.current, counter)) {
+                break;
+            }
             counter += 1;
         } while (this.movePrev());
     }

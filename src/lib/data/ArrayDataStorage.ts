@@ -88,6 +88,55 @@ export class ArrayDataStorage<T> implements IDataStorage<T> {
         //this.dataSnapshot.data = this.dataSnapshot.data.slice(0, itemIndex + 1);
     }
 
+    /**
+     * Removes items from the start.
+     * Iteratest through items from beginning, finds first item that is not fit to condition and removes all preceding.
+     * @param predicate 
+     */
+    public trimLeft(predicate: (item: T) => boolean): void {
+        let index = -1;
+        this.dataSnapshot.data.some((e: T, i: number) => {
+            if (!predicate(e)) {
+                index = i;
+                return true;
+            }
+            return false;
+        });
+
+        if (index === -1) {
+            // If no elements in array or all elements fit the condition.
+            this.dataSnapshot.data = [];
+        } else {
+            this.dataSnapshot.data.splice(0, index);
+        }
+        this.dataSnapshot.timestamp = this.dataSnapshot.timestamp + 1;
+    }
+
+    /**
+     * Removes items from the end.
+     * Iteratest through items from end, finds first item that is not fit to condition and removes all following.
+     * @param predicate 
+     */
+    public trimRight(predicate: (item: T) => boolean): void {
+        const l = this.dataSnapshot.data.length;
+
+        let index = -1;
+        for (let i = l - 1; i >= 0; i -= 1) {
+            if (!predicate(this.dataSnapshot.data[i])) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index === -1) {
+            // If no elements in array or all elements fit the condition.
+            this.dataSnapshot.data = [];
+        } else if ((index + 1) < l) {
+            this.dataSnapshot.data.splice(index + 1); // remove all items after specified index (inclusive)
+        }
+        this.dataSnapshot.timestamp = this.dataSnapshot.timestamp + 1;
+    }
+
     // public filter(filter?: (item: T) => boolean): IDataIterator<T> {
     //     return new ArrayIterator<T>(this.dataSnapshot, this.dataSnapshot.timestamp, filter);
     // }
