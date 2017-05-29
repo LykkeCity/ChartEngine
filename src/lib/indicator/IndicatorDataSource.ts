@@ -11,7 +11,7 @@ import {
     IDataSource } from '../data/index';
 import { Candlestick, ITimeValue, IUidValue, Uid } from '../model/index';
 import { IRange } from '../shared/index';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 
 /**
  * 1-to-1 mapping with source.
@@ -24,17 +24,19 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
     protected dataStorage: ArrayDataStorage<C>;
     //private indicator: IIndicator;
     protected addInterval: (date: Date, times: number) => Date;
+    protected context: IContext;
 
     constructor (dataType: new(date: Date) => C,
                  source: IDataSource<Candlestick>,
-                 addInterval: (date: Date, times: number) => Date,
+                 context: IContext,
                  comparer?: (lhs: C, rhs: C) => number) {
 
         super(dataType, new DataSourceConfig());
         this.dataStorage = new ArrayDataStorage<C>(comparer || this.defaultComparer);
         this.source = source;
         this.source.dataChanged.on(this.onDataSourceChanged);
-        this.addInterval = addInterval; // should be initialized before computing
+        this.addInterval = context.addInterval; // should be initialized before computing
+        this.context = context;
     }
 
     private defaultComparer = (lhs: C, rhs: C) => { return lhs.uid.compare(rhs.uid); };

@@ -14,7 +14,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -58,8 +58,8 @@ export class DMIIndicator extends SimpleIndicator<DMICandlestick> {
     protected accessor: IValueAccessor;
     protected wma: IMovingAverageStrategy;
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(DMICandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(DMICandlestick, source, context);
         this.name = 'DMI';
 
         this.wma = MovingAverageFactory.instance.create(MovingAverageType.Wilder);

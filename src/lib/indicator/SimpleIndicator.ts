@@ -10,7 +10,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { Utils } from './Utils';
 import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
@@ -20,8 +20,8 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
     protected accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
     protected settings: SimpleSettings = new SimpleSettings();
 
-    constructor (dataType: new(date: Date) => T, source: IDataSource<Candlestick>, addInterval: (date: Date, times: number) => Date) {
-        super(dataType, source, addInterval, (lhs: T, rhs: T) => { return lhs.uidOrig.compare(rhs.uidOrig); });
+    constructor (dataType: new(date: Date) => T, source: IDataSource<Candlestick>, context: IContext) {
+        super(dataType, source, context, (lhs: T, rhs: T) => { return lhs.uidOrig.compare(rhs.uidOrig); });
     }
 
     protected get requiredItemsOnCompute(): number {

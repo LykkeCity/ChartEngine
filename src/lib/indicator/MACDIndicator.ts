@@ -10,7 +10,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -53,8 +53,8 @@ export class MACDIndicator extends SimpleIndicator<MACDCandlestick> {
     protected ema: IMovingAverageStrategy;
     private extsettings: MACDSettings = new MACDSettings();
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(MACDCandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(MACDCandlestick, source, context);
         this.name = 'MACD';
 
         this.ema = MovingAverageFactory.instance.create(MovingAverageType.Exponential);

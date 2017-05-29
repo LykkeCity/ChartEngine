@@ -10,7 +10,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -70,8 +70,8 @@ export class IKHIndicator extends SimpleIndicator<IKHCandlestick> {
     private ema: IMovingAverageStrategy;
     private extsettings: IKHSettings = new IKHSettings();
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(IKHCandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(IKHCandlestick, source, context);
         this.name = 'IKH';
     }
 

@@ -10,7 +10,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -25,8 +25,8 @@ export class TMAIndicator extends SimpleIndicator<TMACandlestick> {
     private sma: IMovingAverageStrategy;
     private tma: IMovingAverageStrategy;
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(TMACandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(TMACandlestick, source, context);
         this.name = 'TMA';
 
         this.sma = MovingAverageFactory.instance.create(MovingAverageType.Simple);

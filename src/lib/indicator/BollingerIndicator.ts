@@ -9,7 +9,7 @@ import { Candlestick, Point } from '../model/index';
 import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { Utils } from './Utils';
 import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
@@ -38,8 +38,8 @@ export class TripleCandlestick extends Candlestick {
 
 export class BollingerIndicator extends IndicatorDataSource<TripleCandlestick> {
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(TripleCandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(TripleCandlestick, source, context);
         this.name = 'bollinger';
     }
 

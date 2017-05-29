@@ -147,4 +147,24 @@ export class FixedSizeArray<T> {
         });
         return minIndex;
     }
+
+    /**
+     * Calculates sum of items
+     * @param accessor 
+     * @param take If specified, checks only last @take elements
+     */
+    public sum(accessor: (item: T) => number|undefined, take?: number): number | undefined {
+        let sum = 0;
+        const L = this.container.length;
+        this.container.forEach((el, index) => {
+            if (take !== undefined && index < (L - take)) {
+                return; // ignore element if take is specified and it is out of range
+            }
+            const value = accessor(el);
+            if (value !== undefined) {
+                sum += value;
+            }
+        });
+        return sum;
+    }
 }

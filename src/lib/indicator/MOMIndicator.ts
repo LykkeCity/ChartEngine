@@ -10,7 +10,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
 import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
@@ -19,8 +19,8 @@ import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './Value
 
 export class MOMIndicator extends SimpleIndicator<CandlestickExt> {
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(CandlestickExt, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(CandlestickExt, source, context);
         this.name = 'MOM';
 
         this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);

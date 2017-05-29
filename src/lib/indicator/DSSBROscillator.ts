@@ -10,7 +10,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -52,8 +52,8 @@ export class DSSBROscillator extends SimpleIndicator<DSSBRCandlestick> {
     private ema: IMovingAverageStrategy;
     private extsettings: DSSBRSettings = new DSSBRSettings();
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(DSSBRCandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(DSSBRCandlestick, source, context);
         this.name = 'DSSBR';
 
         this.ema = MovingAverageFactory.instance.create(MovingAverageType.Exponential);

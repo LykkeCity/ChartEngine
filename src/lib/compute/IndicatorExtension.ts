@@ -142,7 +142,6 @@ export class AvgTrueRangeExtension extends IndicatorExtension {
             const curTR = current.ext['tr'];
             if (prevATR !== undefined && curTR !== undefined) {
                 current.ext['atr'] = (prevATR * (this.period - 1) + curTR) / this.period;
-                //console.log('atr = ' + current.ext['atr']);
                 return;
             }
         }
@@ -161,7 +160,6 @@ export class AvgTrueRangeExtension extends IndicatorExtension {
         // If amount of TR is enough, calculate ATR
         if (counter === this.period) {
             current.ext['atr'] = sum / this.period;
-            //console.log('atr = ' + current.ext['atr']);
         }
     }
 }
@@ -226,4 +224,50 @@ export class GainLossExtension extends IndicatorExtension {
 export interface IGainLoss {
     gain: number | undefined;
     loss: number | undefined;
+}
+
+/**
+ * Log Return extension. R(i) = log(Pi / P(i-1))
+ */
+export class LogReturnExtension extends IndicatorExtension {
+    private uid: string;
+    private accessor: (c: Candlestick) => number|undefined;
+
+    /**
+     * Creates extension
+     * @param fieldName Name of the field to use
+     */
+    constructor (accessor: (c: Candlestick) => number|undefined) {
+        super();
+        this.accessor = accessor;
+        this.uid = UidUtils.NEWUID();
+    }
+
+    public get amountRequires(): number {
+        return 2;
+    }
+
+    public get uname(): string {
+        return 'logreturn' + this.uid;
+    }
+
+    public extend(line: FixedSizeArray<Candlestick>): void {
+        if (line.length < 2) {
+            return;
+        }
+
+        const current = line.getItem(line.length - 1); // last is current
+        const prev = line.getItem(line.length - 2); // Take previous;
+        const curValue = this.accessor(current);
+        const prevValue = this.accessor(prev);
+
+        if (curValue && prevValue) {
+            current.ext['logreturn_' + this.uid] = Math.log(curValue / prevValue);
+            //current.ext['logreturn_' + this.uid] = (curValue - prevValue) / prevValue;
+        }
+    }
+
+    public value(c: Candlestick): number|undefined {
+        return (c && c.ext) ? c.ext['logreturn_' + this.uid] : undefined;
+    }
 }

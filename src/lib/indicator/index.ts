@@ -35,6 +35,7 @@ import { FastStochasticOscillator, OBOSOscillator, SlowStochasticOscillator, Sto
 import { TEMAIndicator } from './TEMAIndicator';
 import { TMAIndicator } from './TMAIndicator';
 import { TPIndicator } from './TPIndicator';
+import { VOLAIndicator } from './VOLAIndicator';
 import { WMAIndicator } from './WMAIndicator';
 
 export {
@@ -74,5 +75,6 @@ export {
     TEMAIndicator,
     TMAIndicator,
     TPIndicator,
+    VOLAIndicator,
     WMAIndicator
 };

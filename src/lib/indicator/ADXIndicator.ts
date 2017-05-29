@@ -15,7 +15,7 @@ import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { DMICandlestick, DMIIndicator } from './DMIIndicator';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -46,8 +46,8 @@ export class ADXIndicator extends DMIIndicator {
 
     private adxma: IMovingAverageStrategy;
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(source, context);
         this.name = 'ADX';
 
         this.adxma = MovingAverageFactory.instance.create(MovingAverageType.ADX);

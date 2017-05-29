@@ -11,7 +11,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -30,8 +30,8 @@ export class CCIOscillator extends SimpleIndicator<CCICandlestick> {
     private ma: IMovingAverageStrategy;
     private ext: GainLossExtension;
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(CCICandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(CCICandlestick, source, context);
         this.name = 'CCI';
 
         this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.hlc3); // by default use typical price

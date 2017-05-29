@@ -220,7 +220,12 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private insertIndicator(uid: string, indicatorType: string, index: number) {
         // Create indicator
         //
-        const indicatorDataSource = IndicatorFabric.instance.instantiate(indicatorType, this.primaryDataSource, this.addInterval);
+        const context = {
+            addInterval: this.addInterval,
+            interval: (): TimeInterval => { return this.timeAxis.interval; }
+        };
+
+        const indicatorDataSource = IndicatorFabric.instance.instantiate(indicatorType, this.primaryDataSource, context);
         this.indicators[uid] = indicatorDataSource;
         indicatorDataSource.dataChanged.on(this.onDataChanged);
 

@@ -72,6 +72,7 @@ indicator.register('SMA', indicator.SMAIndicator);
 indicator.register('SMMA', indicator.SMMAIndicator);
 indicator.register('TEMA', indicator.TEMAIndicator);
 indicator.register('TMA', indicator.TMAIndicator);
+indicator.register('VOLA', indicator.VOLAIndicator);
 indicator.register('WMA', indicator.WMAIndicator);
 
 // Register built-in renderers
@@ -109,6 +110,7 @@ render.RenderLocator.Instance.register('PCR', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('MD', render.LinestickChartRenderer);
 render.RenderLocator.Instance.register('MACD', indicator.MACDIndicatorRenderer);
 render.RenderLocator.Instance.register('ST', indicator.STIndicatorRenderer);
+render.RenderLocator.Instance.register('VOLA', render.LinestickChartRenderer);
 
 const lychart = {
     // types:

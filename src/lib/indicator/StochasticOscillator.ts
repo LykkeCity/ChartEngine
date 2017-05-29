@@ -10,7 +10,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -47,8 +47,8 @@ export class FastStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
     private ma: IMovingAverageStrategy;
     private extsettings: FastStochasticSettings = new FastStochasticSettings();
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(DoubleCandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(DoubleCandlestick, source, context);
         this.name = 'FSTOC';
 
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
@@ -131,8 +131,8 @@ export class SlowStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
     private ma: IMovingAverageStrategy;
     private extsettings: SlowStochasticSettings = new SlowStochasticSettings();
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(DoubleCandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(DoubleCandlestick, source, context);
         this.name = 'SSTOC';
 
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
@@ -226,8 +226,8 @@ export class OBOSOscillator extends SimpleIndicator<DoubleCandlestick> {
 
     private ma: IMovingAverageStrategy;
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(DoubleCandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(DoubleCandlestick, source, context);
         this.name = 'OBOS';
 
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);

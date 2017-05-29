@@ -10,7 +10,7 @@ import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
+import { IContext, IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -27,10 +27,10 @@ export class MDCandlestick extends CandlestickExt {
 export class MDIndicator extends SimpleIndicator<MDCandlestick> {
 
     private ema: IMovingAverageStrategy;
-    private extsettings: DSSBRSettings = new DSSBRSettings();
+    private extsettings: MDSettings = new MDSettings();
 
-    constructor (source: IDataSource<Candlestick>, addInterval: (date: Date) => Date) {
-        super(MDCandlestick, source, addInterval);
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(MDCandlestick, source, context);
         this.name = 'MD';
 
         this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
@@ -128,7 +128,7 @@ export class MDIndicator extends SimpleIndicator<MDCandlestick> {
     }
 }
 
-class DSSBRSettings {
+class MDSettings {
     public period1: number = 14;    // smoothing period 1
     public period2: number = 3;     // smoothing period 2
     public period3: number = 3;     // smoothing period 3
