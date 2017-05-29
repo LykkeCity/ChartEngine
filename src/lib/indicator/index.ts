@@ -22,6 +22,7 @@ import { MACDIndicator, MACDIndicatorRenderer } from './MACDIndicator';
 import { MDIndicator } from './MDIndicator';
 import { MOMIndicator } from './MOMIndicator';
 import { PCROscillator } from './PCROscillator';
+import { PSARIndicator, PSARIndicatorRenderer } from './PSARIndicator';
 import { RBIndicator, RBIndicatorRenderer } from './RBIndicator';
 import { ROCIndicator } from './ROCIndicator';
 import { RSIOscillator } from './RSIOscillator';
@@ -59,6 +60,7 @@ export {
     MDIndicator,
     MOMIndicator,
     PCROscillator,
+    PSARIndicator, PSARIndicatorRenderer,
     RBIndicator, RBIndicatorRenderer,
     register,
     ROCIndicator,

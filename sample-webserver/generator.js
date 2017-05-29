@@ -30,8 +30,8 @@ module.exports = {
                 var high = Math.max(r1, r2, isNaN(close) ? -Infinity : close);
                 var open = isNaN(close) ? low + Math.floor(Math.random() * (high - low + 1)) : close;
                 close = low + Math.floor(Math.random() * (high - low + 1));
-                c.h = high / 10000.0;
-                c.l = low / 10000.0;
+                c.h = random(Math.max(open, close), high) / 10000.0;
+                c.l = random(low, Math.min(open, close)) / 10000.0;
                 c.o = open / 10000.0;
                 c.c = close / 10000.0;
                 c.v = Math.random() * 1000;
@@ -53,3 +53,6 @@ module.exports = {
     }
 }
 
+function random(minInclusive, maxInclusive) {
+    return Math.min(minInclusive, maxInclusive) + Math.random() * Math.abs(maxInclusive - minInclusive);
+}
