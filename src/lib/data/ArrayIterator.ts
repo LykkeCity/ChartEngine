@@ -19,7 +19,6 @@ export class ArrayIterator<T> implements IDataIterator<T> {
 
     public reset(): void {
         this.currentIndex = -1;
-
         this.timestamp = this.dataSnapshot.timestamp;
     }
 
@@ -37,15 +36,25 @@ export class ArrayIterator<T> implements IDataIterator<T> {
         return false;
     }
 
-    // public goTo(uid: Uid): boolean {
-    //     this.goToConditional(item => {
-    //     });
-    // }
+    // TODO: Fix for case when filter is defined
+    /**
+     * Moves iterator while condition is met. Stays on the last element that satisfy condition.
+     * Starts from beginning.
+     * @param predicate 
+     */
+    public goWhile(predicate: (item: T) => boolean): boolean {
+        this.reset();
 
-    // public moveTo(uid: Uid): boolean {
+        let nextIndex = 0;
+        while (nextIndex < this.dataSnapshot.data.length
+               && predicate(this.dataSnapshot.data[nextIndex])) {
 
-    // }
+            this.currentIndex = nextIndex;
+            nextIndex += 1;
+        }
 
+        return (this.currentIndex >= 0 && this.currentIndex < this.dataSnapshot.data.length);
+    }
 
     /**
      * Moves pointer from current position untill condition is met.
@@ -53,12 +62,15 @@ export class ArrayIterator<T> implements IDataIterator<T> {
      */
     public moveTo(predicate: (item: T) => boolean): number {
         let countMoves = 0;
-        while (this.moveNext()) {
-            countMoves += 1;
+
+        // First check current element:
+        do {
             if (predicate(this.current)) {
                 return countMoves;
             }
-        }
+            countMoves += 1;
+        } while (this.moveNext());
+
         return -1;
     }
 

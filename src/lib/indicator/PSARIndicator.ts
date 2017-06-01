@@ -105,7 +105,7 @@ export class PSARIndicator extends SimpleIndicator<PSARCandlestick> {
                     throw new Error('Undefined trend.');
                 }
 
-                // 2. Correct SAR
+                // 2. Correct SAR. SAR can't get inside or beyound previous (2) range.
                 //
                 if (sourcePrev !== undefined && sourcePrev.h !== undefined && sourcePrev.l !== undefined) {
                     if ( trend === Trend.Up && SAR > sourcePrev.l ) { // SAR in prev range or beyond
@@ -130,7 +130,7 @@ export class PSARIndicator extends SimpleIndicator<PSARCandlestick> {
                     computed.trend = trend;
                     computed.SAR = SAR;
                     computed.EP = trend === Trend.Up ? Math.max(EP, sourceCur.h) : Math.min(EP, sourceCur.l);
-                    // Increment "a" if new highest high or lowest low
+                    // Increment "a" if new highest high or lowest low. If HH / LL is not changed, do not increment "a".
                     computed.a = (computed.EP !== EP) ? Math.min(a + increment, maxFactor) : a;
                 }
 

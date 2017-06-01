@@ -13,6 +13,7 @@ import { DataChangedArgument } from './DataChangedEvent';
 export interface IDataSource<T> extends IDisposable, IConfigurable {
     dataType: { new(d: Date): T };
     dataChanged: IEvent<DataChangedArgument>;
+    asset: string;
     name: string;
 
     /**
@@ -57,7 +58,8 @@ export interface IDataIterator<T> {
 
     goToLast(): boolean;
 
-    //goTo(uid: Uid): boolean;
+    goWhile(predicate: (item: T) => boolean): boolean;
+
     /**
      * Moves pointer forward untill condition is met.
      * Returns count of moves done. Or -1 if could not find element.

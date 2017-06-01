@@ -320,8 +320,8 @@ export class HttpDataSource extends DataSource {
             // Map incoming data to model
             //
             const objects = response.data
-                .filter((el: ITimeValue) => { return el && el.date; })
-                .map((el: ITimeValue) => {
+                .filter((el: any) => { return el && el.date; })
+                .map((el: any) => {
                         const date = new Date(el.date);
                         const obj: Candlestick = new this.dataType(date);
                         (<any>obj).deserialize(el);

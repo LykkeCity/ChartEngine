@@ -3,6 +3,7 @@
  */
 import { Candlestick, Uid } from '../model/index';
 import { FixedSizeArray, IRange } from '../shared/index';
+import { TimeInterval } from './Enums';
 import { SettingSet } from './SettingSet';
 
 export interface ITimeAxis {
@@ -53,6 +54,10 @@ export interface IMouse {
     y: number;
     isDown: boolean;
     isEntered: boolean;
+}
+
+export interface IDataService {
+    getCandle: (asset: string, date: Date, interval: TimeInterval) => Promise<Candlestick>;
 }
 
 export interface IStorage {

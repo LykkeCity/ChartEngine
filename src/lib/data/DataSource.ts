@@ -43,6 +43,14 @@ export abstract class DataSource implements IDataSource<Candlestick> {
         return this._dataType;
     }
 
+    private _asset: string = '';
+    public get asset(): string {
+        return this._asset;
+    }
+    public set asset(value: string) {
+        this._asset = value;
+    }
+
     private _name: string = '';
     public get name(): string {
         return this._name;

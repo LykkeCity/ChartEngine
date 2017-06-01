@@ -3,7 +3,7 @@
  * 
  * @classdesc Facade for the chart library.
  */
-import { ChartType, IQuicktip, IQuicktipBuilder, IStorage, Mouse, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { ChartType, IDataService, IQuicktip, IQuicktipBuilder, IStorage, Mouse, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, DataSourceFactory, IDataSource } from '../data/index';
 import { IndicatorDataSource, IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
@@ -45,6 +45,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
     private state: IStateController;
     private storage: Storage;
+    private dataService?: IDataService;
     protected timeRange: IRange<Date>;
 
     constructor(
@@ -54,12 +55,14 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         w: number,
         h: number,
         interval: TimeInterval,
-        storage?: IStorage
+        storage?: IStorage,
+        dataService?: IDataService
     ) {
         super({ x: offsetLeft, y: offsetTop}, { width: Math.max(w, 100), height: Math.max(h, 50)});
 
         const N = 5;
         this.storage = new Storage(storage);
+        this.dataService = dataService;
         this.area = new BoardArea(container, this._size);
 
         const start = new Date();
@@ -220,9 +223,18 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private insertIndicator(uid: string, indicatorType: string, index: number) {
         // Create indicator
         //
+        const dataService = this.dataService;
+        const render = this.render;
         const context = {
             addInterval: this.addInterval,
-            interval: (): TimeInterval => { return this.timeAxis.interval; }
+            interval: (): TimeInterval => { return this.timeAxis.interval; },
+            getCandle: (asset: string, date: Date, interval: TimeInterval) => {
+                if (dataService) { return dataService.getCandle(asset, date, interval); }
+                return new Promise<Candlestick>(resolve => {
+                    resolve(undefined);
+                });
+            },
+            render: () => { render(); }
         };
 
         const indicatorDataSource = IndicatorFabric.instance.instantiate(indicatorType, this.primaryDataSource, context);

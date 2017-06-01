@@ -10,6 +10,8 @@ import { IRect } from '../shared/index';
 export interface IContext {
     interval(): TimeInterval;
     addInterval: (date: Date, times: number) => Date;
+    getCandle: (asset: string, baseDate: Date, interval: TimeInterval) => Promise<Candlestick>;
+    render: () => void;
 }
 
 export interface IIndicator {

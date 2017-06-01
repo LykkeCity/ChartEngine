@@ -11,6 +11,7 @@ import {
     IDataSource } from '../data/index';
 import { Candlestick, ITimeValue, IUidValue, Uid } from '../model/index';
 import { IRange } from '../shared/index';
+import { DateUtils } from '../utils/index';
 import { IContext, IIndicator } from './Interfaces';
 
 /**

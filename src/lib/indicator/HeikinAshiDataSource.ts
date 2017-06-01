@@ -10,7 +10,9 @@ import { IndicatorDataSource } from './IndicatorDataSource';
 
 const context = {
     interval: () => TimeInterval.notSet,
-    addInterval: (d: Date): Date => { return d; }
+    addInterval: (d: Date): Date => { return d; },
+    getCandle: (asset: string, date: Date, interval: TimeInterval) => { throw new Error('not implemented'); },
+    render: () => { throw new Error('not implemented'); }
 };
 
 export class HeikinAshiDataSource extends IndicatorDataSource<Candlestick> {
