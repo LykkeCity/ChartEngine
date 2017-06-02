@@ -100,15 +100,15 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         return this.chartStacks.slice();
     }
 
-    public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
-        // TODO: Store original datasource
-        dataSource = DataSourceFactory.CREATE(chartType, dataSource, this.timeRange);
+    // public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
+    //     // TODO: Store original datasource
+    //     dataSource = DataSourceFactory.CREATE(chartType, dataSource, this.timeRange);
 
-        this.insertChart(uid, name, chartType, dataSource);
+    //     this.insertChart(uid, name, chartType, dataSource);
 
-        // re-render charts
-        this.render();
-    }
+    //     // re-render charts
+    //     this.render();
+    // }
 
     private insertChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
 
@@ -118,11 +118,12 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.chartStacks[0].addChart(uid, name, chartType, dataSource);
     }
 
-    private removeChart(uid: string) {
+    private deleteChart(uid: string) {
         // get data source
         const dataSource = this.dataSources[uid];
         if (dataSource) {
             dataSource.dataChanged.off(this.onDataChanged);
+            // TODO: Chart can be not only on first stack
             this.chartStacks[0].removeChart(uid);
         }
         // // re-render charts
@@ -134,7 +135,6 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.originalDataSource = dataSource;
         this.originalName = name;
 
-        // TODO: Store original datasource
         dataSource = DataSourceFactory.CREATE(chartType, dataSource, this.timeRange);
 
         this.timeAxis.setDataSource(dataSource);
@@ -145,7 +145,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         }
 
         // replace primary data source
-        this.removeChart('primary-data-source');
+        this.deleteChart('primary-data-source');
         this.insertChart<Candlestick>('primary-data-source', name, chartType, dataSource);
         this.primaryDataSource = dataSource;
 

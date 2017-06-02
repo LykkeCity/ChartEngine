@@ -28,9 +28,15 @@
         fieldset {
             padding: 1px;
             display: inline-block;
-        }        
+        }      
+
+        .select2-selection__rendered {
+            height: 25px;
+        }
     </style>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
 </head>
 <body>
 
@@ -68,84 +74,63 @@
                 </fieldset>
 
                 <fieldset>
-                    <legend>Figures: </legend>
-                    <button class="add-line">Line</button>&nbsp;
-                    <button class="add-hline">H-Line</button>&nbsp;
+                    <legend>Compare: </legend>
+                    <select class="assetpair-compare"></select>
+                    <button class="add-compare">Add</button>
                 </fieldset>
 
                 <fieldset>
-                    <legend>Indicators: </legend>
-                    <label for="cbIndicatorAlligator">Alligator</label>
-                    <input type="checkbox" name="cbIndicatorAlligator" id="cbIndicatorAlligator">
-                    <label for="cbIndicatorBollinger">Bollinger</label>
-                    <input type="checkbox" name="cbIndicatorBollinger" id="cbIndicatorBollinger">
-                    <label for="cbIndicatorSSTOC">SSTOC</label>
-                    <input type="checkbox" name="cbIndicatorSSTOC" id="cbIndicatorSSTOC">
-                    <label for="cbIndicatorFSTOC">FSTOC</label>
-                    <input type="checkbox" name="cbIndicatorFSTOC" id="cbIndicatorFSTOC">
-                    <label for="cbIndicatorOBOS">OBOS</label>
-                    <input type="checkbox" name="cbIndicatorOBOS" id="cbIndicatorOBOS">
-                    <label for="cbIndicatorEMA">EMA</label>
-                    <input type="checkbox" name="cbIndicatorEMA" id="cbIndicatorEMA">
-                    <label for="cbIndicatorDEMA">DEMA</label>
-                    <input type="checkbox" name="cbIndicatorDEMA" id="cbIndicatorDEMA">                    
-                    <label for="cbIndicatorTEMA">TEMA</label>
-                    <input type="checkbox" name="cbIndicatorTEMA" id="cbIndicatorTEMA">                    
-                    <label for="cbIndicatorSMA">SMA</label>
-                    <input type="checkbox" name="cbIndicatorSMA" id="cbIndicatorSMA">
-                    <label for="cbIndicatorSMMA">SMMA</label>
-                    <input type="checkbox" name="cbIndicatorSMMA" id="cbIndicatorSMMA">
-                    <label for="cbIndicatorTMA">TMA</label>
-                    <input type="checkbox" name="cbIndicatorTMA" id="cbIndicatorTMA">
-                    <label for="cbIndicatorWMA">WMA</label>
-                    <input type="checkbox" name="cbIndicatorWMA" id="cbIndicatorWMA">
-                    <label for="cbIndicatorATR">ATR</label>
-                    <input type="checkbox" name="cbIndicatorATR" id="cbIndicatorATR">
-                    <label for="cbIndicatorADX">ADX</label>
-                    <input type="checkbox" name="cbIndicatorADX" id="cbIndicatorADX">                    
-                    <label for="cbIndicatorDMI">DMI</label>
-                    <input type="checkbox" name="cbIndicatorDMI" id="cbIndicatorDMI">                    
-                    <label for="cbIndicatorARO">ARO</label>
-                    <input type="checkbox" name="cbIndicatorARO" id="cbIndicatorARO">                    
-                    <label for="cbIndicatorAOS">AOS</label>
-                    <input type="checkbox" name="cbIndicatorAOS" id="cbIndicatorAOS">                    
-                    <label for="cbIndicatorHHLL">HHLL</label>
-                    <input type="checkbox" name="cbIndicatorHHLL" id="cbIndicatorHHLL">     
-                    <label for="cbIndicatorRB">RB</label>
-                    <input type="checkbox" name="cbIndicatorRB" id="cbIndicatorRB">     
-                    <label for="cbIndicatorSTDEV">STDEV</label>
-                    <input type="checkbox" name="cbIndicatorSTDEV" id="cbIndicatorSTDEV">     
-                    <label for="cbIndicatorTP">TP</label>
-                    <input type="checkbox" name="cbIndicatorTP" id="cbIndicatorTP">     
-                    <label for="cbIndicatorRSI">RSI</label>
-                    <input type="checkbox" name="cbIndicatorRSI" id="cbIndicatorRSI">
-                    <label for="cbIndicatorMOM">MOM</label>
-                    <input type="checkbox" name="cbIndicatorMOM" id="cbIndicatorMOM">
-                    <label for="cbIndicatorROC">ROC</label>
-                    <input type="checkbox" name="cbIndicatorROC" id="cbIndicatorROC">
-                    <label for="cbIndicatorDIX">DIX</label>
-                    <input type="checkbox" name="cbIndicatorDIX" id="cbIndicatorDIX">
-                    <label for="cbIndicatorDSSBR">DSSBR</label>
-                    <input type="checkbox" name="cbIndicatorDSSBR" id="cbIndicatorDSSBR">
-                    <label for="cbIndicatorPCR">PCR</label>
-                    <input type="checkbox" name="cbIndicatorPCR" id="cbIndicatorPCR">
-                    <label for="cbIndicatorMD">MD</label>
-                    <input type="checkbox" name="cbIndicatorMD" id="cbIndicatorMD">
-                    <label for="cbIndicatorCCI">CCI</label>
-                    <input type="checkbox" name="cbIndicatorCCI" id="cbIndicatorCCI">
-                    <label for="cbIndicatorMACD">MACD</label>
-                    <input type="checkbox" name="cbIndicatorMACD" id="cbIndicatorMACD">
-                    <label for="cbIndicatorRSL">RSL</label>
-                    <input type="checkbox" name="cbIndicatorRSL" id="cbIndicatorRSL">
-                    <label for="cbIndicatorST">ST</label>
-                    <input type="checkbox" name="cbIndicatorST" id="cbIndicatorST">
-                    <label for="cbIndicatorIKH">IKH</label>
-                    <input type="checkbox" name="cbIndicatorIKH" id="cbIndicatorIKH">
-                    <label for="cbIndicatorPSAR">PSAR</label>
-                    <input type="checkbox" name="cbIndicatorPSAR" id="cbIndicatorPSAR">
-                    <label for="cbIndicatorVOLA">VOLA</label>
-                    <input type="checkbox" name="cbIndicatorVOLA" id="cbIndicatorVOLA">
+                    <legend>Figures: </legend>
+                    <button class="add-line">Line</button>&nbsp;
+                    <button class="add-hline">H-Line</button>
                 </fieldset>
+
+                    <span>Indicators: </span>
+
+                    <select id="sel-indicators" multiple="multiple" style="width: 200px; height: 25px;">
+                        <!-- AVERAGES -->
+                        <option value="DEMA_0">DEMA</option>
+                        <option value="EMA_0">EMA</option>
+                        <option value="SMA_0">SMA</option>
+                        <option value="SMMA_0">SMMA</option>
+                        <option value="TEMA_0">TEMA</option>
+                        <option value="TMA_0">TMA</option>
+                        <option value="WMA_0">WMA</option>
+
+                        <!-- MISC -->
+                        <option value="ADX_1">ADX</option>
+                        <option value="ARO_1">ARO</option>
+                        <option value="ATR">ATR</option>
+                        <option value="bollinger_0">BB</option>
+                        <option value="DMI_1">DMI</option>
+                        <option value="HHLL_0">HHLL</option>
+                        <option value="RB_0">RB</option>
+                        <option value="STDEV_1">STDEV</option>
+                        <option value="TP_0">TP</option>
+                        <option value="MD_1">MD</option>
+                        <option value="ST_0">ST</option>
+                        <option value="IKH_0">IKH</option>
+                        <option value="PSAR_0">PSAR</option>
+                        <option value="PP_0">PP</option>
+                        <option value="VOLA_1">VOLA</option>
+
+                        <!-- OSCILLATORS -->
+                        <option value="AOS_1">AOS</option>
+                        <option value="DIX_1">DIX</option>
+                        <option value="DSSBR_1">DSSBR</option>
+                        <option value="OBOS_1">OBOS</option>
+                        <option value="PCR_1">PCR</option>
+                        <option value="MOM_1">MOM</option>
+                        <option value="ROC_1">ROC</option>
+                        <option value="RSI_1">RSI</option>
+                        <option value="FSTOC_1">FSTOC</option>
+                        <option value="SSTOC_1">SSTOC</option>
+
+                        <!-- TREND FOLLOWING -->
+                        <option value="CCI_1">CCI</option>
+                        <option value="MACD_1">MACD</option>
+                        <option value="RSL_1">RSL</option>
+                    </select>
             </div>
             <div class="chart-container">
             </div>

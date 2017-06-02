@@ -231,36 +231,6 @@ export class STIndicatorRenderer implements IChartRender<Candlestick> {
                 }
             }
         }
-
-        //canvas.stroke();
-
-        // canvas.beginPath();
-        // canvas.setStrokeStyle('#1016FF');
-        // // Jaw
-        // RenderUtils.renderLineChart(canvas, data, item => {
-        //     if (item instanceof STCandlestick) {
-        //         const st = <STCandlestick>item;
-        //         if (st && st.trendUp !== undefined) {
-        //             const value = st.trendUp;
-        //             return { uid: item.uid, v: value };
-        //         }
-        //     }
-        // }, frame, timeAxis, yAxis);
-        // canvas.stroke();
-
-        // canvas.beginPath();
-        // canvas.setStrokeStyle('#FF4753');
-        // // Jaw
-        // RenderUtils.renderLineChart(canvas, data, item => {
-        //     if (item instanceof STCandlestick) {
-        //         const st = <STCandlestick>item;
-        //         if (st && st.trendDown !== undefined) {
-        //             const value = st.trendDown;
-        //             return { uid: item.uid, v: value };
-        //         }
-        //     }
-        // }, frame, timeAxis, yAxis);
-        // canvas.stroke();
     }
 
     public testHitArea(

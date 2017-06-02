@@ -5,6 +5,7 @@ import * as lychart from '../../src/lychart';
 import ChartBoard = lychart.ChartBoard;
 import Candlestick = lychart.model.Candlestick;
 import Uid = lychart.model.Uid;
+import DateUtils = lychart.utils.DateUtils;
 import { Asset } from './Asset';
 import { Settings } from './Settings';
 import { Utils } from './Utils';
@@ -15,7 +16,7 @@ import { FormTree, ItemSelectedArg } from './FormTree';
 /**
  * Creates and handles one chart and its controls.
  */
-export class ChartController {
+export class ChartController implements lychart.core.IDataService {
     private readonly autoupdatePeriod = 10; // In seconds
     private autoupdateTimer?: number;
     private board: ChartBoard;
@@ -25,7 +26,7 @@ export class ChartController {
     private selectedAsset: string;
     private storage = new Storage();
     private readonly uid: string = '1';
-
+    private indicators: string[] = [];
     private tree: FormTree;
     private props: FormProps;
 
@@ -36,7 +37,7 @@ export class ChartController {
 
         // Create chart
         const chartContainer = <HTMLElement>container.getElementsByClassName('chart-container')[0];
-        this.board = new ChartBoard(chartContainer, offsetLeft, offsetTop, 200, 200, lychart.core.TimeInterval.min, this.storage);
+        this.board = new ChartBoard(chartContainer, offsetLeft, offsetTop, 200, 200, lychart.core.TimeInterval.min, this.storage, this);
 
         // Set up controls
         //
@@ -44,50 +45,17 @@ export class ChartController {
         // init <select>
         $.each(assets, (i, item) => {
             $('.assetpair', this.container).append($('<option></option>').val(item.id).html(item.name));
+            $('.assetpair-compare', this.container).append($('<option></option>').val(item.id).html(item.name));
         });
         $('.assetpair', this.container).val(selectedAsset); // select default value
 
         // Hook up event handlers
+        $('.add-compare', container).click(this.onAddCompare);
         $('.add-line', container).click(this.onAddLine);
         $('.add-hline', container).click(this.onAddHLine);
 
-        $('#cbIndicatorAlligator').change(
-            () => { this.changeIndicator('101', 'alligator', 0, $('#cbIndicatorAlligator').is(':checked')); });
-        $('#cbIndicatorBollinger').change(
-            () => { this.changeIndicator('102', 'bollinger', 0, $('#cbIndicatorBollinger').is(':checked')); });
-        $('#cbIndicatorFSTOC').change(() => { this.changeIndicator('1031', 'FSTOC', 1, $('#cbIndicatorFSTOC').is(':checked')); });
-        $('#cbIndicatorSSTOC').change(() => { this.changeIndicator('1032', 'SSTOC', 1, $('#cbIndicatorSSTOC').is(':checked')); });
-        $('#cbIndicatorSMA').change(() => { this.changeIndicator('104', 'SMA', 0, $('#cbIndicatorSMA').is(':checked')); });
-        $('#cbIndicatorSMMA').change(() => { this.changeIndicator('105', 'SMMA', 0, $('#cbIndicatorSMMA').is(':checked')); });
-        $('#cbIndicatorWMA').change(() => { this.changeIndicator('106', 'WMA', 0, $('#cbIndicatorWMA').is(':checked')); });
-        $('#cbIndicatorEMA').change(() => { this.changeIndicator('107', 'EMA', 0, $('#cbIndicatorEMA').is(':checked')); });
-        $('#cbIndicatorDEMA').change(() => { this.changeIndicator('108', 'DEMA', 0, $('#cbIndicatorDEMA').is(':checked')); });
-        $('#cbIndicatorTMA').change(() => { this.changeIndicator('109', 'TMA', 0, $('#cbIndicatorTMA').is(':checked')); });
-        $('#cbIndicatorTEMA').change(() => { this.changeIndicator('110', 'TEMA', 0, $('#cbIndicatorTEMA').is(':checked')); });
-        $('#cbIndicatorATR').change(() => { this.changeIndicator('111', 'ATR', 0, $('#cbIndicatorATR').is(':checked')); });
-        $('#cbIndicatorADX').change(() => { this.changeIndicator('112', 'ADX', 1, $('#cbIndicatorADX').is(':checked')); });
-        $('#cbIndicatorDMI').change(() => { this.changeIndicator('113', 'DMI', 1, $('#cbIndicatorDMI').is(':checked')); });
-        $('#cbIndicatorARO').change(() => { this.changeIndicator('1141', 'ARO', 1, $('#cbIndicatorARO').is(':checked')); });
-        $('#cbIndicatorAOS').change(() => { this.changeIndicator('1142', 'AOS', 1, $('#cbIndicatorAOS').is(':checked')); });
-        $('#cbIndicatorHHLL').change(() => { this.changeIndicator('115', 'HHLL', 0, $('#cbIndicatorHHLL').is(':checked')); });
-        $('#cbIndicatorRB').change(() => { this.changeIndicator('116', 'RB', 0, $('#cbIndicatorRB').is(':checked')); });
-        $('#cbIndicatorSTDEV').change(() => { this.changeIndicator('117', 'STDEV', 1, $('#cbIndicatorSTDEV').is(':checked')); });
-        $('#cbIndicatorTP').change(() => { this.changeIndicator('118', 'TP', 0, $('#cbIndicatorTP').is(':checked')); });
-        $('#cbIndicatorRSI').change(() => { this.changeIndicator('119', 'RSI', 1, $('#cbIndicatorRSI').is(':checked')); });
-        $('#cbIndicatorMOM').change(() => { this.changeIndicator('120', 'MOM', 1, $('#cbIndicatorMOM').is(':checked')); });
-        $('#cbIndicatorROC').change(() => { this.changeIndicator('121', 'ROC', 1, $('#cbIndicatorROC').is(':checked')); });
-        $('#cbIndicatorOBOS').change(() => { this.changeIndicator('122', 'OBOS', 1, $('#cbIndicatorOBOS').is(':checked')); });
-        $('#cbIndicatorDIX').change(() => { this.changeIndicator('123', 'DIX', 1, $('#cbIndicatorDIX').is(':checked')); });
-        $('#cbIndicatorDSSBR').change(() => { this.changeIndicator('124', 'DSSBR', 1, $('#cbIndicatorDSSBR').is(':checked')); });
-        $('#cbIndicatorPCR').change(() => { this.changeIndicator('125', 'PCR', 1, $('#cbIndicatorPCR').is(':checked')); });
-        $('#cbIndicatorMD').change(() => { this.changeIndicator('126', 'MD', 1, $('#cbIndicatorMD').is(':checked')); });
-        $('#cbIndicatorCCI').change(() => { this.changeIndicator('127', 'CCI', 1, $('#cbIndicatorCCI').is(':checked')); });
-        $('#cbIndicatorMACD').change(() => { this.changeIndicator('128', 'MACD', 1, $('#cbIndicatorMACD').is(':checked')); });
-        $('#cbIndicatorRSL').change(() => { this.changeIndicator('129', 'RSL', 1, $('#cbIndicatorRSL').is(':checked')); });
-        $('#cbIndicatorST').change(() => { this.changeIndicator('130', 'ST', 0, $('#cbIndicatorST').is(':checked')); });
-        $('#cbIndicatorIKH').change(() => { this.changeIndicator('131', 'IKH', 0, $('#cbIndicatorIKH').is(':checked')); });
-        $('#cbIndicatorPSAR').change(() => { this.changeIndicator('132', 'PSAR', 0, $('#cbIndicatorPSAR').is(':checked')); });
-        $('#cbIndicatorVOLA').change(() => { this.changeIndicator('133', 'VOLA', 1, $('#cbIndicatorVOLA').is(':checked')); });
+        const $sel = $('#sel-indicators').select2({ theme: 'classic' });
+        $sel.on('change', this.onIndicatorsChange);
 
         $('.assetpair', this.container).change(this.updateChart);
         $('.timeinterval', this.container).change(this.updateChart);
@@ -112,6 +80,22 @@ export class ChartController {
         }
         this.tree.update();
         this.board.render();
+    }
+
+    private onIndicatorsChange = () => {
+        const $sel = $('#sel-indicators');
+        const selected: string[] = $sel.val();
+        const added = selected ? selected.filter(item => !this.indicators.some(existing => existing === item)) : [];
+        const removed = selected ? this.indicators.filter(existing => !selected.some(sel => sel === existing)) : this.indicators;
+        added.forEach(indicator => {
+            const splits = indicator.split('_');
+            this.changeIndicator(splits[0], splits[0], parseInt(splits[1], 10), true);
+        });
+        removed.forEach(indicator => {
+            const splits = indicator.split('_');
+            this.changeIndicator(splits[0], splits[0], parseInt(splits[1], 10), false);
+        });
+        this.indicators = selected ? selected : [];
     }
 
     private onItemSelected = (arg: ItemSelectedArg) => {
@@ -196,12 +180,27 @@ export class ChartController {
         return $('.charttype option:selected', this.container).val();
     }
 
+    private onAddCompare = (evt: JQueryEventObject) => {
+        
+    }
+
     private onAddLine = (evt: JQueryEventObject) => {
         this.board.drawing.start('line');
     }
 
     private onAddHLine = (evt: JQueryEventObject) => {
         this.board.drawing.start('horizon-line');
+    }
+
+    public getCandle(asset: string, date: Date, interval: lychart.core.TimeInterval): Promise<Candlestick> {
+
+        return new Promise<Candlestick>(resolve => {
+            this.readData(date, DateUtils.addInterval(date, interval), interval)
+            .then((response: any) => { return this.resolveData(response); })
+            .then((resolved: lychart.data.IResponse<lychart.model.Candlestick>) => {
+                resolve(resolved.data.length > 0 ? resolved.data[0] : undefined);
+            });
+        });
     }
 
     private readData = (timeStart: Date, timeEnd: Date, interval: lychart.core.TimeInterval) => {
@@ -277,6 +276,7 @@ export class ChartController {
                 resolveData: this.resolveData,
                 timeInterval: timeInterval
             });
+        this.dataSource.asset = assetPairId;
 
         this.board.setTimeInterval(timeInterval);
         this.board.setDataSource(assetPairId,
