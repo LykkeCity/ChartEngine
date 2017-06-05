@@ -34,7 +34,6 @@ export class PriceAxisComponent extends VisualComponent {
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
         if (context.renderBase) {
-            //const canvas = context.getCanvas(this.target);
             const render = <IAxesRender<number>>renderLocator.getAxesRender('price');
             render.render(this.area.baseCanvas, this.axis, { x: this.offset.x, y: this.offset.y, w: this.size.width, h: this.size.height});
         }

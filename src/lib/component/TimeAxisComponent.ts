@@ -10,6 +10,7 @@ export class TimeAxisComponent extends VisualComponent {
 
     private readonly tAxis: ITimeAxis;
     private readonly area: XArea;
+    private readonly marker: TimeMarker;
 
     constructor(
         area: BoardArea,
@@ -23,12 +24,13 @@ export class TimeAxisComponent extends VisualComponent {
 
         this._size = this.area.size;
 
-        const timeMarker = new TimeMarker(this.area, this.offset, this.size, timeAxis);
-        this.addChild(timeMarker);
+        this.marker = new TimeMarker(this.area, this.offset, this.size, timeAxis);
+        this.addChild(this.marker);
     }
 
     protected onresize = (arg: SizeChangedArgument) => {
         this._size = arg.size;
+        this.marker.resize(arg.size.width, arg.size.height);
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {

@@ -51,7 +51,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
 
         // create Y axis
         //
-        const p = { x: 0, y: 10 };
+        const p = { x: 0, y: 0 };
         const size = this.getAxisSize(this._size);
 
         if (yIsPrice) {

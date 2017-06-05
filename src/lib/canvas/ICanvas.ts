@@ -16,6 +16,7 @@ export interface ICanvas {
     beginPath(): void;
     clear(): void;
     closePath(): void;
+    drawImage(canvas: HTMLCanvasElement, offsetX: number, offsetY: number, width?: number, height?: number): void;
     fill(fillRule?: string): void;
     fillText(s: string, x: number, y: number): void;
     fillRect(x: number, y: number, w: number, h: number): void;

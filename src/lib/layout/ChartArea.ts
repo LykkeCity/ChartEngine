@@ -151,6 +151,11 @@ export class ChartArea extends Area {
         super.clearFront();
     }
 
+    public render() {
+        super.render();
+        this.yArea.render();
+    }
+
     public resize(w: number, h: number): void {
 
         // resize HTML elements

@@ -9,6 +9,7 @@ import { IDataIterator } from '../data/index';
 import { Candlestick } from '../model/index';
 import { IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
+import { RenderUtils } from './RenderUtils';
 
 export class RenkoChartRenderer implements IChartRender<Candlestick>  {
 
@@ -42,27 +43,9 @@ export class RenkoChartRenderer implements IChartRender<Candlestick>  {
 
         const candleW = this.calculateBodyWidth(timeAxis, frame.w);
 
-        let found = false;
-        timeAxis.reset();
-        while (timeAxis.moveNext()) {
-            const curUid = timeAxis.current;
-            const curTime = curUid.t.getTime();
-            const curn = curUid.n;
-            const x = timeAxis.currentX;
-
-            if (!found) {
-                found = dataIterator.goTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn);
-            } else {
-                found = dataIterator.moveTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn) !== -1;
-            }
-
-            if (found) {
-                const candle = dataIterator.current;
-
-                this.renderCandle(canvas, timeAxis, yAxis, candle, frame, candleW, x);
-            }
-        }
-
+        RenderUtils.iterate(timeAxis, dataIterator, (candle, x) => {
+            this.renderCandle(canvas, timeAxis, yAxis, candle, frame, candleW, x);
+        });
     }
 
     public testHitArea(

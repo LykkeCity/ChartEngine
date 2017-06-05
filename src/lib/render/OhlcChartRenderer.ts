@@ -4,12 +4,12 @@
  * @classdesc Renders specified data in a form of OHLC chart.
  */
 import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
-import { IAxis, IPoint, ITimeAxis } from '../core/index';
+import { IAxis, IPoint, ITimeAxis, SettingSet } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick } from '../model/index';
 import { IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
-import { SettingSet } from "../core/SettingSet";
+import { RenderUtils } from './RenderUtils';
 
 export class OhlcChartRenderer implements IChartRender<Candlestick>  {
 
@@ -27,26 +27,29 @@ export class OhlcChartRenderer implements IChartRender<Candlestick>  {
 
         const lineW = this.calculateLineWidth(timeAxis, frame.w);
 
-        let found = false;
-        timeAxis.reset();
-        while (timeAxis.moveNext()) {
-            const curUid = timeAxis.current;
-            const curTime = curUid.t.getTime();
-            const curn = curUid.n;
-            const x = timeAxis.currentX;
+        RenderUtils.iterate(timeAxis, dataIterator, (candle, x) => {
+            this.renderCandle(canvas, timeAxis, yAxis, candle, frame, lineW, x, dataIterator.previous);
+        });
 
-            if (!found) {
-                found = dataIterator.goTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn);
-            } else {
-                found = dataIterator.moveTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn) !== -1;
-            }
+        // let found = false;
+        // timeAxis.reset();
+        // while (timeAxis.moveNext()) {
+        //     const curUid = timeAxis.current;
+        //     const curTime = curUid.t.getTime();
+        //     const curn = curUid.n;
+        //     const x = timeAxis.currentX;
 
-            if (found) {
-                const candle = dataIterator.current;
+        //     if (!found) {
+        //         found = dataIterator.goTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn);
+        //     } else {
+        //         found = dataIterator.moveTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn) !== -1;
+        //     }
 
-                this.renderCandle(canvas, timeAxis, yAxis, candle, frame, lineW, x, dataIterator.previous);
-            }
-        }
+        //     if (found) {
+        //         const candle = dataIterator.current;
+        //         this.renderCandle(canvas, timeAxis, yAxis, candle, frame, lineW, x, dataIterator.previous);
+        //     }
+        // }
     }
 
     public testHitArea(

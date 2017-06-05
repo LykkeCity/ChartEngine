@@ -182,55 +182,92 @@ export class STIndicatorRenderer implements IChartRender<Candlestick> {
         let curItem: STCandlestick|undefined = undefined;
         let prevItem: STCandlestick|undefined = undefined;
 
-        timeAxis.reset();
-        while (timeAxis.moveNext()) {
-            const curUid = timeAxis.current;
-            const curTime = curUid.t.getTime();
-            const curn = curUid.n;
-            const x = timeAxis.currentX;
+        RenderUtils.iterate(timeAxis, data, (item, x) => {
 
-            if (!found) {
-                found = data.goTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn);
-            } else {
-                found = data.moveTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn) !== -1;
-            }
+            curItem = (item instanceof STCandlestick) ? <STCandlestick>item : undefined;
 
-            if (found) {
+            let cur = undefined;
+            if (curItem) {
+                const st = <STCandlestick>curItem;
+                if (st && st.c !== undefined) {
+                    cur = { uid: curItem.uid, v: st.c };
 
-                curItem = (data.current instanceof STCandlestick) ? <STCandlestick>data.current : undefined;
+                    const y = yAxis.toX(cur.v);
+                    curPoint = { x: x, y: y };
 
-                let cur = undefined;
-                if (curItem) {
-                    const st = <STCandlestick>curItem;
-                    if (st && st.c !== undefined) {
-                        cur = { uid: curItem.uid, v: st.c };
-
-                        const y = yAxis.toX(cur.v);
-                        curPoint = { x: x, y: y };
-
-                        if (prevItem) {
-                            if (curItem.trend === Type.Up && prevItem.trend === Type.Up) {
-                                canvas.setStrokeStyle('#56B50E');
-                            } else if (curItem.trend === Type.Down && prevItem.trend === Type.Down) {
-                                canvas.setStrokeStyle('#FF0000');
-                            } else {
-                                canvas.setStrokeStyle('#606060');
-                            }
+                    if (prevItem) {
+                        if (curItem.trend === Type.Up && prevItem.trend === Type.Up) {
+                            canvas.setStrokeStyle('#56B50E');
+                        } else if (curItem.trend === Type.Down && prevItem.trend === Type.Down) {
+                            canvas.setStrokeStyle('#FF0000');
+                        } else {
+                            canvas.setStrokeStyle('#606060');
                         }
-
-                        if (prevPoint) {
-                            canvas.beginPath();
-                            canvas.moveTo(prevPoint.x, prevPoint.y);
-                            canvas.lineTo(curPoint.x, curPoint.y);
-                            canvas.stroke();
-                        }
-
-                        prevItem = curItem;
-                        prevPoint = curPoint;
                     }
+
+                    if (prevPoint) {
+                        canvas.beginPath();
+                        canvas.moveTo(prevPoint.x, prevPoint.y);
+                        canvas.lineTo(curPoint.x, curPoint.y);
+                        canvas.stroke();
+                    }
+
+                    prevItem = curItem;
+                    prevPoint = curPoint;
                 }
             }
-        }
+        });
+
+
+        // timeAxis.reset();
+        // while (timeAxis.moveNext()) {
+        //     const curUid = timeAxis.current;
+        //     const curTime = curUid.t.getTime();
+        //     const curn = curUid.n;
+        //     const x = timeAxis.currentX;
+
+        //     if (!found) {
+        //         found = data.goTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn);
+        //     } else {
+        //         found = data.moveTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn) !== -1;
+        //     }
+
+        //     if (found) {
+
+        //         curItem = (data.current instanceof STCandlestick) ? <STCandlestick>data.current : undefined;
+
+        //         let cur = undefined;
+        //         if (curItem) {
+        //             const st = <STCandlestick>curItem;
+        //             if (st && st.c !== undefined) {
+        //                 cur = { uid: curItem.uid, v: st.c };
+
+        //                 const y = yAxis.toX(cur.v);
+        //                 curPoint = { x: x, y: y };
+
+        //                 if (prevItem) {
+        //                     if (curItem.trend === Type.Up && prevItem.trend === Type.Up) {
+        //                         canvas.setStrokeStyle('#56B50E');
+        //                     } else if (curItem.trend === Type.Down && prevItem.trend === Type.Down) {
+        //                         canvas.setStrokeStyle('#FF0000');
+        //                     } else {
+        //                         canvas.setStrokeStyle('#606060');
+        //                     }
+        //                 }
+
+        //                 if (prevPoint) {
+        //                     canvas.beginPath();
+        //                     canvas.moveTo(prevPoint.x, prevPoint.y);
+        //                     canvas.lineTo(curPoint.x, curPoint.y);
+        //                     canvas.stroke();
+        //                 }
+
+        //                 prevItem = curItem;
+        //                 prevPoint = curPoint;
+        //             }
+        //         }
+        //     }
+        //}
     }
 
     public testHitArea(

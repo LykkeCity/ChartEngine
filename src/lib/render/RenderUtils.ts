@@ -4,7 +4,7 @@
 import { ICanvas } from '../canvas/index';
 import { ChartPoint, IAxis, IPoint, ITimeAxis } from '../core/index';
 import { IDataIterator } from '../data/index';
-import { Candlestick } from '../model/index';
+import { Candlestick, IUidValue } from '../model/index';
 import { IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
 
@@ -20,32 +20,14 @@ export class RenderUtils {
         closePath?: boolean
     ) {
 
-        let found = false;
         let isFirstPoint = true;
         let firstPoint: IPoint | undefined;
         let lastPoint: IPoint | undefined;
-        timeAxis.reset();
-        while (timeAxis.moveNext()) {
-            const curUid = timeAxis.current;
-            const curTime = curUid.t.getTime();
-            const curn = curUid.n;
-            const x = timeAxis.currentX;
 
-            if (!found) {
-                found = dataIterator.goTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn);
-            } else {
-                found = dataIterator.moveTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn) !== -1;
-            }
 
-            if (found) {
-
-                const point = getPoint(dataIterator.current);
-
-                //const candle = dataIterator.current;
-                if (point === undefined || point.uid === undefined || point.v === undefined) {
-                    continue;
-                }
-
+        RenderUtils.iterate(timeAxis, dataIterator, (data, x) => {
+            const point = getPoint(data);
+            if (point !== undefined && point.uid !== undefined && point.v !== undefined) {
                 const y = yAxis.toX(point.v);
 
                 if (isFirstPoint) {
@@ -57,12 +39,49 @@ export class RenderUtils {
                     lastPoint = { x: x, y: y };
                 }
             }
-        }
+        });
 
         if (closePath && firstPoint && lastPoint) {
             canvas.lineTo(lastPoint.x, frame.h - 1);
             canvas.lineTo(firstPoint.x, frame.h - 1);
             canvas.lineTo(firstPoint.x, firstPoint.y);
+        }
+    }
+
+    public static iterate<T extends IUidValue>(timeaxis: ITimeAxis, iter: IDataIterator<T>, action: (data: T, x: number) => void): void {
+
+        if (!iter.goTo(item => true)) {
+            // end rendering
+            return;
+        }
+        let found = false;
+
+        timeaxis.reset();
+        while (timeaxis.moveNext()) {
+
+            const timeUid = timeaxis.current;
+            //const curTime = curUid.t.getTime();
+            //const curn = curUid.n;
+            const x = timeaxis.currentX;
+
+            do {
+                const data = iter.current;
+                if (data.uid.compare(timeUid) === 0) {
+                    found = true;
+                    break;
+                } else if (data.uid.compare(timeUid) > 0) {
+                    found = false;
+                    break;
+                }
+                if (!iter.moveNext()) {
+                    // end rendering
+                    return;
+                }
+            } while (true);
+
+            if (found) {
+                action(iter.current, x);
+            }
         }
     }
 }

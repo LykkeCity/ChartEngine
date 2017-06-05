@@ -143,7 +143,7 @@ export class TimeAxis implements ITimeAxis {
     private shiftNext(iterator: IDataIterator<Candlestick>|undefined, found: boolean, curPosition: Uid): {f: boolean, uid: Uid} {
 
         const newPosition: Uid = new Uid();
-        let f: boolean;
+        let f: boolean = found;
 
         if (found) {
             f = (iterator !== undefined) ? iterator.moveNext() : false;
@@ -162,16 +162,6 @@ export class TimeAxis implements ITimeAxis {
             // try move pointer
             newPosition.t = DateUtils.addInterval(curPosition.t, this._interval);
             newPosition.n = 0;
-
-            const time = newPosition.t.getTime();
-            const n = newPosition.n;
-            if (iterator !== undefined) {
-                f = iterator.goTo(item => {
-                    return item.uid.t.getTime() === time && item.uid.n === n;
-                });
-            } else {
-                f = false;
-            }
         }
         return { f: f, uid: newPosition };
     }

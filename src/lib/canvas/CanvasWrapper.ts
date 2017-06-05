@@ -106,6 +106,10 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.fillText(s, this.round(x), this.round(y));
     }
 
+    public drawImage(canvas: HTMLCanvasElement, offsetX: number, offsetY: number, width?: number, height?: number): void {
+        this.ctx.drawImage(canvas, offsetX, offsetY, width, height);
+    }
+
     public resize(w: number, h: number): void {
         this.w = w;
         this.h = h;

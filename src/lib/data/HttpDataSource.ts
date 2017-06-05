@@ -22,6 +22,7 @@ export class HttpDataSource extends DataSource {
 
     //private readonly defaultMaxItemsRequested = 100;
     protected autoUpdatePeriodSec = 10;
+    protected borderTime: Date|undefined;
     protected readonly pendingRequests: IPendingRequest<ITimeValue>[] = [];
     protected readonly comparer = (item1: Candlestick, item2: Candlestick) => { return item1.uid.compare(item2.uid); };
 //    protected readonly comparer = (item1: ITimeValue, item2: ITimeValue) => { return item1.date.getTime() - item2.date.getTime(); };
@@ -99,12 +100,10 @@ export class HttpDataSource extends DataSource {
         return this.getDataInRange(range, this.config.timeInterval);
     }
 
-    //public getDataByDate(date: Date, count: number): IDataIterator<T> {
-
     // Both UID are inclusive.
     public loadRange(uidFirst: Uid, uidLast: Uid): void {
         const dateFirst = uidFirst.t;
-        const dateLast = uidLast.t; //DateUtils.addInterval(date, this.config.timeInterval, count);
+        const dateLast = uidLast.t;
         const range = (dateLast > dateFirst) ? { start: dateFirst, end: dateLast } : { start: dateLast, end: dateFirst };
 
         return this.getDataInRange(range, this.config.timeInterval);
@@ -116,6 +115,8 @@ export class HttpDataSource extends DataSource {
         this.validateInterval(interval);
 
         const rangesToRequest: IRange<Date>[] = [];
+
+        //this.borderTime = this.borderTime || range.end; // Set borderTime if first time loading
 
         // 1. Check existing data and define what range needs to be requested
         if (!this.dataStorage.isEmpty) {
@@ -136,56 +137,13 @@ export class HttpDataSource extends DataSource {
 
         // 2. If any requests need to be made.
         for (const r of rangesToRequest) {
-            this.makeRequest(r, interval);
+            // Cut range by borderTime.
+            if (this.borderTime === undefined || r.start < this.borderTime) {
+                const end = (this.borderTime === undefined || r.end <= this.borderTime) ? r.end : this.borderTime;
+                this.makeRequest({ start: r.start, end: end }, interval);
+            }
         }
-
-        // // 3. So far return what we have
-        // const startTime = range.start.getTime();
-        // const endTime = range.end.getTime();
-
-        // return this.dataStorage.filter((item: T) => {
-        //     const itemTime = item.date.getTime();
-        //     return (itemTime >= startTime && itemTime <= endTime);
-        // });
     }
-
-    // public getValuesRange(range: IRange<Uid>): IRange<number> {
-
-    //     this.validateRange(range);
-    //     //this.validateInterval(interval);
-
-    //     if (this.dataStorage.isEmpty) {
-    //         return { start: this.defaultMinValue, end: this.defaultMaxValue };
-    //     }
-
-    //     let minValue = Number.MAX_VALUE;
-    //     let maxValue = Number.MIN_VALUE;
-
-    //     // Filter data by date and find min/max price
-    //     //
-    //     // const startTime = range.start.t.getTime();
-    //     // const endTime = range.end.t.getTime();
-    //     // const iterator = this.dataStorage.getIterator((item: T) => {
-    //     //     const itemTime = item.date.getTime();
-    //     //     return (itemTime >= startTime && itemTime <= endTime);
-    //     // });
-
-    //     const iterator = this.dataStorage.getIterator((item: T) => {
-    //         // item >= range.start && item <= range.end
-    //         return item.uid.compare(range.start) >= 0 && item.uid.compare(range.end) <= 0;
-    //     });
-
-    //     while (iterator.moveNext()) {
-    //         // update min / max values
-    //         const values = iterator.current.getValues();
-    //         const min = Math.min(...values);
-    //         const max = Math.max(...values);
-    //         if (min < minValue) { minValue = min; }
-    //         if (max > maxValue) { maxValue = max; }
-    //     }
-
-    //     return { start: minValue, end: maxValue };
-    // }
 
     public setTimeInterval(interval: TimeInterval) {
         // set interval and clear storage
@@ -277,6 +235,9 @@ export class HttpDataSource extends DataSource {
             arg.lastUidBefore = lastBefore;
             arg.lastUidAfter = lastAfter;
 
+            // Update borderTime. It can only increase.
+            this.borderTime = (this.borderTime === undefined || this.borderTime < uidLast.t) ? uidLast.t : this.borderTime;
+
             this.computeExtensions(arg);
 
             console.debug(`HTTP: triggering event ${uidFirst.t.toISOString()}-${uidLast.t.toISOString()}`);
@@ -306,14 +267,6 @@ export class HttpDataSource extends DataSource {
             return $.ajax(settings);
         };
     }
-
-    // private dateToUid(date: Date): string {
-    //     return date.getTime().toString();
-    // }
-
-    // private uidToDate(uid: string): Date {
-    //     return new Date(parseInt(uid, 10));
-    // }
 
     protected makeDefaultResolver(): IDataResolverDelegate<ITimeValue, Candlestick> {
         return (response: IResponse<ITimeValue>) => {

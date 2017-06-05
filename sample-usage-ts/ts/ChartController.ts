@@ -129,7 +129,7 @@ export class ChartController implements lychart.core.IDataService {
         const windowHeight = window.innerHeight;
 
         const chartW = this.container.clientWidth - 20; // (windowWidth - 30) - 200 ; // /2
-        const chartH = windowHeight - 60;
+        const chartH = windowHeight - 70;
 
         // Update board's size
         this.board.resize(chartW, chartH);

@@ -341,6 +341,8 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
             relativeMouse);
 
         this.timeAxisComponent.render(context, RenderLocator.Instance);
+
+        this.area.render();
     }
 
     public resize(w: number, h: number): void {

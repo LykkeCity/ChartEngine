@@ -16,17 +16,32 @@ export class GridRenderer {
         canvas.setStrokeStyle('#EAEAEA');
         canvas.lineWidth = 1;
 
+
         // Vertical lines
+        xAxis.reset();
         const gridX = xAxis.getGrid();
         gridX.forEach((bar, index) => {
-            if (bar) {
-                const x = xAxis.toX(new Uid(bar));
-                if (x) {
+            const time = bar.getTime();
+            while (xAxis.moveNext()) {
+                if (xAxis.current.t.getTime() === time) {
+                    const x = xAxis.currentX;
                     canvas.moveTo(x, frame.y);
                     canvas.lineTo(x, frame.y + frame.h);
+                    break;
                 }
             }
         });
+
+        // const gridX = xAxis.getGrid();
+        // gridX.forEach((bar, index) => {
+        //     if (bar) {
+        //         const x = xAxis.toX(new Uid(bar));
+        //         if (x) {
+        //             canvas.moveTo(x, frame.y);
+        //             canvas.lineTo(x, frame.y + frame.h);
+        //         }
+        //     }
+        // });
 
         // Horizontal lines
         const gridY = yAxis.getGrid();

@@ -201,44 +201,66 @@ export class PSARIndicatorRenderer implements IChartRender<Candlestick> {
                   timeAxis: ITimeAxis,
                   yAxis: IAxis<number>): void {
 
-        let found = false;
+        RenderUtils.iterate(timeAxis, data, (item, x) => {
 
-        timeAxis.reset();
-        while (timeAxis.moveNext()) {
-            const curUid = timeAxis.current;
-            const curTime = curUid.t.getTime();
-            const curn = curUid.n;
-            const x = timeAxis.currentX;
+            const curItem = (item instanceof PSARCandlestick) ? <PSARCandlestick>item: undefined;
 
-            if (!found) {
-                found = data.goTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn);
-            } else {
-                found = data.moveTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn) !== -1;
-            }
+            if (curItem && curItem.SAR !== undefined) {
 
-            if (found) {
+                const y = yAxis.toX(curItem.SAR);
 
-                const curItem = (data.current instanceof PSARCandlestick) ? <PSARCandlestick>data.current : undefined;
-
-                if (curItem && curItem.SAR !== undefined) {
-
-                    const y = yAxis.toX(curItem.SAR);
-
-                    canvas.beginPath();
-                    if (curItem.trend === Trend.Up) {
-                        canvas.setStrokeStyle('#56B50E');
-                        canvas.setFillStyle('#56B50E');
-                    } else {
-                        canvas.setStrokeStyle('#EA0E1C');
-                        canvas.setFillStyle('#EA0E1C');
-                    }
-
-                    canvas.arc(x, y, 2, 0, 360);
-                    canvas.fill();
-                    canvas.stroke();
+                canvas.beginPath();
+                if (curItem.trend === Trend.Up) {
+                    canvas.setStrokeStyle('#56B50E');
+                    canvas.setFillStyle('#56B50E');
+                } else {
+                    canvas.setStrokeStyle('#EA0E1C');
+                    canvas.setFillStyle('#EA0E1C');
                 }
+
+                canvas.arc(x, y, 2, 0, 360);
+                canvas.fill();
+                canvas.stroke();
             }
-        }
+
+        });
+
+        // timeAxis.reset();
+        // while (timeAxis.moveNext()) {
+        //     const curUid = timeAxis.current;
+        //     const curTime = curUid.t.getTime();
+        //     const curn = curUid.n;
+        //     const x = timeAxis.currentX;
+
+        //     if (!found) {
+        //         found = data.goTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn);
+        //     } else {
+        //         found = data.moveTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn) !== -1;
+        //     }
+
+        //     if (found) {
+
+        //         const curItem = (data.current instanceof PSARCandlestick) ? <PSARCandlestick>data.current : undefined;
+
+        //         if (curItem && curItem.SAR !== undefined) {
+
+        //             const y = yAxis.toX(curItem.SAR);
+
+        //             canvas.beginPath();
+        //             if (curItem.trend === Trend.Up) {
+        //                 canvas.setStrokeStyle('#56B50E');
+        //                 canvas.setFillStyle('#56B50E');
+        //             } else {
+        //                 canvas.setStrokeStyle('#EA0E1C');
+        //                 canvas.setFillStyle('#EA0E1C');
+        //             }
+
+        //             canvas.arc(x, y, 2, 0, 360);
+        //             canvas.fill();
+        //             canvas.stroke();
+        //         }
+        //     }
+        // }
     }
 
     public testHitArea(

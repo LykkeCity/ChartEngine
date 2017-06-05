@@ -44,6 +44,13 @@ export class BoardArea {
         return area;
     }
 
+    public render() {
+        for (const area of this.chartAreas) {
+            area.render();
+        }
+        this.timeArea.render();
+    }
+
     public remove(area: ChartArea) {
         const index = this.chartAreas.indexOf(area);
         if (index !== -1) {
