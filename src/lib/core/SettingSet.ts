@@ -8,6 +8,7 @@ export class SettingType {
     public static readonly color: string = 'color';
     public static readonly numeric: string = 'numeric';
     public static readonly select: string = 'select';
+    public static readonly date: string = 'date';
 }
 
 export interface IParameters {

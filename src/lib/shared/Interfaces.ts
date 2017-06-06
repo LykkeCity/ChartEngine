@@ -51,3 +51,11 @@ export interface IHashTable<T> {
 export interface IDisposable {
     dispose(): void;
 }
+
+export class IdValue {
+    constructor(
+        public id: string,
+        public value: string) {
+
+        }
+}

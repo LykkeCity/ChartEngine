@@ -5,10 +5,15 @@ import { IConfigurable, IIndicatorExtension, TimeInterval } from '../core/index'
 import { Candlestick, Uid } from '../model/index';
 import { IDisposable, IEvent, IRange } from '../shared/index';
 import { DataChangedArgument } from './DataChangedEvent';
+import { IDataSourceRegister } from './DataSourceRegister';
 
-// export interface IDataSourceUntyped {
-//     dataChanged: IEvent<DataChangedArgument>;
-// }
+export interface IContext {
+    interval(): TimeInterval;
+    addInterval: (date: Date, times: number) => Date;
+    getCandle: (asset: string, baseDate: Date, interval: TimeInterval) => Promise<Candlestick>;
+    render: () => void;
+    register: IDataSourceRegister;
+}
 
 export interface IDataSource<T> extends IDisposable, IConfigurable {
     dataType: { new(d: Date): T };

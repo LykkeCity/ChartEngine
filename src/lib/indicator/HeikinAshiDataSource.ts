@@ -3,22 +3,17 @@
  */
 import { IIndicatorExtension, TimeInterval } from '../core/index';
 import { ArrayDataStorage, DataChangedArgument, DataSource,
-    DataSourceConfig, IDataIterator, IDataSource, IDataStorage } from '../data/index';
+    DataSourceConfig, DataSourceRegister,
+    IContext, IDataIterator, IDataSource, IDataStorage } from '../data/index';
 import { Candlestick, Uid } from '../model/index';
 import { FixedSizeArray } from '../shared/index';
 import { IndicatorDataSource } from './IndicatorDataSource';
 
-const context = {
-    interval: () => TimeInterval.notSet,
-    addInterval: (d: Date): Date => { return d; },
-    getCandle: (asset: string, date: Date, interval: TimeInterval) => { throw new Error('not implemented'); },
-    render: () => { throw new Error('not implemented'); }
-};
 
 export class HeikinAshiDataSource extends IndicatorDataSource<Candlestick> {
 
-    constructor (source: IDataSource<Candlestick>) {
-        super(Candlestick, source, context); // fake addInterval function
+    constructor (source: IDataSource<Candlestick>, context: IContext) {
+        super(Candlestick, source, context);
     }
 
     protected compute(arg?: DataChangedArgument): DataChangedArgument | undefined {

@@ -50,7 +50,7 @@ export class FormProps {
 
     private iterate(ss: SettingSet, path: string) {
         path = path ? path + '.' + ss.name : ss.name;
-        //console.log('Setting: path=' + path + ' name=' + ss.name + ' value=' + ss.value);
+
         for (const s of Object.keys(ss.settings)) {
             const setting = ss.settings[s];
 
@@ -101,7 +101,7 @@ export class FormProps {
                 .appendTo(this.props);
 
                 break;
-            
+
             case SettingType.color:
                 $('<span />')
                     .html(ss.dispalyName)
@@ -121,6 +121,19 @@ export class FormProps {
                     .appendTo(this.props);
                 $('<input />', {
                     type : 'text',
+                    name: fullPath,
+                    value: ss.value
+                })
+                .addClass('prop')
+                .appendTo(this.props);
+                break;
+
+            case SettingType.date:
+                $('<span />')
+                    .html(ss.dispalyName)
+                    .appendTo(this.props);
+                $('<input />', {
+                    type : 'date',
                     name: fullPath,
                     value: ss.value
                 })
@@ -172,6 +185,8 @@ export class FormProps {
                 } else if (attrType === 'color') {
                     ss.value = (<HTMLInputElement>element).value;
                 } else if (attrType === 'text') {
+                    ss.value = (<HTMLInputElement>element).value;
+                } else if (attrType === 'date') {
                     ss.value = (<HTMLInputElement>element).value;
                 } else if (element instanceof HTMLSelectElement) {
                     const options = (<HTMLSelectElement>element).options;

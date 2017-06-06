@@ -7,12 +7,13 @@ import {
     DataChangedArgument,
     DataSource,
     DataSourceConfig,
+    IContext,
     IDataIterator,
     IDataSource } from '../data/index';
 import { Candlestick, ITimeValue, IUidValue, Uid } from '../model/index';
 import { IRange } from '../shared/index';
 import { DateUtils } from '../utils/index';
-import { IContext, IIndicator } from './Interfaces';
+import { IIndicator } from './Interfaces';
 
 /**
  * 1-to-1 mapping with source.

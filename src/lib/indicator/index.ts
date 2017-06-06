@@ -7,6 +7,7 @@ import { AroonIndicator, AroonIndicatorRenderer, AroonOscillator } from './Aroon
 import { ATRIndicator } from './ATRIndicator';
 import { BollingerIndicator, BollingerIndicatorRenderer } from './BollingerIndicator';
 import { CCIOscillator } from './CCIOscillator';
+import { CORIndicator } from './CORIndicator';
 import { DEMAIndicator } from './DEMAIndicator';
 import { DIXOscillator } from './DIXOscillator';
 import { DMIIndicator, DMIIndicatorRenderer } from './DMIIndicator';
@@ -24,6 +25,7 @@ import { MOMIndicator } from './MOMIndicator';
 import { PCROscillator } from './PCROscillator';
 import { PPIndicator, PPIndicatorRenderer } from './PPIndicator';
 import { PSARIndicator, PSARIndicatorRenderer } from './PSARIndicator';
+import { RATIOIndicator } from './RATIOIndicator';
 import { RBIndicator, RBIndicatorRenderer } from './RBIndicator';
 import { ROCIndicator } from './ROCIndicator';
 import { RSIOscillator } from './RSIOscillator';
@@ -47,6 +49,7 @@ export {
     ATRIndicator,
     BollingerIndicator, BollingerIndicatorRenderer,
     CCIOscillator,
+    CORIndicator,
     DEMAIndicator,
     DIXOscillator,
     DMIIndicator, DMIIndicatorRenderer,
@@ -64,6 +67,7 @@ export {
     PCROscillator,
     PPIndicator, PPIndicatorRenderer,
     PSARIndicator, PSARIndicatorRenderer,
+    RATIOIndicator,
     RBIndicator, RBIndicatorRenderer,
     register,
     ROCIndicator,

@@ -4,19 +4,19 @@
 import { ArrayDataSource } from './ArrayDataSource';
 import { ArrayDataStorage } from './ArrayDataStorage';
 import { ArrayIterator } from './ArrayIterator';
-//import { ComputedDataSource, RenkoDataSource } from './ComputedDataSource';
 import { DataChangedArgument, DataChangedEvent } from './DataChangedEvent';
 import { DataSource } from './DataSource';
 import { DataSourceConfig } from './DataSourceConfig';
 import { DataSourceFactory } from './DataSourceFactory';
+import { DataSourceRegister, IDataSourceRegister } from './DataSourceRegister';
 import { DataType } from './DataType';
 import { HttpDataSource } from './HttpDataSource';
 import { HttpDataSourceConfig } from './HttpDataSourceConfig';
 import {
+    IContext,
     IDataIterator,
     IDataReaderDelegate,
     IDataSource,
-    //IDataSourceUntyped,
     IDataStorage,
     IResponse } from './Interfaces';
 
@@ -24,8 +24,8 @@ export {
     ArrayIterator,
     ArrayDataSource,
     ArrayDataStorage,
-    //ComputedDataSource,
     DataSourceFactory,
+    DataSourceRegister,
     HttpDataSource,
     DataChangedArgument,
     DataChangedEvent,
@@ -33,11 +33,12 @@ export {
     DataSourceConfig,
     HttpDataSourceConfig,
     DataType,
+    IContext,
     IDataIterator,
     IDataReaderDelegate,
     IDataSource,
+    IDataSourceRegister,
     //IDataSourceUntyped,
     IDataStorage,
-    IResponse,
-    //RenkoDataSource
+    IResponse
 };

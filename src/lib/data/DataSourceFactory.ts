@@ -5,18 +5,18 @@ import { ChartType } from '../core/index';
 import { HeikinAshiDataSource } from '../indicator/index';
 import { Candlestick } from '../model/index';
 import { IRange } from '../shared/index';
-import { IDataSource } from './Interfaces';
+import { IContext, IDataSource } from './Interfaces';
 import { LineBreakDataSource } from './LineBreakDataSource';
 import { RangeBarDataSource } from './RangeBarDataSource';
 import { RenkoDataSource } from './RenkoDataSource';
 
 export class DataSourceFactory {
-    public static CREATE<T>(chartType: string, source: IDataSource<Candlestick>, timeRange: IRange<Date>): IDataSource<Candlestick> {
+    public static CREATE<T>(chartType: string, source: IDataSource<Candlestick>, timeRange: IRange<Date>, context: IContext): IDataSource<Candlestick> {
         switch (chartType) {
             case ChartType.candle:
                 return source;
             case ChartType.heikinashi:
-                return new HeikinAshiDataSource(source);
+                return new HeikinAshiDataSource(source, context);
             case ChartType.hollow:
                 return source;
             case ChartType.line:

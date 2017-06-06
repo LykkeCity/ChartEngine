@@ -5,14 +5,27 @@ import { TimeAutoGrid } from '../axes/index';
 import { IAxis, ITimeAxis, TimeInterval } from '../core/index';
 import { IDataIterator, IDataSource } from '../data/index';
 import { Candlestick, Uid } from '../model/index';
-import { IRange } from '../shared/index';
+import { Event, IEvent, IRange } from '../shared/index';
 import { DateUtils } from '../utils/index';
+
+export class LoadRangeEvent extends Event<LoadRangeArgument> {
+}
+
+export class LoadRangeArgument {
+    constructor(
+        public start: Uid,
+        public end?: Uid,
+        public count?: number) {
+    }
+}
+
 
 export class TimeAxis implements ITimeAxis {
 
     private dataSource: IDataSource<Candlestick> | undefined;
     private iter: IDataIterator<Candlestick> | undefined;
     private tempIter: IDataIterator<Candlestick> | undefined;
+    private readonly loadRangeEvent = new LoadRangeEvent();
     /**
      * Start of the current frame.
      */
@@ -54,6 +67,10 @@ export class TimeAxis implements ITimeAxis {
         //this.setDataSource(dataSource);
     }
 
+    public get loadingRange(): IEvent<LoadRangeArgument> {
+        return this.loadRangeEvent;
+    }
+
     public get interval(): TimeInterval {
         return this._interval;
     }
@@ -85,8 +102,22 @@ export class TimeAxis implements ITimeAxis {
         this.tempIter = dataSource.getIterator();
 
         // load 3 screens
-        dataSource.load(this.frameStart, 2 * this.N);
-        dataSource.load(this.frameStart, -this.N);
+        this.load(this.frameStart, 2 * this.N);
+        this.load(this.frameStart, -this.N);
+    }
+
+    private load(uid: Uid, count: number) {
+        if (this.dataSource) {
+            this.dataSource.load(uid, count);
+            this.loadRangeEvent.trigger(new LoadRangeArgument(uid, undefined, count));
+        }
+    }
+
+    private loadRange(start: Uid, end: Uid) {
+        if (this.dataSource) {
+            this.dataSource.loadRange(start, end);
+            this.loadRangeEvent.trigger(new LoadRangeArgument(start, end));
+        }
     }
 
     public get current(): Uid {
@@ -175,7 +206,7 @@ export class TimeAxis implements ITimeAxis {
 
         // ensure that require uid is loaded
         if (this.dataSource) {
-            this.dataSource.loadRange(this.frameStart, uid);
+            this.loadRange(this.frameStart, uid);
         }
 
         let curUid = this.frameStart.compare(uid) <= 0 ? this.frameStart : uid;
@@ -298,7 +329,7 @@ export class TimeAxis implements ITimeAxis {
         if (count !== 0) {
             direction = count;
             if (this.dataSource) {
-                this.dataSource.load(this.frameStart, direction > 0 ? (direction + 2 * this.N) : (direction - this.N));
+                this.load(this.frameStart, direction > 0 ? (direction + 2 * this.N) : (direction - this.N));
             }
 
             this.frameStart = this.shiftBy(this.tempIter, -direction, this.frameStart);
@@ -315,13 +346,8 @@ export class TimeAxis implements ITimeAxis {
         if (direction > 0) {                // zooming in
             newN = Math.floor(this.N * 0.9);
         } else if (direction < 0) {         // zooming out
-
             newN = Math.ceil(this.N * 1.1);
-
-            if (this.dataSource) {
-                this.dataSource.load(this.frameStart, -2 * newN);
-            }
-
+            this.load(this.frameStart, -2 * newN);
         } else {
             return;
         }
@@ -332,6 +358,9 @@ export class TimeAxis implements ITimeAxis {
         }
     }
 
+    /**
+     * Visible range
+     */
     public get range(): IRange<Uid> {
         const start = new Uid();
         start.t = this.frameStart.t;

@@ -4,7 +4,7 @@
  * @classdesc Facade for the chart library.
  */
 import { ChartType, IDataService, IQuicktip, IQuicktipBuilder, IStorage, Mouse, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
-import { DataChangedArgument, DataSourceFactory, IDataSource } from '../data/index';
+import { DataChangedArgument, DataSourceFactory, DataSourceRegister, IDataSource } from '../data/index';
 import { IndicatorDataSource, IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
 import { Candlestick, Point } from '../model/index';
@@ -15,7 +15,7 @@ import { ChartStack } from './ChartStack';
 import { IChartBoard, IDrawing, isStateController, IStateController } from './Interfaces';
 import { StateFabric } from './StateFabric';
 import { HoverState, MoveChartState } from './States';
-import { TimeAxis } from './TimeAxis';
+import { LoadRangeArgument, TimeAxis } from './TimeAxis';
 import { TimeAxisComponent } from './TimeAxisComponent';
 
 import * as $ from 'jquery';
@@ -42,6 +42,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private readonly dataSources: IHashTable<IDataSource<Candlestick>> = { };
     private readonly indicators: IHashTable<IDataSource<Candlestick>> = { };
     private readonly indicatorDescriptions: IndicatorDescription[][] = [];
+    private readonly dataSourceRegister = new DataSourceRegister();
 
     private state: IStateController;
     private storage: Storage;
@@ -71,6 +72,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
         this.timeRange = { start: start, end: now };
         this.timeAxis = new TimeAxis(interval, now, N, this.area.chartLength);
+        this.timeAxis.loadingRange.on(this.onLoadingRange);
 
         this.timeAxisComponent = new TimeAxisComponent(this.area, this.timeAxis);
         this.addChild(this.timeAxisComponent);
@@ -100,15 +102,20 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         return this.chartStacks.slice();
     }
 
-    // public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
-    //     // TODO: Store original datasource
-    //     dataSource = DataSourceFactory.CREATE(chartType, dataSource, this.timeRange);
+    public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
+        // Preload data range
+        dataSource.loadRange(this.timeAxis.range.start, this.timeAxis.range.end);
 
-    //     this.insertChart(uid, name, chartType, dataSource);
+        // TODO: Store original datasource
+        const ctx = this.createContext(this.dataService);
+        dataSource = DataSourceFactory.CREATE(chartType, dataSource, this.timeRange, ctx);
 
-    //     // re-render charts
-    //     this.render();
-    // }
+        this.dataSourceRegister.register(uid, dataSource);
+        this.insertChart(uid, name, chartType, dataSource);
+
+        // re-render charts
+        this.render();
+    }
 
     private insertChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
 
@@ -135,7 +142,8 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.originalDataSource = dataSource;
         this.originalName = name;
 
-        dataSource = DataSourceFactory.CREATE(chartType, dataSource, this.timeRange);
+        const ctx = this.createContext(this.dataService);
+        dataSource = DataSourceFactory.CREATE(chartType, dataSource, this.timeRange, ctx);
 
         this.timeAxis.setDataSource(dataSource);
 
@@ -223,21 +231,9 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private insertIndicator(uid: string, indicatorType: string, index: number) {
         // Create indicator
         //
-        const dataService = this.dataService;
-        const render = this.render;
-        const context = {
-            addInterval: this.addInterval,
-            interval: (): TimeInterval => { return this.timeAxis.interval; },
-            getCandle: (asset: string, date: Date, interval: TimeInterval) => {
-                if (dataService) { return dataService.getCandle(asset, date, interval); }
-                return new Promise<Candlestick>(resolve => {
-                    resolve(undefined);
-                });
-            },
-            render: () => { render(); }
-        };
+        const ctx = this.createContext(this.dataService);
 
-        const indicatorDataSource = IndicatorFabric.instance.instantiate(indicatorType, this.primaryDataSource, context);
+        const indicatorDataSource = IndicatorFabric.instance.instantiate(indicatorType, this.primaryDataSource, ctx);
         this.indicators[uid] = indicatorDataSource;
         indicatorDataSource.dataChanged.on(this.onDataChanged);
 
@@ -374,6 +370,35 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         //this.frame.automove(arg);
 
         this.render();
+    }
+
+    private onLoadingRange = (arg: LoadRangeArgument) => {
+        for (const key of Object.keys(this.dataSources)) {
+            if (key !== 'primary-data-source') {
+                const ds = this.dataSources[key];
+                if (arg.end) {
+                    ds.loadRange(arg.start, arg.end);
+                } else if (arg.count) {
+                    ds.load(arg.start, arg.count);
+                }
+            }
+        }
+    }
+
+    private createContext(dataService: IDataService|undefined) {
+        const render = this.render;
+        return {
+            addInterval: this.addInterval,
+            interval: (): TimeInterval => { return this.timeAxis.interval; },
+            getCandle: (asset: string, date: Date, interval: TimeInterval) => {
+                if (dataService) { return dataService.getCandle(asset, date, interval); }
+                return new Promise<Candlestick>(resolve => {
+                    resolve(undefined);
+                });
+            },
+            render: () => { render(); },
+            register: this.dataSourceRegister
+        };
     }
 
     private mouse: Mouse = new Mouse();

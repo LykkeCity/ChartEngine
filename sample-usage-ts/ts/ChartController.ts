@@ -153,7 +153,7 @@ export class ChartController implements lychart.core.IDataService {
         // Read last candle from server and push to the chart
         this.readData(start, end, this.selectedInterval)
             .then(this.resolveData)
-            .then(response => {
+            .then((response: any) => {
                 // Take last candle and push it to data source
                 if (response && response.data && response.data.length > 0 && this.dataSource) {
                     const lastCandle = response.data[response.data.length - 1];
@@ -181,7 +181,11 @@ export class ChartController implements lychart.core.IDataService {
     }
 
     private onAddCompare = (evt: JQueryEventObject) => {
-        
+        const asset = $('.assetpair-compare option:selected', this.container).val();
+        if (asset) {
+            const ds = this.createDataSource(asset, this.selectedInterval);
+            this.board.addChart(lychart.utils.UidUtils.NEWUID(), asset, lychart.core.ChartType.candle, ds);
+        }
     }
 
     private onAddLine = (evt: JQueryEventObject) => {
@@ -203,23 +207,35 @@ export class ChartController implements lychart.core.IDataService {
         });
     }
 
-    private readData = (timeStart: Date, timeEnd: Date, interval: lychart.core.TimeInterval) => {
-        $.support.cors = true;
+    private createDataReader(selectedAsset: string) {
 
-        const settings = {
-            method: 'POST',
-            crossDomain: true,
-            dataType: 'json',
-            url: Settings.candlesUrl + this.selectedAsset,
-            contentType: 'application/json',
-            data: JSON.stringify({
-                period: Utils.INTERVAL2PERIOD(interval),
-                type: 'Bid',
-                dateFrom: timeStart.toISOString(),
-                dateTo: timeEnd.toISOString()
-            })
+        return (timeStart: Date, timeEnd: Date, interval: lychart.core.TimeInterval) => {
+            $.support.cors = true;
+
+            const settings = {
+                method: 'POST',
+                crossDomain: true,
+                dataType: 'json',
+                url: Settings.candlesUrl + selectedAsset,
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    period: Utils.INTERVAL2PERIOD(interval),
+                    type: 'Bid',
+                    dateFrom: timeStart.toISOString(),
+                    dateTo: timeEnd.toISOString()
+                })
+            };
+            return $.ajax(settings);
         };
-        return $.ajax(settings);
+    }
+
+    private defaultReader: any;
+
+    private readData = (timeStart: Date, timeEnd: Date, interval: lychart.core.TimeInterval) => {
+        if (!this.defaultReader) {
+            this.defaultReader = this.createDataReader(this.selectedAsset);
+        }
+        return this.defaultReader(timeStart, timeEnd, interval);
     }
 
     /**
@@ -267,23 +283,26 @@ export class ChartController implements lychart.core.IDataService {
         }
 
         // recreate data source
-        this.dataSource = new lychart.data.HttpDataSource(
-            lychart.model.Candlestick,
-            {
-                url: '',
-                autoupdate: false,
-                readData: this.readData,
-                resolveData: this.resolveData,
-                timeInterval: timeInterval
-            });
-        this.dataSource.asset = assetPairId;
+        this.dataSource = this.createDataSource(assetPairId, timeInterval);
 
         this.board.setTimeInterval(timeInterval);
         this.board.setDataSource(assetPairId,
                                  (timeInterval === lychart.core.TimeInterval.sec) ? lychart.core.ChartType.line : lychart.core.ChartType.candle,
                                  this.dataSource, false);
+    }
 
-        //this.board.addChart('addchart', 'ORIGINAL', lychart.core.ChartType.candle, this.dataSource);
+    private createDataSource(assetPairId: string, timeInterval: lychart.core.TimeInterval) {
+        const dataSource = new lychart.data.HttpDataSource(
+            lychart.model.Candlestick,
+            {
+                url: '',
+                autoupdate: false,
+                readData: this.createDataReader(assetPairId), // this.readData,
+                resolveData: this.resolveData,
+                timeInterval: timeInterval
+            });
+        dataSource.asset = assetPairId;
+        return dataSource;
     }
 
     private updateChart = () => {

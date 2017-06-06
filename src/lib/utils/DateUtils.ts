@@ -18,6 +18,19 @@ export class DateUtils {
         return ('00000000000000' + date.getTime()).slice(-14);
     }
 
+    public static toIsoDate(date: Date): string {
+        const year = date.getUTCFullYear();
+        const month = ('00' + (date.getUTCMonth() + 1)).slice(-2);
+        const day = ('00' + date.getUTCDate()).slice(-2);
+        return `${year}-${month}-${day}`;
+    }
+
+    public static parseIsoDate(text: string): Date|undefined {
+        if (text) {
+            return new Date(text);
+        }
+    }
+
     public static addInterval(date: Date, interval: TimeInterval, times: number = 1): Date {
         const newDate = new Date(date.getTime());
         switch (interval) {
@@ -41,30 +54,6 @@ export class DateUtils {
         }
         return newDate;
     }
-
-    // public static addInterval(date: Date, interval: TimeInterval): Date {
-    //     const newDate = new Date(date.getTime());
-    //     switch (interval) {
-    //         // TODO: vanilla JS can incorrectly handle "set*" functions. Check with "daylight saving time".
-    //         case TimeInterval.sec: newDate.setSeconds(date.getSeconds() + 1); break;
-    //         case TimeInterval.min: newDate.setMinutes(date.getMinutes() + 1); break;
-    //         case TimeInterval.min5: newDate.setMinutes(date.getMinutes() + 5); break;
-    //         case TimeInterval.min15: newDate.setMinutes(date.getMinutes() + 15); break;
-    //         case TimeInterval.min30: newDate.setMinutes(date.getMinutes() + 30); break;
-    //         case TimeInterval.hour: newDate.setHours(date.getHours() + 1); break;
-    //         case TimeInterval.hour4: newDate.setHours(date.getHours() + 4); break;
-    //         case TimeInterval.hour6: newDate.setHours(date.getHours() + 6); break;
-    //         case TimeInterval.hour12: newDate.setHours(date.getHours() + 12); break;
-    //         case TimeInterval.day: newDate.setDate(date.getDate() + 1); break;
-    //         case TimeInterval.day3: newDate.setDate(date.getDate() + 3); break;
-    //         case TimeInterval.week: newDate.setDate(date.getDate() + 7); break;
-    //         case TimeInterval.day10: newDate.setDate(date.getDate() + 10); break;
-    //         case TimeInterval.month: newDate.setMonth(date.getMonth() + 1); break;
-    //         default:
-    //             throw new Error(`Unexpected interval ${ interval }`);
-    //     }
-    //     return newDate;
-    // }
 
     public static substractInterval(date: Date, interval: TimeInterval): Date {
         const newDate = new Date(date.getTime());
