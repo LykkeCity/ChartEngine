@@ -28,3 +28,19 @@ export class Event<T> implements IEvent<T> {
             .forEach(h => h(data));
     }
 }
+
+/**
+ * Throttles event.
+ * @param callback Event handler
+ * @param limit Limit in milliseconds
+ */
+export function throttle(callback: (e: any) => void, limit: number) {
+    let wait = false;
+    return (e: any) => {
+        if (!wait) {
+            callback(e);
+            wait = true;
+            setTimeout(() => { wait = false; }, limit);
+        }
+    };
+}

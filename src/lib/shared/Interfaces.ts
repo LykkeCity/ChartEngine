@@ -56,6 +56,11 @@ export class IdValue {
     constructor(
         public id: string,
         public value: string) {
-
         }
+}
+
+export interface Iterator<T> {
+    reset(): void;
+    moveNext(): boolean;
+    current: T;
 }

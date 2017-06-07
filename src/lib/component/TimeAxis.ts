@@ -2,10 +2,10 @@
  * TimeAxis class.
  */
 import { TimeAutoGrid } from '../axes/index';
-import { IAxis, ITimeAxis, TimeInterval } from '../core/index';
+import { IAxis, ITimeAxis, TimeBar, TimeInterval } from '../core/index';
 import { IDataIterator, IDataSource } from '../data/index';
 import { Candlestick, Uid } from '../model/index';
-import { Event, IEvent, IRange } from '../shared/index';
+import { Event, IEvent, IRange, Iterator } from '../shared/index';
 import { DateUtils } from '../utils/index';
 
 export class LoadRangeEvent extends Event<LoadRangeArgument> {
@@ -19,8 +19,7 @@ export class LoadRangeArgument {
     }
 }
 
-
-export class TimeAxis implements ITimeAxis {
+export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
 
     private dataSource: IDataSource<Candlestick> | undefined;
     private iter: IDataIterator<Candlestick> | undefined;
@@ -45,7 +44,6 @@ export class TimeAxis implements ITimeAxis {
     private g: number = 0;
     private _interval: TimeInterval;
 
-    // dataSource: IDataSource<Candlestick>, 
     constructor(interval: TimeInterval, initialDate: Date, N: number, width: number) {
 
         if (N <= 0) {
@@ -63,8 +61,6 @@ export class TimeAxis implements ITimeAxis {
         this.w = width;
         const dateStart = DateUtils.addInterval(initialDate, interval, -N);
         this.frameStart = new Uid(initialDate);
-
-        //this.setDataSource(dataSource);
     }
 
     public get loadingRange(): IEvent<LoadRangeArgument> {
@@ -120,16 +116,11 @@ export class TimeAxis implements ITimeAxis {
         }
     }
 
-    public get current(): Uid {
+    public get current(): TimeBar {
         if (this.iteratorPointer === undefined) {
             throw new Error('Iterator is not initialized.');
         }
-        return this.iteratorPointer;
-    }
-
-    public get currentX(): number {
-        // Can be calculated by this.iteratorCounter
-        return this.index2x(this.iteratorCounter);
+        return { uid: this.iteratorPointer, x: this.index2x(this.iteratorCounter) };
     }
 
     public get count(): number {
@@ -379,17 +370,7 @@ export class TimeAxis implements ITimeAxis {
     /**
      * For rendering grid
      */
-    public getGrid(): Date[] {
-
-        const times: Uid[] = [];
-        this.reset();
-        while (this.moveNext()) {
-            times.push(this.current);
-        }
-
-        const dates = times.map(value => value.t);
-
-        const autoGrid = new TimeAutoGrid(this.w, this._interval, dates);
-        return autoGrid.getGrid();
+    public getGrid(): Iterator<TimeBar> {
+        return new TimeAutoGrid(this.w, this._interval, this, this.range);
     }
 }

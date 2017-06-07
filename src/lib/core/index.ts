@@ -12,7 +12,8 @@ import { IAxis,
          IIndicatorExtension,
          IMouse, IPoint, IQuicktip, IQuicktipBuilder,
          IStorage,
-         ITimeAxis } from './Interfaces';
+         ITimeAxis,
+         TimeBar } from './Interfaces';
 import { ChartPoint, Mouse } from './Model';
 
 import { SettingSet, SettingType } from './SettingSet';
@@ -43,5 +44,6 @@ export {
     Storage,
     VisualComponent,
     VisualContext,
+    TimeBar,
     TimeInterval
 }

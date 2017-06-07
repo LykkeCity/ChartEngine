@@ -2,9 +2,14 @@
  * Core interfaces.
  */
 import { Candlestick, Uid } from '../model/index';
-import { FixedSizeArray, IRange } from '../shared/index';
+import { FixedSizeArray, IRange, Iterator } from '../shared/index';
 import { TimeInterval } from './Enums';
 import { SettingSet } from './SettingSet';
+
+export class TimeBar {
+    public uid: Uid;
+    public x: number;
+}
 
 export interface ITimeAxis {
     range: IRange<Uid>;
@@ -12,8 +17,7 @@ export interface ITimeAxis {
     count: number;
     reset(): void;
     moveNext(): boolean;
-    current: Uid;
-    currentX: number;
+    current: TimeBar;
     toX(uid: Uid): number|undefined;
     toValue(x: number): Uid|undefined;
     move(direction: number): void;
@@ -22,7 +26,7 @@ export interface ITimeAxis {
     /**
      * For rendering grid
      */
-    getGrid(): Date[];
+    getGrid(): Iterator<TimeBar>;
 }
 
 export interface IAxis<T> {

@@ -202,25 +202,12 @@ export class PPIndicatorRenderer implements IChartRender<Candlestick> {
 
         // Get first time and last time of visible range
 
-        // TODO: Make specific methods for this (first(), last())
-        let firstUid;
-        let lastUid;
-        timeAxis.reset();
-        while (timeAxis.moveNext()) {
-            if (firstUid === undefined) {
-                firstUid = timeAxis.current;
-            }
-            lastUid = timeAxis.current;
-        }
-
-        if (firstUid === undefined || lastUid === undefined) {
-            return;
-        }
+        const timeRange = timeAxis.range;
 
         // Find candles just before the first, and just after the last time.
 
-        const firstTime = firstUid.t.getTime();
-        const lastTime = lastUid.t.getTime();
+        const firstTime = timeRange.start.t.getTime();
+        const lastTime = timeRange.end.t.getTime();
 
         // Go to first candles just before first visible or first
         if (!data.goWhile(item => item.uid.t.getTime() < firstTime)) {

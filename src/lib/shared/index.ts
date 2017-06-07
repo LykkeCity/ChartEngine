@@ -1,9 +1,9 @@
 /**
  * 
  */
-import { Event, IEvent, IEventHandler } from './Event';
+import { Event, IEvent, IEventHandler, throttle } from './Event';
 import { FixedSizeArray } from './FixedSizeArray';
-import { IDisposable, IdValue, IHashTable, IRange, IRect, ISize, PartialPoint, Point, Size } from './Interfaces';
+import { IDisposable, IdValue, IHashTable, IRange, IRect, ISize, Iterator, PartialPoint, Point, Size } from './Interfaces';
 
 export {
     Event,
@@ -16,7 +16,9 @@ export {
     IRange,
     IRect,
     ISize,
+    Iterator,
     PartialPoint,
     Point,
-    Size
+    Size,
+    throttle
 };

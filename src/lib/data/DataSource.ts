@@ -73,7 +73,6 @@ export abstract class DataSource implements IDataSource<Candlestick> {
     public getValuesRange(range: IRange<Uid>): IRange<number> {
 
         this.validateRange(range);
-        //this.validateInterval(interval);
 
         if (this.dataStorage.isEmpty) {
             return { start: this.defaultMinValue, end: this.defaultMaxValue };
@@ -82,27 +81,15 @@ export abstract class DataSource implements IDataSource<Candlestick> {
         let minValue = Number.MAX_VALUE;
         let maxValue = Number.MIN_VALUE;
 
-        // Filter data by date and find min/max price
-        //
-        // const startTime = range.start.t.getTime();
-        // const endTime = range.end.t.getTime();
-        // const iterator = this.dataStorage.getIterator((item: T) => {
-        //     const itemTime = item.date.getTime();
-        //     return (itemTime >= startTime && itemTime <= endTime);
-        // });
+        const iterator = this.dataStorage.getIterator();
+        if (iterator.goTo(item => item.uid.compare(range.start) >= 0)) {
+            do {
+                const h = iterator.current.h;
+                const l = iterator.current.l;
 
-        const iterator = this.dataStorage.getIterator((item: Candlestick) => {
-            // item >= range.start && item <= range.end
-            return item.uid.compare(range.start) >= 0 && item.uid.compare(range.end) <= 0;
-        });
-
-        while (iterator.moveNext()) {
-            // update min / max values
-            const values = iterator.current.getValues();
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            if (min < minValue) { minValue = min; }
-            if (max > maxValue) { maxValue = max; }
+                if (l !== undefined && l < minValue) { minValue = l; }
+                if (h !== undefined && h > maxValue) { maxValue = h; }
+            } while (iterator.moveNext() && iterator.current.uid.compare(range.end) <= 0);
         }
 
         return { start: minValue, end: maxValue };
@@ -217,7 +204,7 @@ export abstract class DataSource implements IDataSource<Candlestick> {
     }
 
     public setSettings(settings: SettingSet): void {
-
+        return;
     }
 
     protected validateDateRange(range: IRange<Date>): void {

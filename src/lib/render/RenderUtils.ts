@@ -59,10 +59,8 @@ export class RenderUtils {
         timeaxis.reset();
         while (timeaxis.moveNext()) {
 
-            const timeUid = timeaxis.current;
-            //const curTime = curUid.t.getTime();
-            //const curn = curUid.n;
-            const x = timeaxis.currentX;
+            const timeUid = timeaxis.current.uid;
+            const x = timeaxis.current.x;
 
             do {
                 const data = iter.current;

@@ -16,39 +16,21 @@ export class TimeAxisRenderer implements ITimeAxisRender {
 
     public render(canvas: ICanvas, axis: ITimeAxis, frame: IRect): void {
 
-        //const bars: Date[] = axis.getGrid();
+        const grid = axis.getGrid();
 
         const range = axis.range;
-        const scale = TimeAutoGrid.selectScale(frame.w, axis.interval, { start: range.start.t, end: range.end.t });
+        const scale = TimeAutoGrid.selectScale(frame.w, axis.interval, range);
 
         canvas.font = '11px Arial';
         canvas.fillStyle = '#000000';
         canvas.setStrokeStyle('black');
+        canvas.setTextBaseLine(CanvasTextBaseLine.Top);
         canvas.beginPath();
 
-        let space = 0;
-        axis.reset();
-        while (axis.moveNext()) {
-
-            const curTime = axis.current.t;
-            const curX = axis.currentX;
-
-            const isRound = DateUtils.isRound(curTime, scale);
-            if (isRound) {
-                this.drawBar(canvas, curTime, curX);
-                space = 0;
-            //else if (space > )
-            } else {
-                space += 75;
-            }
+        grid.reset();
+        while (grid.moveNext()) {
+            this.drawBar(canvas, grid.current.uid.t, grid.current.x);
         }
-
-        // bars.forEach((bar, index) => {
-        //     if (bar) {
-        //         const x = axis.toX(;
-        //         this.drawBar(canvas, bar, x);
-        //     }
-        // });
 
         canvas.stroke();
         canvas.closePath();
@@ -61,7 +43,7 @@ export class TimeAxisRenderer implements ITimeAxisRender {
         // draw time mark
         const markText = this.formatDate(date);
         const w = canvas.measureText(markText).width;
-        canvas.setTextBaseLine(CanvasTextBaseLine.Top);
+
         canvas.fillText(markText, x - w / 2, 5);
     }
 

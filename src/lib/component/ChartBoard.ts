@@ -9,7 +9,7 @@ import { IndicatorDataSource, IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
 import { Candlestick, Point } from '../model/index';
 import { RenderLocator } from '../render/index';
-import { IHashTable, IRange, Point as IPoint } from '../shared/index';
+import { IHashTable, IRange, Point as IPoint, throttle } from '../shared/index';
 import { DateUtils, UidUtils } from '../utils/index';
 import { ChartStack } from './ChartStack';
 import { IChartBoard, IDrawing, isStateController, IStateController } from './Interfaces';
@@ -89,10 +89,9 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.container.addEventListener('mousewheel', this.onMouseWheel, false);
         this.container.addEventListener('mouseup', this.onMouseUp, false);
         this.container.addEventListener('mousedown', this.onMouseDown, false);
-        //this.container.addEventListener('mousemove', this.onMouseMove, false);
-        $(this.container).mousemove(this.onMouseMove);
         this.container.addEventListener('mouseenter', this.onMouseEnter, false);
         this.container.addEventListener('mouseleave', this.onMouseLeave, false);
+        $(this.container).mousemove(throttle(this.onMouseMove, 10));
 
         // Go to default state
         this.state = HoverState.instance;
