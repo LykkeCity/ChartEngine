@@ -6,12 +6,10 @@ import { GainLossExtension } from '../compute/index';
 import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType, TimeInterval } from '../core/index';
 import { ArrayDataStorage, DataChangedArgument, DataSource,
     DataSourceConfig, IContext, IDataIterator, IDataSource, IDataStorage } from '../data/index';
-import { Candlestick, Point } from '../model/index';
+import { Candlestick, Point, Uid } from '../model/index';
 import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
-import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
@@ -73,6 +71,10 @@ export class RSIOscillator extends SimpleIndicator<RSICandlestick> {
         }
 
         return computed;
+    }
+
+    public getValuesRange(range: IRange<Uid>): IRange<number> {
+        return { start: 0, end: 100 };
     }
 
     public getSettings(): SettingSet {

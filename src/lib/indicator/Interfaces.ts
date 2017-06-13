@@ -7,6 +7,6 @@ import { DataChangedArgument, IDataIterator, IDataSource, IDataStorage } from '.
 import { Candlestick } from '../model/index';
 import { IRect } from '../shared/index';
 
-export interface IIndicator {
-    compute(iterator: IDataIterator<Candlestick>, storage: IDataStorage<Candlestick>): Candlestick[];
-}
+// export interface IIndicator {
+//     compute(iterator: IDataIterator<Candlestick>, storage: IDataStorage<Candlestick>): Candlestick[];
+// }

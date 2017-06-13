@@ -9,7 +9,6 @@ import { Candlestick, Uid } from '../model/index';
 import { FixedSizeArray } from '../shared/index';
 import { IndicatorDataSource } from './IndicatorDataSource';
 
-
 export class HeikinAshiDataSource extends IndicatorDataSource<Candlestick> {
 
     constructor (source: IDataSource<Candlestick>, context: IContext) {

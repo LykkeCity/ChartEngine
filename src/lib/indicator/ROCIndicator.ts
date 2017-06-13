@@ -9,8 +9,6 @@ import { Candlestick, Point } from '../model/index';
 import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
-import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
 import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';

@@ -36,13 +36,14 @@ export class ArrayIterator<T> implements IDataIterator<T> {
         return false;
     }
 
-    // TODO: Fix for case when filter is defined
     /**
      * Moves iterator while condition is met. Stays on the last element that satisfy condition.
      * Starts from beginning.
      * @param predicate 
      */
     public goWhile(predicate: (item: T) => boolean): boolean {
+        if (this.filter) { throw new Error('Not implemented.'); }
+
         this.reset();
 
         let nextIndex = 0;
@@ -149,33 +150,17 @@ export class ArrayIterator<T> implements IDataIterator<T> {
             return 0;
         }
 
-        let i = 0;
-        while ( ((n < 0 && this.currentIndex > 0)
-            || (n > 0 && this.currentIndex < (this.dataSnapshot.data.length - 1)))
-            && Math.abs(i) < Math.abs(n)) {
+        if (this.filter) { throw new Error('Not implemented.'); }
 
-            if (n > 0) {
-
-                const nextIndex = this.skipFilteredForward(this.currentIndex);
-                if (nextIndex < this.dataSnapshot.data.length) {
-                    this.currentIndex = nextIndex;
-                    i += 1;
-                } else {
-                    break;
-                }
-
-            } else {
-                const nextIndex = this.skipFilteredBackward(this.currentIndex);
-                if (nextIndex >= 0) {
-                    this.currentIndex = nextIndex;
-                    i -= 1;
-                } else {
-                    break;
-                }
-            }
+        let shift;
+        if (n < 0) {
+            shift = Math.max(-this.currentIndex, n);
+        } else {
+            shift = Math.min( this.dataSnapshot.data.length - ( this.currentIndex + 1), n );
         }
 
-        return i;
+        this.currentIndex += shift;
+        return shift;
     }
 
     /**
@@ -260,8 +245,10 @@ export class ArrayIterator<T> implements IDataIterator<T> {
         return this.dataSnapshot.data[this.currentIndex];
     }
 
-    // TODO: Fix for case when filter is defined
     public goToLast(): boolean {
+
+        if (this.filter) { throw new Error('Not implemented.'); }
+
         this.reset();
 
         if (this.dataSnapshot.data.length > 0) {
@@ -271,16 +258,18 @@ export class ArrayIterator<T> implements IDataIterator<T> {
         return false;
     }
 
-    // TODO: Fix for case when filter is defined
     public get last(): T|undefined {
+        if (this.filter) { throw new Error('Not implemented.'); }
+
         this.checkTimestamp();
         if (this.dataSnapshot.data.length > 0) {
             return this.dataSnapshot.data[this.dataSnapshot.data.length - 1];
         }
     }
 
-    // TODO: Fix for case when filter is defined
     public get previous(): T|undefined {
+        if (this.filter) { throw new Error('Not implemented.'); }
+
         this.checkTimestamp();
         if (this.currentIndex >= 1) {
             return this.dataSnapshot.data[this.currentIndex - 1];

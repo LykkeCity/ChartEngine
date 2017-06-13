@@ -25,9 +25,52 @@ export class DateUtils {
         return `${year}-${month}-${day}`;
     }
 
+    public static toIso(date: Date): string {
+        const year = date.getUTCFullYear();
+        const month = ('00' + (date.getUTCMonth() + 1)).slice(-2);
+        const day = ('00' + date.getUTCDate()).slice(-2);
+        const hour = ('00' + date.getUTCHours()).slice(-2);
+        const min = ('00' + date.getUTCMinutes()).slice(-2);
+        const sec = ('00' + date.getUTCSeconds()).slice(-2);
+        return `${year}-${month}-${day} ${hour}:${min}:${sec}`;
+    }
+
     public static parseIsoDate(text: string): Date|undefined {
         if (text) {
             return new Date(text);
+        }
+    }
+
+    /**
+     * Returns count of intervals b/w two dates. Both dates should be UTC.
+     * @param date1 
+     * @param date2 
+     * @param interval 
+     */
+    public static diffIntervals(date1: Date, date2: Date, interval: TimeInterval): number {
+        const diff = Math.abs(date1.getTime() - date2.getTime());
+
+        switch (interval) {
+            case TimeInterval.sec: return Math.floor(diff / 1000);
+            case TimeInterval.min: return Math.floor(diff / (1000 * 60));
+            case TimeInterval.min5: return Math.floor(diff / (1000 * 60 * 5));
+            case TimeInterval.min15: return Math.floor(diff / (1000 * 60 * 15));
+            case TimeInterval.min30: return Math.floor(diff / (1000 * 60 * 30));
+            case TimeInterval.hour: return Math.floor(diff / (1000 * 60 * 60));
+            case TimeInterval.hour4: return Math.floor(diff / (1000 * 60 * 60 * 4));
+            case TimeInterval.hour6: return Math.floor(diff / (1000 * 60 * 60 * 6));
+            case TimeInterval.hour12: return Math.floor(diff / (1000 * 60 * 60 * 12));
+            case TimeInterval.day: return Math.floor(diff / (1000 * 60 * 60 * 24));
+            case TimeInterval.day3: return Math.floor(diff / (1000 * 60 * 60 * 24 * 3));
+            case TimeInterval.week: return Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
+            case TimeInterval.day10: return Math.floor(diff / (1000 * 60 * 60 * 24 * 10));
+            case TimeInterval.month:
+                const dateMin = date1 < date2 ? date1 : date2;
+                const dateMax = date1 < date2 ? date2 : date1;
+                return dateMax.getMonth() - dateMin.getMonth()
+                    + (12 * (dateMax.getFullYear() - dateMin.getFullYear()));
+            default:
+                throw new Error(`Unexpected interval ${ interval }`);
         }
     }
 

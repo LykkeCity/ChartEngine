@@ -7,7 +7,6 @@
 import { IContext, IDataSource } from '../data/index';
 import { Candlestick } from '../model/index';
 import { IHashTable } from '../shared/index';
-import { IndicatorDataSource } from './IndicatorDataSource';
 
 export interface IInstanceCreator {
     new(source: IDataSource<Candlestick>, context: IContext): IDataSource<Candlestick>;

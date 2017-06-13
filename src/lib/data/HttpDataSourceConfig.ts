@@ -5,11 +5,11 @@ import { TimeInterval } from '../core/index';
 import { DataSourceConfig } from './DataSourceConfig';
 import { IDataReaderDelegate, IResponse } from './Interfaces';
 
-export class HttpDataSourceConfig<R, S> extends DataSourceConfig {
+export class HttpDataSourceConfig<S> extends DataSourceConfig {
     constructor(
         public url: string,
         public timeInterval: TimeInterval,
-        public readData: IDataReaderDelegate<R>,
+        public readData: IDataReaderDelegate,
         public resolveData: (response: any) => IResponse<S>,
         public autoupdate = false
     ) {

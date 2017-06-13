@@ -254,15 +254,15 @@ export class ChartController implements lychart.core.IDataService {
                 });
 
             return {
-                startDateTime: response.dateFrom,
-                endDateTime: response.dateTo,
+                dateFrom: new Date(response.dateFrom),
+                dateTo: new Date(response.dateTo),
                 interval: Utils.PERIOD2INTERVAL(response.period),
                 data: data
             };
         }
         return {
-            startDateTime: new Date(),
-            endDateTime: new Date(),
+            dateFrom: new Date(),
+            dateTo: new Date(),
             interval: lychart.core.TimeInterval.notSet,
             data: []
         };

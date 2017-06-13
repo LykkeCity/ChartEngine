@@ -13,12 +13,9 @@ import { DIXOscillator } from './DIXOscillator';
 import { DMIIndicator, DMIIndicatorRenderer } from './DMIIndicator';
 import { DSSBROscillator, DSSBROscillatorRenderer} from './DSSBROscillator';
 import { EMAIndicator } from './EMAIndicator';
-import { HeikinAshiDataSource } from './HeikinAshiDataSource';
 import { HHLLIndicator, HHLLIndicatorRenderer } from './HHLLIndicator';
 import { IKHIndicator, IKHIndicatorRenderer } from './IKHIndicator';
-import { IndicatorDataSource } from './IndicatorDataSource';
 import { IndicatorFabric, register } from './IndicatorFabric';
-import { IIndicator } from './Interfaces';
 import { MACDIndicator, MACDIndicatorRenderer } from './MACDIndicator';
 import { MDIndicator } from './MDIndicator';
 import { MOMIndicator } from './MOMIndicator';
@@ -55,12 +52,9 @@ export {
     DMIIndicator, DMIIndicatorRenderer,
     DSSBROscillator, DSSBROscillatorRenderer,
     EMAIndicator,
-    HeikinAshiDataSource,
     HHLLIndicator, HHLLIndicatorRenderer,
     IKHIndicator, IKHIndicatorRenderer,
-    IndicatorDataSource,
     IndicatorFabric,
-    IIndicator,
     MACDIndicator, MACDIndicatorRenderer,
     MDIndicator,
     MOMIndicator,

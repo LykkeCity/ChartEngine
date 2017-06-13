@@ -44,7 +44,9 @@ module.exports = {
             }
 
             if (cur.getTime() >= dateFrom.getTime() && cur.getTime() <= dateTo.getTime()) {
-                list.push(c);
+                if (cur.getUTCDate() % 2 === 0) {
+                    list.push(c);
+                }
             }
             cur = utils.addInterval(cur, period);
         }

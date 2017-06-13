@@ -4,8 +4,8 @@
  * @classdesc Facade for the chart library.
  */
 import { ChartType, IDataService, IQuicktip, IQuicktipBuilder, IStorage, Mouse, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
-import { DataChangedArgument, DataSourceFactory, DataSourceRegister, IDataSource } from '../data/index';
-import { IndicatorDataSource, IndicatorFabric } from '../indicator/index';
+import { DataChangedArgument, DataSourceFactory, DataSourceRegister, IDataSource, IndicatorDataSource } from '../data/index';
+import { IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
 import { Candlestick, Point } from '../model/index';
 import { RenderLocator } from '../render/index';
@@ -244,7 +244,6 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         } else {
             index = this.chartStacks.length;
             chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true);
-            chartStack.setFixedRange({ start: -10, end: 110});
             this.chartStacks.push(chartStack);
             this.addChild(chartStack);
         }

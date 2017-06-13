@@ -33,25 +33,14 @@ export class ArrayDataSource extends DataSource {
 
             const initData = data.slice();
             initData.sort(this.comparer);
-            // initData.forEach(item => {
-            //     item.uid = DateUtils.format14(item.date);
-            // });
 
             this.dataStorage = new ArrayDataStorage<Candlestick>(this.comparer, initData);
     }
 
     public load(uid: Uid, count: number): void {
-        //return this.dataStorage.getIterator((item: T) => item.uid === itemUid, count);
     }
 
     public loadRange(uidFirst: Uid, uidLast: Uid): void {
-        // if (this.dataStorage.last) {
-        //     //const lastUid = this.dataStorage.last.uid;
-        //     //return this.dataStorage.getIterator((item: T) => item.uid === lastUid, count);
-        //     return this.dataStorage.getIterator((item: T) => item.date.getTime() === date.getTime(), count);
-        // } else {
-        //     return this.dataStorage.getIterator((item: T) => false, count); // empty iterator
-        // }
     }
 
     public getIterator(filter?: (item: Candlestick) => boolean): IDataIterator<Candlestick> {
@@ -60,22 +49,6 @@ export class ArrayDataSource extends DataSource {
     }
 
     public lock(uid: Uid): void { }
-
-    // public getData(range: IRange<Date>, interval: TimeInterval): IDataIterator<T> {
-
-    //     this.validateRange(range);
-    //     this.validateInterval(interval);
-
-    //     const startTime = range.start.getTime();
-    //     const endTime = range.end.getTime();
-
-    //     return this.dataStorage.getIterator((item: T) => {
-    //             const itemTime = item.date.getTime();
-    //             return (itemTime >= startTime && itemTime <= endTime);
-    //         });
-    // }
-
-
 
     protected getDefaultConfig(): DataSourceConfig {
         return new DataSourceConfig(

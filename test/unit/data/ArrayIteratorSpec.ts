@@ -16,14 +16,8 @@ describe('ArrayIterator tests', () => {
         const emptySnapshot = { timestamp: 0, data: [] };
         const iterator = new data.ArrayIterator<number>(emptySnapshot, emptySnapshot.timestamp);
 
-        expect(iterator.count()).toEqual(0);
         expect(iterator.moveNext()).toEqual(false);
         expect(iterator.movePrev()).toEqual(false);
-    });
-
-    it('Operations with not filtered iterator. Count.', () => {
-        const iterator = new data.ArrayIterator<number>(snapshot, snapshot.timestamp);
-        expect(iterator.count()).toEqual(snapshot.data.length);
     });
 
     it('Operations with not filtered iterator. MoveNext.', () => {
@@ -47,14 +41,6 @@ describe('ArrayIterator tests', () => {
             }
         });
         expect(iterator.movePrev()).toEqual(false);
-    });
-
-    it('Operations with not filtered iterator. Find.', () => {
-        const iterator = new data.ArrayIterator<number>(snapshot, snapshot.timestamp);
-        expect(iterator.find(e => e === 0)).toEqual(0);
-        expect(iterator.find(e => e === 3)).toEqual(3);
-        expect(iterator.find(e => e === 9)).toEqual(9);
-        expect(iterator.find(e => e === 10)).toBeUndefined();
     });
 
     it('Operations with not filtered iterator. GoTo.', () => {

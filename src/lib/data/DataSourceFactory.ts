@@ -2,13 +2,13 @@
  * DataSourceFactory class.
  */
 import { ChartType } from '../core/index';
-import { HeikinAshiDataSource } from '../indicator/index';
 import { Candlestick } from '../model/index';
 import { IRange } from '../shared/index';
 import { IContext, IDataSource } from './Interfaces';
 import { LineBreakDataSource } from './LineBreakDataSource';
 import { RangeBarDataSource } from './RangeBarDataSource';
 import { RenkoDataSource } from './RenkoDataSource';
+import { HeikinAshiDataSource } from './HeikinAshiDataSource';
 
 export class DataSourceFactory {
     public static CREATE<T>(chartType: string, source: IDataSource<Candlestick>, timeRange: IRange<Date>, context: IContext): IDataSource<Candlestick> {

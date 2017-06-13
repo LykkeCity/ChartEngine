@@ -10,28 +10,34 @@ import { DataSourceConfig } from './DataSourceConfig';
 import { DataSourceFactory } from './DataSourceFactory';
 import { DataSourceRegister, IDataSourceRegister } from './DataSourceRegister';
 import { DataType } from './DataType';
-import { HttpDataSource } from './HttpDataSource';
+import { CompositeRange, HttpDataSource } from './HttpDataSource';
+import { HeikinAshiDataSource } from './HeikinAshiDataSource';
 import { HttpDataSourceConfig } from './HttpDataSourceConfig';
+import { IndicatorDataSource } from './IndicatorDataSource';
 import {
     IContext,
     IDataIterator,
     IDataReaderDelegate,
     IDataSource,
     IDataStorage,
+    IIndicator,
     IResponse } from './Interfaces';
 
 export {
     ArrayIterator,
     ArrayDataSource,
     ArrayDataStorage,
+    CompositeRange,
     DataSourceFactory,
     DataSourceRegister,
+    HeikinAshiDataSource,
     HttpDataSource,
     DataChangedArgument,
     DataChangedEvent,
     DataSource,
     DataSourceConfig,
     HttpDataSourceConfig,
+    IndicatorDataSource,
     DataType,
     IContext,
     IDataIterator,
@@ -40,5 +46,6 @@ export {
     IDataSourceRegister,
     //IDataSourceUntyped,
     IDataStorage,
+    IIndicator,
     IResponse
 };

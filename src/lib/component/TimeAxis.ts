@@ -162,38 +162,13 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         }
     }
 
-    private shiftNext(iterator: IDataIterator<Candlestick>|undefined, found: boolean, curPosition: Uid): {f: boolean, uid: Uid} {
-
-        const newPosition: Uid = new Uid();
-        let f: boolean = found;
-
-        if (found) {
-            f = (iterator !== undefined) ? iterator.moveNext() : false;
-            if (f && iterator !== undefined) {
-                const cur = iterator.current;
-                newPosition.t = cur.uid.t;
-                newPosition.n = cur.uid.n;
-            } else {
-                // generate fake
-                // do not try to move
-                newPosition.t = DateUtils.addInterval(curPosition.t, this._interval);
-                newPosition.n = 0;
-            }
-        } else {
-            // generate fake time
-            // try move pointer
-            newPosition.t = DateUtils.addInterval(curPosition.t, this._interval);
-            newPosition.n = 0;
-        }
-        return { f: f, uid: newPosition };
-    }
-
     /**
      * Should search most nearest Uid to the specified Uid, as interval can be changed
      * @param uid 
      */
     public toX(uid: Uid): number | undefined { // Если возвращает undef, то не рендерить пока фигуру, т.к. не загружены данные.
 		// Рассчтитьа растояние между fs и uid +1000 | -1000
+        let counter = 0;
 
         // ensure that require uid is loaded
         if (this.dataSource) {
@@ -205,21 +180,29 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
 
         const curTime = curUid.t.getTime();
         const lastTime = lastUid.t.getTime();
-        // goto start
-        let fo = this.tempIter ?
-            this.tempIter.goTo(item => { return item.uid.t.getTime() === curTime && item.uid.n === curUid.n; })
-            : false;
 
-        let curCompare = curUid.compare(lastUid); // This is -1 or 0
+        const fo = this.tempIter ? this.tempIter.goTo(item => item.uid.compare(curUid) > 0) : false;
 
-        let counter = 0;
-        while (curUid.compare(lastUid) < 0) { //!(curUid.t.getTime() === lastTime && curUid.n === lastUid.n )) {
+        if (fo && this.tempIter && this.tempIter.current.uid.compare(lastUid) < 0) {
 
-            const res = this.shiftNext(this.tempIter, fo, curUid);
-            fo = res.f;
-            curUid = res.uid;
+            counter = DateUtils.diffIntervals(curUid.t, this.tempIter.current.uid.t, this.interval);
 
-            counter += 1;
+            let outOfRange = false;
+            while (this.tempIter.moveNext()) {
+                curUid = this.tempIter.current.uid;
+
+                if (curUid.compare(lastUid) > 0) {
+                    outOfRange = true;
+                    break;
+                }
+                counter += 1;
+            }
+
+            if (!outOfRange) {
+                counter += DateUtils.diffIntervals(curUid.t, lastUid.t, this.interval);
+            }
+        } else {
+            counter = DateUtils.diffIntervals(curUid.t, lastUid.t, this.interval);
         }
 
 		// По индексу рассчитать координату
@@ -256,47 +239,70 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
             return cur;
         }
 
-        const forward = shift >= 0;
-        shift = Math.abs(shift);
+        // 1. Find first candle before or after current position
+        //
+        let found = false;
+        if (iterator) {
+            found = (shift > 0)
+                ? iterator.goTo(item => item.uid.compare(cur) > 0)
+                : iterator.goWhile(item => item.uid.compare(cur) < 0);
+        }
 
-        // Add fake intervals
-        let counter = 0;
-        let fo = false;
-        while (!fo && counter < shift) {
+        //let remains: number = shift; // - counter;
 
-            const curTime = cur.t.getTime();
-            const curN = cur.n;
+        if (iterator && found) {
 
-            fo = iterator
-                ? iterator.goTo(item => { return item.uid.t.getTime() === curTime && item.uid.n === curN; })
-                : false;
+            // Define distance b/w frame start and first found item
+            const diff = DateUtils.diffIntervals(cur.t, iterator.current.uid.t, this.interval); // diff is positive
 
-            if (fo) {
-                break;
+            if ((shift > 0 && diff > shift) || (shift < 0 && -diff < shift)
+            ) {
+                cur.t = DateUtils.addInterval(cur.t, this._interval, shift);
+                cur.n = 0;
+                return cur;
             }
 
-            cur.t = DateUtils.addInterval(cur.t, this._interval, forward ? 1 : -1);
-            cur.n = 0;
+            shift = shift - ((shift > 0) ? diff : -diff);
 
-            counter += 1;
-        }
-
-        let remains: number = shift - counter;
-
-        const actualMoved = iterator ? iterator.moveTimes(forward ? remains : -remains) : 0;
-        if (actualMoved !== 0 && iterator)  {
+            // Shift over the data items
+            const actualMoved = iterator.moveTimes(shift);
             cur.t = iterator.current.uid.t;
             cur.n = iterator.current.uid.n;
+            shift = shift - actualMoved;
         }
 
-        remains = remains - Math.abs(actualMoved);
-
-        if (remains > 0) {
-            cur.t = DateUtils.addInterval(cur.t, this._interval, forward ? remains : -remains);
+        if (shift !== 0) {
+            cur.t = DateUtils.addInterval(cur.t, this._interval, shift);
             cur.n = 0;
         }
 
         return cur;
+    }
+
+    private shiftNext(iterator: IDataIterator<Candlestick>|undefined, found: boolean, curPosition: Uid): {f: boolean, uid: Uid} {
+
+        const newPosition: Uid = new Uid();
+        let f: boolean = found;
+
+        if (found) {
+            f = (iterator !== undefined) ? iterator.moveNext() : false;
+            if (f && iterator !== undefined) {
+                const cur = iterator.current;
+                newPosition.t = cur.uid.t;
+                newPosition.n = cur.uid.n;
+            } else {
+                // generate fake
+                // do not try to move
+                newPosition.t = DateUtils.addInterval(curPosition.t, this._interval);
+                newPosition.n = 0;
+            }
+        } else {
+            // generate fake time
+            // try move pointer
+            newPosition.t = DateUtils.addInterval(curPosition.t, this._interval);
+            newPosition.n = 0;
+        }
+        return { f: f, uid: newPosition };
     }
 
     private index2x(index: number): number {

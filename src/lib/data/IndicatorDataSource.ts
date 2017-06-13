@@ -1,19 +1,25 @@
 /**
  * IndicatorDataSource class.
  */
-import {
-    ArrayDataStorage,
-    ArrayIterator,
-    DataChangedArgument,
-    DataSource,
-    DataSourceConfig,
-    IContext,
-    IDataIterator,
-    IDataSource } from '../data/index';
+// import {
+//     //ArrayDataStorage,
+//     ArrayIterator,
+//     DataChangedArgument,
+//     DataSource,
+//     DataSourceConfig,
+//     IContext,
+//     IDataIterator,
+//     IDataSource } from '../data/index';
+
+import { ArrayDataStorage } from './ArrayDataStorage';
+import { ArrayIterator } from './ArrayIterator';
+import { DataChangedArgument } from './DataChangedEvent';
+import { DataSource } from './DataSource';
+import { DataSourceConfig } from './DataSourceConfig';
 import { Candlestick, ITimeValue, IUidValue, Uid } from '../model/index';
 import { IRange } from '../shared/index';
 import { DateUtils } from '../utils/index';
-import { IIndicator } from './Interfaces';
+import { IContext, IDataIterator, IDataSource, IIndicator } from './Interfaces';
 
 /**
  * 1-to-1 mapping with source.

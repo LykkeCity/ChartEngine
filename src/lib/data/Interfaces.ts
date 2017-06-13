@@ -15,6 +15,10 @@ export interface IContext {
     register: IDataSourceRegister;
 }
 
+export interface IIndicator {
+    compute(iterator: IDataIterator<Candlestick>, storage: IDataStorage<Candlestick>): Candlestick[];
+}
+
 export interface IDataSource<T> extends IDisposable, IConfigurable {
     dataType: { new(d: Date): T };
     dataChanged: IEvent<DataChangedArgument>;
@@ -111,12 +115,19 @@ export interface IDataIterator<T> {
     //count(): number;    
 }
 
-export interface IDataReaderDelegate<T> {
-    (timeStart: Date, timeEnd: Date, timeInterval: TimeInterval): JQueryPromise<IResponse<T>>;
+export interface IDataReaderDelegate {
+    (timeStart: Date, timeEnd: Date, timeInterval: TimeInterval): JQueryPromise<any>;
 }
 
-export interface IDataResolverDelegate<T, U> {
-    (response: IResponse<T>): IResponse<U>;
+export interface IDataResolverDelegate<U> {
+    (response: any): IResponse<U>;
+}
+
+export interface IResponse<T> {
+    data: T[];
+    interval: TimeInterval; //keyof typeof TimeInterval;
+    dateFrom: Date;
+    dateTo: Date;
 }
 
 export interface IDataSnapshot<T> {
@@ -147,11 +158,4 @@ export interface IPendingRequest<T> {
     request: JQueryPromise<IResponse<T>>;
     interval: TimeInterval;
     range: IRange<Date>;
-}
-
-export interface IResponse<T> {
-    data: T[];
-    interval: TimeInterval; //keyof typeof TimeInterval;
-    startDateTime: Date;
-    endDateTime: Date;
 }

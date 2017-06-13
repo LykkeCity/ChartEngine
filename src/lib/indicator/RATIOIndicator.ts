@@ -5,14 +5,12 @@ import { ICanvas } from '../canvas/index';
 import { TrueRangeExtension } from '../compute/index';
 import { ChartPoint, IAxis, IPoint, ITimeAxis, SettingSet, SettingType, TimeInterval } from '../core/index';
 import { ArrayDataStorage, DataChangedArgument, DataSource,
-    DataSourceConfig, IContext, IDataIterator, IDataSource, IDataStorage } from '../data/index';
+    DataSourceConfig, IContext, IDataIterator, IDataSource, IDataStorage, IndicatorDataSource } from '../data/index';
 import { Candlestick, Point } from '../model/index';
 import { IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IdValue, IRange, IRect } from '../shared/index';
 import { DateUtils } from '../utils/index';
 import { CandlestickExt } from './CandlestickExt';
-import { IndicatorDataSource } from './IndicatorDataSource';
-import { IIndicator } from './Interfaces';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';
 import { Utils } from './Utils';
