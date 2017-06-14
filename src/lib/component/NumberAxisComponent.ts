@@ -6,6 +6,7 @@ import { VisualComponent, VisualContext } from '../core/index';
 import { ChartArea, SizeChangedArgument, YArea } from '../layout/index';
 import { IAxesRender, IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
+import { IChartingSettings } from './Interfaces';
 import { NumberMarker } from './NumberMarker';
 
 export class NumberAxisComponent extends VisualComponent {
@@ -16,7 +17,8 @@ export class NumberAxisComponent extends VisualComponent {
     constructor(
         chartArea: ChartArea,
         numberAxis: NumberAxis,
-        offset: Point, size: ISize
+        offset: Point, size: ISize,
+        settings: IChartingSettings
         ) {
         super(offset, size);
 
@@ -24,7 +26,7 @@ export class NumberAxisComponent extends VisualComponent {
         this.area = chartArea.addYAxis();
         this.area.sizeChanged.on(this.onresize);
 
-        const priceMarker = new NumberMarker(this.area, {x: 0, y: 0}, size, numberAxis);
+        const priceMarker = new NumberMarker(this.area, {x: 0, y: 0}, size, numberAxis, settings);
         this.addChild(priceMarker);
     }
 

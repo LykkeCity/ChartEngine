@@ -12,12 +12,12 @@ import { Chart, IChart } from './Chart';
 import { Crosshair } from './Crosshair';
 import { FigureComponent } from './FigureComponent';
 import { Grid } from './Grid';
-import { IChartStack } from './Interfaces';
+import { IChartingSettings, IChartStack } from './Interfaces';
 import { NumberAxisComponent } from './NumberAxisComponent';
 import { PriceAxisComponent } from './PriceAxisComponent';
 import { QuicktipBuilder } from './Quicktip';
 
-export class ChartStack extends VisualComponent implements IChartStack, ICoordsConverter, IConfigurable {
+export class ChartStack extends VisualComponent implements IChartStack, ICoordsConverter, IConfigurable, IChartingSettings {
 
     private readonly _uid: string;
     private readonly boardArea: BoardArea;
@@ -30,6 +30,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     private readonly grid: Grid;
     private readonly figures: FigureComponent[] = [];
     private readonly yAxisComponent: VisualComponent;
+    private _precision: number = 0;
 
     constructor(
         uid: string,
@@ -56,10 +57,10 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
 
         if (yIsPrice) {
             this.yAxis = new PriceAxis(size.height, 0.0001);
-            this.yAxisComponent = new PriceAxisComponent(this.area, <PriceAxis>this.yAxis, p, size);
+            this.yAxisComponent = new PriceAxisComponent(this.area, <PriceAxis>this.yAxis, p, size, this);
         } else {
             this.yAxis = new NumberAxis(size.height, 0.0001);
-            this.yAxisComponent = new NumberAxisComponent(this.area, <NumberAxis>this.yAxis, p, size);
+            this.yAxisComponent = new NumberAxisComponent(this.area, <NumberAxis>this.yAxis, p, size, this);
         }
 
         this.addChild(this.yAxisComponent);
@@ -118,6 +119,8 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
                                    qtip);
         this._charts.push(newChart);
         this.addChild(newChart);
+
+        this.updateChartingSettings();
     }
 
     public removeChart(uid: string) {
@@ -128,6 +131,8 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
             }
         }
         this.qtBuilder.removeQuicktip(uid);
+
+        this.updateChartingSettings();
     }
 
     public addFigure(ctor: {(area: Area, offset: IPoint, size: ISize, coords: ICoordsConverter): FigureComponent}) : FigureComponent {
@@ -143,13 +148,13 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         });
     }
 
+    public precision(): number {
+        return this._precision;
+    }
+
     // TODO: Rename
     public mouseToCoords(localX: number, localY: number): ChartPoint {
         throw new Error('Not implemented');
-        // return new ChartPoint(
-        //     this.frame.xAxis.toValue(localX),
-        //     this.yAxis.toValue(localY)
-        // );
     }
 
     public toX(value: Uid): number|undefined {
@@ -256,6 +261,15 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
 
     private applySettings() {
         this.grid.visible = this.settings.showGrid;
+    }
+
+    private updateChartingSettings() {
+
+        // select maximum precision among data sources
+        this._precision = 0;
+        for (const chart of this._charts) {
+            this._precision = Math.max(this._precision, chart.precision);
+        }
     }
 }
 

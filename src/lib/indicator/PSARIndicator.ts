@@ -40,11 +40,11 @@ export class PSARCandlestick extends CandlestickExt {
 
     public trend: Trend = Trend.None;
 
-    public toString() {
+    public toString(precision: number) {
         return 'SAR: '
-            + `${this.SAR !== undefined ? this.SAR.toFixed(4) : 'n/a'}`
+            + `${this.SAR !== undefined ? this.SAR.toFixed(precision) : 'n/a'}`
             + ' / EP: '
-            + `${this.EP !== undefined ? this.EP.toFixed(4) : 'n/a'}`;
+            + `${this.EP !== undefined ? this.EP.toFixed(precision) : 'n/a'}`;
     }
 }
 

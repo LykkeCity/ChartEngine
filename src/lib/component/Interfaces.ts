@@ -42,7 +42,6 @@ export interface IChartStack extends ICoordsConverter {
     uid: string;
     offset: IPoint;
     addFigure(ctor: {(area: Area, offset: IPoint, size: ISize, coords: ICoordsConverter): FigureComponent}) : FigureComponent;
-    //mouseToCoords(mouseX: number, mouseY: number): ChartPoint;
 }
 
 export interface IStateController {
@@ -60,4 +59,8 @@ export interface IStateController {
 export function isStateController(obj: any): obj is IStateController {
     return (<IStateController>obj).activate !== undefined
         && (<IStateController>obj).deactivate !== undefined;
+}
+
+export interface IChartingSettings {
+    precision(): number;
 }

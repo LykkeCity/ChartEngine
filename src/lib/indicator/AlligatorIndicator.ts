@@ -24,12 +24,12 @@ export class TripleCandlestick extends Candlestick {
         this.lips = new Candlestick(date);
     }
 
-    public toString() {
-        return `${this.jaw && this.jaw.c !== undefined ? this.jaw.c.toFixed(4) : 'n/a'}`
+    public toString(precision: number) {
+        return `${this.jaw && this.jaw.c !== undefined ? this.jaw.c.toFixed(precision) : 'n/a'}`
             + ' / '
-            + `${this.teeth && this.teeth.c !== undefined ? this.teeth.c.toFixed(4) : 'n/a'}`
+            + `${this.teeth && this.teeth.c !== undefined ? this.teeth.c.toFixed(precision) : 'n/a'}`
             + ' / '
-            + `${this.lips && this.lips.c !== undefined ? this.lips.c.toFixed(4) : 'n/a'}`;
+            + `${this.lips && this.lips.c !== undefined ? this.lips.c.toFixed(precision) : 'n/a'}`;
     }
 }
 

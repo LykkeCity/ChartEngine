@@ -11,7 +11,7 @@ export class LinePopupRenderer implements IPopupRender<Point> {
     private readonly paddingLeft = 5;
     private readonly paddingTop = 5;
 
-    public render(canvas: ICanvas, model: Point, point: IPoint, frameSize: ISize): void {
+    public render(canvas: ICanvas, model: Point, point: IPoint, frameSize: ISize, precision: number): void {
         const lineHeight = 20;
         const w = 90;
         const h = lineHeight + this.paddingTop * 2;
@@ -33,7 +33,7 @@ export class LinePopupRenderer implements IPopupRender<Point> {
         canvas.font = '10px Arial';
         canvas.fillStyle = 'black';
         canvas.setTextBaseLine(CanvasTextBaseLine.Top);
-        canvas.fillText(`${ (model.value !== undefined ? model.value.toFixed(4) : '' ) }`, x + this.paddingLeft, y + this.paddingTop);
+        canvas.fillText(`${ (model.value !== undefined ? model.value.toFixed(precision) : '' ) }`, x + this.paddingLeft, y + this.paddingTop);
 
         // restore global value
         canvas.globalAlpha = alpha;

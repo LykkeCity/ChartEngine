@@ -1,7 +1,7 @@
 /**
  * NumberAxis class.
  */
-import { IAxis } from '../core/index';
+import { Grid, IAxis } from '../core/index';
 import { IRange } from '../shared/index';
 import { NumberAutoGrid } from './AutoGrid';
 
@@ -37,7 +37,7 @@ export class NumberAxis implements IAxis<number> {
         return this._interval;
     }
 
-    public getGrid(): number[] {
+    public getGrid(): Grid<number> {
         const autoGrid = new NumberAutoGrid(this._length, this.interval, this.range);
         return autoGrid.getGrid();
     }

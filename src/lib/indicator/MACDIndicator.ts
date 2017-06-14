@@ -35,13 +35,13 @@ export class MACDCandlestick extends CandlestickExt {
      */
     public HIS: number | undefined;
 
-    public toString() {
+    public toString(precision: number) {
         return 'MACD: '
-            + `${this.MACD !== undefined ? this.MACD.toFixed(4) : 'n/a'}`
+            + `${this.MACD !== undefined ? this.MACD.toFixed(precision) : 'n/a'}`
             + ' SIG: '
-            + `${this.SIG !== undefined ? this.SIG.toFixed(4) : 'n/a'}`
+            + `${this.SIG !== undefined ? this.SIG.toFixed(precision) : 'n/a'}`
             + ' HIS: '
-            + `${this.HIS !== undefined ? this.HIS.toFixed(4) : 'n/a'}`;
+            + `${this.HIS !== undefined ? this.HIS.toFixed(precision) : 'n/a'}`;
     }
 }
 

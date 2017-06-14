@@ -5,7 +5,8 @@ import { AmountRange, AmountRangeOps } from './AmountRange';
 import { ChartType } from './ChartType';
 import { CObject } from './CObject';
 import { TimeInterval } from './Enums';
-import { IAxis,
+import { Grid,
+         IAxis,
          IConfigurable,
          ICoordsConverter,
          IDataService,
@@ -27,6 +28,7 @@ export {
     ChartPoint,
     ChartType,
     CObject,
+    Grid,
     IAxis,
     IConfigurable,
     ICoordsConverter,

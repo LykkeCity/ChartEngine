@@ -11,8 +11,8 @@ export class HttpDataSourceConfig<S> extends DataSourceConfig {
         public timeInterval: TimeInterval,
         public readData: IDataReaderDelegate,
         public resolveData: (response: any) => IResponse<S>,
-        public autoupdate = false
-    ) {
-        super();
+        public precision: number,
+        public autoupdate = false) {
+        super(precision);
     }
 }

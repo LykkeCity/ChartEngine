@@ -30,13 +30,10 @@ export class DoubleCandlestick extends CandlestickExt {
         super(date, c, o, h, l);
     }
 
-    public toString() {
-        return `${this.K !== undefined ? this.K.toFixed(4) : 'n/a'}`
+    public toString(precision: number) {
+        return `${this.K !== undefined ? this.K.toFixed(precision) : 'n/a'}`
             + ' / '
-            + `${this.D !== undefined ? this.D.toFixed(4) : 'n/a'}`;
-        // return `${this.fast && this.fast.c !== undefined ? this.fast.c.toFixed(4) : 'n/a'}`
-        //     + ' / '
-        //     + `${this.slow && this.slow.c !== undefined ? this.slow.c.toFixed(4) : 'n/a'}`;
+            + `${this.D !== undefined ? this.D.toFixed(precision) : 'n/a'}`;
     }
 }
 

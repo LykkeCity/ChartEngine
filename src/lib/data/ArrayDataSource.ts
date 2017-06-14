@@ -50,10 +50,5 @@ export class ArrayDataSource extends DataSource {
 
     public lock(uid: Uid): void { }
 
-    protected getDefaultConfig(): DataSourceConfig {
-        return new DataSourceConfig(
-        );
-    }
-
     public dispose(): void { }
 }

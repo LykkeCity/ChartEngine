@@ -27,7 +27,7 @@ export class GridRenderer {
 
         // Horizontal lines
         const gridY = yAxis.getGrid();
-        for (const bar of gridY) {
+        for (const bar of gridY.bars) {
             if (bar !== undefined) {
                 const y = yAxis.toX(bar);
                 canvas.moveTo(frame.x, y);

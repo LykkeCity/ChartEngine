@@ -56,9 +56,9 @@ export class PPCandlestick extends CandlestickExt {
 
     public dateEnd: Uid;
 
-    public toString() {
+    public toString(precision: number) {
         return 'PP: '
-            + `${this.p !== undefined ? this.p.toFixed(4) : 'n/a'}`;
+            + `${this.p !== undefined ? this.p.toFixed(precision) : 'n/a'}`;
     }
 }
 export class PPIndicator extends IndicatorDataSource<PPCandlestick> {

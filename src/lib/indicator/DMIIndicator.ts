@@ -41,13 +41,13 @@ export class DMICandlestick extends CandlestickExt {
      */
     public mDI: number | undefined;
 
-    public toString() {
+    public toString(precision: number) {
         return 'DX: '
-            + `${this.c !== undefined ? this.c.toFixed(4) : 'n/a'}`
+            + `${this.c !== undefined ? this.c.toFixed(precision) : 'n/a'}`
             + ' +DI: '
-            + `${this.pDI !== undefined ? this.pDI.toFixed(4) : 'n/a'}`
+            + `${this.pDI !== undefined ? this.pDI.toFixed(precision) : 'n/a'}`
             + ' -DI '
-            + `${this.mDI !== undefined ? this.mDI.toFixed(4) : 'n/a'}`;
+            + `${this.mDI !== undefined ? this.mDI.toFixed(precision) : 'n/a'}`;
     }
 }
 

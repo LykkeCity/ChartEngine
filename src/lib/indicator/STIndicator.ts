@@ -34,8 +34,8 @@ export class STCandlestick extends CandlestickExt {
     public trendDown: number|undefined;
     public trend: Type = Type.Undef;
 
-    public toString() {
-        return `${this.c !== undefined ? this.c.toFixed(4) : 'n/a'}`;
+    public toString(precision: number) {
+        return `${this.c !== undefined ? this.c.toFixed(precision) : 'n/a'}`;
     }
 }
 

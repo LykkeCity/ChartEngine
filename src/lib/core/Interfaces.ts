@@ -11,6 +11,11 @@ export class TimeBar {
     public x: number;
 }
 
+export class Grid<T> {
+    public bars: T[] = [];
+    public precision: number = 0;
+}
+
 export interface ITimeAxis {
     range: IRange<Uid>;
     interval: number;
@@ -34,7 +39,7 @@ export interface IAxis<T> {
     interval: number;
     toX(index: number): number;
     toValue(x: number): T | undefined;
-    getGrid(): (T|undefined)[];
+    getGrid(): Grid<T>;
     getValuesRange(fromX: number, toX: number): IRange<T | undefined>;
     move(direction: number): void;
     scale(direction: number): void;
@@ -89,3 +94,4 @@ export interface IConfigurable {
     getSettings(): SettingSet;
     setSettings(settings: SettingSet): void;
 }
+

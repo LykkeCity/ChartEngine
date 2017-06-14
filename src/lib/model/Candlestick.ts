@@ -81,10 +81,10 @@ export class Candlestick implements ITimeValue, IUidValue {
         }
     }
 
-    public toString() {
-        return ` O:${this.o !== undefined ? this.o.toFixed(4) : 'n/a'}`
-            + ` H:${this.h !== undefined ? this.h.toFixed(4) : 'n/a'}`
-            + ` L:${this.l !== undefined ? this.l.toFixed(4) : 'n/a'}`
-            + ` C:${this.c !== undefined ? this.c.toFixed(4) : 'n/a'}`;
+    public toString(precision: number) {
+        return ` O:${this.o !== undefined ? this.o.toFixed(precision) : 'n/a'}`
+            + ` H:${this.h !== undefined ? this.h.toFixed(precision) : 'n/a'}`
+            + ` L:${this.l !== undefined ? this.l.toFixed(precision) : 'n/a'}`
+            + ` C:${this.c !== undefined ? this.c.toFixed(precision) : 'n/a'}`;
     }
 }

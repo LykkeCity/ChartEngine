@@ -49,17 +49,17 @@ export class IKHCandlestick extends CandlestickExt {
     public lagging: number | undefined;
     public laggingShifted: number|undefined;
 
-    public toString() {
+    public toString(precision: number) {
         return ''
-            + `${this.conversion !== undefined ? this.conversion.toFixed(4) : 'n/a'}`
+            + `${this.conversion !== undefined ? this.conversion.toFixed(precision) : 'n/a'}`
             + ' / '
-            + `${this.base !== undefined ? this.base.toFixed(4) : 'n/a'}`
+            + `${this.base !== undefined ? this.base.toFixed(precision) : 'n/a'}`
             + ' / '
-            + `${this.leadingAShifted !== undefined ? this.leadingAShifted.toFixed(4) : 'n/a'}`
+            + `${this.leadingAShifted !== undefined ? this.leadingAShifted.toFixed(precision) : 'n/a'}`
             + ' / '
-            + `${this.leadingBShifted !== undefined ? this.leadingBShifted.toFixed(4) : 'n/a'}`
+            + `${this.leadingBShifted !== undefined ? this.leadingBShifted.toFixed(precision) : 'n/a'}`
             + ' / '
-            + `${this.laggingShifted !== undefined ? this.laggingShifted.toFixed(4) : 'n/a'}`;
+            + `${this.laggingShifted !== undefined ? this.laggingShifted.toFixed(precision) : 'n/a'}`;
     }
 }
 

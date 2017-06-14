@@ -38,10 +38,10 @@ export class DSSBRCandlestick extends CandlestickExt {
 
     public DSSslow: number | undefined;
 
-    public toString() {
-        return `${this.DSS !== undefined ? this.DSS.toFixed(4) : 'n/a'}`
+    public toString(precision: number) {
+        return `${this.DSS !== undefined ? this.DSS.toFixed(precision) : 'n/a'}`
             + ' / '
-            + `${this.DSSslow !== undefined ? this.DSSslow.toFixed(4) : 'n/a'}`;
+            + `${this.DSSslow !== undefined ? this.DSSslow.toFixed(precision) : 'n/a'}`;
     }
 }
 

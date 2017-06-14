@@ -24,6 +24,7 @@ export interface IDataSource<T> extends IDisposable, IConfigurable {
     dataChanged: IEvent<DataChangedArgument>;
     asset: string;
     name: string;
+    precision: number;
 
     /**
      * Creates new iterator

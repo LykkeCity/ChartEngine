@@ -297,9 +297,10 @@ export class ChartController implements lychart.core.IDataService {
             {
                 url: '',
                 autoupdate: false,
-                readData: this.createDataReader(assetPairId), // this.readData,
+                readData: this.createDataReader(assetPairId),
                 resolveData: this.resolveData,
-                timeInterval: timeInterval
+                timeInterval: timeInterval,
+                precision: 3
             });
         dataSource.asset = assetPairId;
         return dataSource;

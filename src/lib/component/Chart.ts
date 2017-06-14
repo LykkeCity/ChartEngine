@@ -13,6 +13,7 @@ import { IHoverable } from './Interfaces';
 export interface IChart {
     uid: string;
     name: string;
+    precision: number;
     getValuesRange(range: IRange<Uid>): IRange<number>;
     render(context: VisualContext, renderLocator: IRenderLocator): void;
 }
@@ -58,6 +59,10 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         return this._name;
     }
 
+    public get precision(): number {
+        return this.dataSource.precision;
+    }
+
     public getValuesRange(range: IRange<Uid>): IRange<number> {
         return this.dataSource.getValuesRange(range);
     }
@@ -77,7 +82,7 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
             const uid = this.tAxis.toValue(mouseX);
             if (uid !== undefined && iterator.goTo(item => item.uid.compare(uid) === 0)) {
                 const c = iterator.current;
-                const text = c.toString();
+                const text = c.toString(this.precision);
                 this.qtip.addTextBlock('value', text);
             }
         }

@@ -1,10 +1,16 @@
 /**
  * Classes related to grid calculation.
  */
-import { TimeBar, TimeInterval } from '../core/index';
+import { Grid, TimeBar, TimeInterval } from '../core/index';
 import { Uid } from '../model/index';
 import { IRange, Iterator } from '../shared/index';
 import { DateUtils, NumberUtils } from '../utils/index';
+
+class Scale {
+    constructor(
+        public step: number,
+        public precision: number) { }
+}
 
 export class NumberAutoGrid {
 
@@ -12,34 +18,34 @@ export class NumberAutoGrid {
     private readonly minInterval: number;
     private readonly range: IRange<number>;
     private static readonly scales = [
-        0.0001,
-        0.0005,
-        0.0010,
-        0.0025,
-        0.0050,
-        0.0100,
-        0.0250,
-        0.0500,
-        0.1000,
-        0.2500,
-        0.5000,
-        1.0000,
-        5.0000,
-        10.0000,
-        25.0000,
-        50.0000,
-        100,
-        250,
-        500,
-        1000,
-        2500,
-        5000,
-        10000,
-        25000,
-        50000,
-        100000,
-        250000,
-        500000
+        new Scale(0.0001, 0),
+        new Scale(0.0005, 0),
+        new Scale(0.0010, 0),
+        new Scale(0.0025, 0),
+        new Scale(0.0050, 0),
+        new Scale(0.0100, 0),
+        new Scale(0.0250, 0),
+        new Scale(0.0500, 0),
+        new Scale(0.1000, 0),
+        new Scale(0.2500, 0),
+        new Scale(0.5000, 0),
+        new Scale(1.0000, 0),
+        new Scale(5.0000, 0),
+        new Scale(10.0000, 0),
+        new Scale(25.0000, 0),
+        new Scale(50.0000, 0),
+        new Scale(100, 0),
+        new Scale(250, 0),
+        new Scale(500, 0),
+        new Scale(1000, 0),
+        new Scale(2500, 0),
+        new Scale(5000, 0),
+        new Scale(10000, 0),
+        new Scale(25000, 0),
+        new Scale(50000, 0),
+        new Scale(100000, 0),
+        new Scale(250000, 0),
+        new Scale(500000, 0)
     ];
 
     constructor(length: number, minInterval: number, range: IRange<number>) {
@@ -52,51 +58,50 @@ export class NumberAutoGrid {
         this.range = range;
     }
 
-    public getGrid(): number[] {
-        const grid: number[] = [];
+    public getGrid(): Grid<number> {
+        const grid = new Grid<number>();
 
         // 1. Define how many bars can be fitted
         const [minBars, maxBars] = [1, Math.floor(this.length / 20)];
 
         // 2. Choose fitting scale
         const rangeAbs = Math.abs(this.range.end - this.range.start);
-        let selectedScale = 0;
+        let selectedScale = undefined;
         for (const scale of NumberAutoGrid.scales) {
-            if (scale < this.minInterval) {
+            if (scale.step < this.minInterval) {
                 continue;
             }
 
             // how many bars does this scale require:
-            const barsRequired = Math.floor(rangeAbs / scale) + 1;
+            const barsRequired = Math.floor(rangeAbs / scale.step) + 1;
 
             if (barsRequired >= minBars && barsRequired <= maxBars) {
                 selectedScale = scale;
                 break;
             }
         }
-        if (selectedScale === 0) { return []; }
+        if (selectedScale === undefined) { return grid; }
 
         // 3. Calculate first bar
         //
         // ... if start time is placed on bar use it, otherwise calculate where first bar lies
         let bar = 0;
-        if (this.range.start % selectedScale === 0) {
+        if (this.range.start % selectedScale.step === 0) {
             bar = this.range.start;
         } else {
             // ... add scale value and truncate 
-            const num = this.range.start + selectedScale;
-            bar = num - (num % selectedScale);
+            const num = this.range.start + (this.range.start >= 0 ? selectedScale.step : -selectedScale.step);
+            bar = num - (num % selectedScale.step);
         }
 
         // 4. Calculate remaining bars
         let t: number = bar;
-        while (t <= this.range.end) {
-            if (t >= this.range.start) {
-                grid.push(NumberUtils.roundTo(t, 4));
-            }
-            t += selectedScale;
+        while (t <= this.range.end + selectedScale.step) {
+            grid.bars.push(t);
+            t += selectedScale.step;
         }
 
+        grid.precision = selectedScale.precision;
         return grid;
     }
 }

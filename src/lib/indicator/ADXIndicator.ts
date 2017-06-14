@@ -39,9 +39,9 @@ import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './Value
 export class ADXCandlestick extends DMICandlestick {
     public DX: number | undefined;
 
-    public toString() {
+    public toString(precision: number) {
         return 'ADX: '
-            + `${this.c !== undefined ? this.c.toFixed(4) : 'n/a'}`;
+            + `${this.c !== undefined ? this.c.toFixed(precision) : 'n/a'}`;
     }
 }
 

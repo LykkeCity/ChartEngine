@@ -39,7 +39,7 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
                  context: IContext,
                  comparer?: (lhs: C, rhs: C) => number) {
 
-        super(dataType, new DataSourceConfig());
+        super(dataType, new DataSourceConfig(source.precision));
         this.dataStorage = new ArrayDataStorage<C>(comparer || this.defaultComparer);
         this.source = source;
         this.source.dataChanged.on(this.onDataSourceChanged);
@@ -76,10 +76,6 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
         if (generatedArg) {
             this.triggerDataChanged(generatedArg);
         }
-    }
-
-    protected getDefaultConfig(): DataSourceConfig {
-        return new DataSourceConfig();
     }
 
     protected abstract compute(arg?: DataChangedArgument): DataChangedArgument | undefined;

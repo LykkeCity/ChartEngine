@@ -37,8 +37,8 @@ export class CORCandlestick extends CandlestickExt {
     public pxs: number|undefined;
     public avgpxs: number|undefined;
 
-    public toString() {
-        return `${this.c !== undefined ? this.c.toFixed(4) : 'n/a'}`;
+    public toString(precision: number) {
+        return `${this.c !== undefined ? this.c.toFixed(precision) : 'n/a'}`;
     }
 }
 

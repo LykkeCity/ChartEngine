@@ -26,10 +26,10 @@ export class DoubleCandlestick extends CandlestickExt {
         this.ll = new Candlestick(date);
     }
 
-    public toString() {
-        return `${this.hh && this.hh.c !== undefined ? this.hh.c.toFixed(4) : 'n/a'}`
+    public toString(precision: number) {
+        return `${this.hh && this.hh.c !== undefined ? this.hh.c.toFixed(precision) : 'n/a'}`
             + ' / '
-            + `${this.ll && this.ll.c !== undefined ? this.ll.c.toFixed(4) : 'n/a'}`;
+            + `${this.ll && this.ll.c !== undefined ? this.ll.c.toFixed(precision) : 'n/a'}`;
     }
 }
 

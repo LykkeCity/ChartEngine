@@ -20,14 +20,8 @@ export abstract class DataSource implements IDataSource<Candlestick> {
         dataType: { new(d: Date): Candlestick },
         config: DataSourceConfig) {
 
-            this._dataType = dataType;
-
-            const defaultConfig = this.getDefaultConfig();
-            if (config) {
-                this._config = config;
-            } else {
-                this._config = defaultConfig;
-            }
+        this._dataType = dataType;
+        this._config = config;
     }
 
     // TODO: Derived classes have their own settings.
@@ -59,7 +53,12 @@ export abstract class DataSource implements IDataSource<Candlestick> {
         this._name = value;
     }
 
-    protected abstract getDefaultConfig(): DataSourceConfig;
+    public get precision(): number {
+        return this._config.precision;
+    }
+    public set precision(value: number) {
+        this.config.precision = value;
+    }
 
     public abstract load(uid: Uid, count: number): void;
 

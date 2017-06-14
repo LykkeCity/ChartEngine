@@ -1,7 +1,7 @@
 /**
  * PriceAxis class.
  */
-import { IAxis } from '../core/index';
+import { Grid, IAxis } from '../core/index';
 import { IRange } from '../shared/index';
 import { NumberAutoGrid } from './AutoGrid';
 
@@ -36,7 +36,7 @@ export class PriceAxis implements IAxis<number> {
         this._length = value;
     }
 
-    public getGrid(): number[] {
+    public getGrid(): Grid<number> {
         const autoGrid = new NumberAutoGrid(this._length, this.interval, this.range);
         return autoGrid.getGrid();
     }

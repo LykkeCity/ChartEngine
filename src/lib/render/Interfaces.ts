@@ -45,9 +45,9 @@ export interface ITimeAxisRender {
 }
 
 export interface IPopupRender<T> {
-    render(canvas: ICanvas, data: T, point: IPoint, frameSize: ISize): void;
+    render(canvas: ICanvas, data: T, point: IPoint, frameSize: ISize, precision: number): void;
 }
 
 export interface IMarkRender<T> {
-    render(canvas: ICanvas, data: T, point: IPoint, frameSize: ISize): void;
+    render(canvas: ICanvas, data: T, point: IPoint, frameSize: ISize, precision: number): void;
 }

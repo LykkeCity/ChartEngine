@@ -233,10 +233,6 @@ export class HttpDataSource extends DataSource {
         this.dataStorage.merge(data);
     }
 
-    protected getDefaultConfig(): DataSourceConfig {
-        return new DataSourceConfig();
-    }
-
     protected timeIntervalToString(interval: TimeInterval): string {
         return TimeInterval[interval];
     }

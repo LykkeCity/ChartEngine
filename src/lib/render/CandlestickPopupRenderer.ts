@@ -11,7 +11,7 @@ export class CandlestickPopupRenderer implements IPopupRender<Candlestick> {
     private readonly paddingLeft = 5;
     private readonly paddingTop = 5;
 
-    public render(canvas: ICanvas, model: Candlestick, point: IPoint, frameSize: ISize): void {
+    public render(canvas: ICanvas, model: Candlestick, point: IPoint, frameSize: ISize, precision: number): void {
         const lineHeight = 20;
         const w = 90;
         const h = lineHeight * 4 + this.paddingTop * 2;
@@ -33,16 +33,16 @@ export class CandlestickPopupRenderer implements IPopupRender<Candlestick> {
         canvas.font = '10px Arial';
         canvas.fillStyle = 'black';
         canvas.setTextBaseLine(CanvasTextBaseLine.Top);
-        canvas.fillText(`O: ${ this.formatValue(model.o) }`, x + this.paddingLeft, y + this.paddingTop);
-        canvas.fillText(`C: ${ this.formatValue(model.c) }`, x + this.paddingLeft, y + this.paddingTop + lineHeight);
-        canvas.fillText(`H: ${ this.formatValue(model.h) }`, x + this.paddingLeft, y + this.paddingTop + 2 * lineHeight);
-        canvas.fillText(`L: ${ this.formatValue(model.l) }`, x + this.paddingLeft, y + this.paddingTop + 3 * lineHeight);
+        canvas.fillText(`O: ${ this.formatValue(model.o, precision) }`, x + this.paddingLeft, y + this.paddingTop);
+        canvas.fillText(`C: ${ this.formatValue(model.c, precision) }`, x + this.paddingLeft, y + this.paddingTop + lineHeight);
+        canvas.fillText(`H: ${ this.formatValue(model.h, precision) }`, x + this.paddingLeft, y + this.paddingTop + 2 * lineHeight);
+        canvas.fillText(`L: ${ this.formatValue(model.l, precision) }`, x + this.paddingLeft, y + this.paddingTop + 3 * lineHeight);
 
         // restore global value
         canvas.globalAlpha = alpha;
     }
 
-    private formatValue(n: number | undefined): string {
-        return (n !== undefined) ? n.toFixed(4) : '';
+    private formatValue(n: number | undefined, precision: number): string {
+        return (n !== undefined) ? n.toFixed(precision) : '';
     }
 }

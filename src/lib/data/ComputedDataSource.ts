@@ -320,7 +320,7 @@ export abstract class ComputedDataSource<S extends Candlestick> extends DataSour
     private task?: ComputeTask;
 
     constructor (source: IDataSource<Candlestick>) {
-        super(Candlestick, new DataSourceConfig());
+        super(Candlestick, new DataSourceConfig(source.precision));
         this.dataStorage = new ArrayDataStorage<S>(this.comparer);
         this.iterator = this.dataStorage.getIterator();
         this.source = source;
@@ -433,10 +433,6 @@ export abstract class ComputedDataSource<S extends Candlestick> extends DataSour
     }
 
     protected abstract compute(arg?: DataChangedArgument): DataChangedArgument | undefined;
-
-    protected getDefaultConfig(): DataSourceConfig {
-        return new DataSourceConfig();
-    }
 
     public lock(uid: Uid): void { }
 
