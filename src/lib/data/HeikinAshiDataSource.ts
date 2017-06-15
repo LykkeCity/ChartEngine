@@ -25,7 +25,7 @@ export class HeikinAshiDataSource extends IndicatorDataSource<Candlestick> {
         let move;
         move = arg ? iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0) : iterator.moveNext();
         if (!move) {
-            throw new Error('Source does not contain updated data');
+            return; // Finish if no data
         }
 
         // Calculations

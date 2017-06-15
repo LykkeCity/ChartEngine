@@ -164,9 +164,7 @@ export abstract class DataSource implements IDataSource<Candlestick> {
 
         } else {
             // go to first element
-            if (!iterator.moveNext()) {
-                throw new Error('Source does not contain updated data');
-            }
+            if (!iterator.moveNext()) { return; } // Finish if no data
             // Fixed size array can not be filled
         }
 

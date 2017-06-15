@@ -131,7 +131,7 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
         if (arg) {
             sourceIter.goTo(item => item.uid.compare(arg.uidFirst) === 0);
         } else {
-            if (!sourceIter.moveNext()) { throw new Error('Source does not contain updated data'); }
+            if (!sourceIter.moveNext()) { return; } // Finish if no data
         }
 
         // Calculations

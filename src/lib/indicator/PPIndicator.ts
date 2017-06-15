@@ -84,7 +84,7 @@ export class PPIndicator extends IndicatorDataSource<PPCandlestick> {
         if (arg) {
             iterator.goTo(item => item.uid.compare(arg.uidFirst) === 0);
         } else {
-            if (!iterator.moveNext()) { throw new Error('Source does not contain updated data'); }
+            if (!iterator.moveNext()) { return; } // Finish if no data
         }
 
         // Calculations
