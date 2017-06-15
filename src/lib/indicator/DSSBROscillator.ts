@@ -62,8 +62,7 @@ export class DSSBROscillator extends SimpleIndicator<DSSBRCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<DSSBRCandlestick>
-                         ): DSSBRCandlestick {
+                         computedArray: FixedSizeArray<DSSBRCandlestick>, accessor: IValueAccessor): DSSBRCandlestick {
 
         const periodK = this.extsettings.periodK;
         const periodX = this.extsettings.periodX;

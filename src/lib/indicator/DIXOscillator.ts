@@ -28,7 +28,7 @@ export class DIXOscillator extends SimpleIndicator<CandlestickExt> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<CandlestickExt>): CandlestickExt {
+                         computedArray: FixedSizeArray<CandlestickExt>, accessor: IValueAccessor): CandlestickExt {
 
         const N = this.settings.period;
 
@@ -39,10 +39,10 @@ export class DIXOscillator extends SimpleIndicator<CandlestickExt> {
         computed.uidOrig.t = source.uid.t;
         computed.uidOrig.n = source.uid.n;
 
-        const value = this.accessor(source);
+        const value = accessor(source);
         if (value !== undefined) {
             const lastComputedValue = lastComputed !== undefined ? lastComputed.c : undefined;
-            const ma = this.ma.compute(N, sourceItems, this.accessor, undefined, lastComputedValue);
+            const ma = this.ma.compute(N, sourceItems, accessor, undefined, lastComputedValue);
             if (ma !== undefined) {
                 computed.c = 100 * (value - ma) / ma;
                 computed.h = computed.c;

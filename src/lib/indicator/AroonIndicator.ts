@@ -44,7 +44,7 @@ export class AroonIndicator extends SimpleIndicator<DoubleCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<DoubleCandlestick>): DoubleCandlestick {
+                         computedArray: FixedSizeArray<DoubleCandlestick>, accessor: IValueAccessor): DoubleCandlestick {
 
         return computeAroon(sourceItems, this.settings.period);
     }
@@ -108,7 +108,7 @@ export class AroonOscillator extends SimpleIndicator<DoubleCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<DoubleCandlestick>): DoubleCandlestick {
+                         computedArray: FixedSizeArray<DoubleCandlestick>, accessor: IValueAccessor): DoubleCandlestick {
 
         return computeAroon(sourceItems, this.settings.period);
     }

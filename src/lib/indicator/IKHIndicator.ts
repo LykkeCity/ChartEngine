@@ -78,8 +78,7 @@ export class IKHIndicator extends SimpleIndicator<IKHCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<IKHCandlestick>
-                         ): IKHCandlestick {
+                         computedArray: FixedSizeArray<IKHCandlestick>, accessor: IValueAccessor): IKHCandlestick {
 
         const periodConversion = this.extsettings.periodConversion;
         const periodBase = this.extsettings.periodBase;

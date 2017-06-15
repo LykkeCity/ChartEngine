@@ -26,7 +26,7 @@ export class WMAIndicator extends SimpleIndicator<CandlestickExt> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<CandlestickExt>): CandlestickExt {
+                         computedArray: FixedSizeArray<CandlestickExt>, accessor: IValueAccessor): CandlestickExt {
 
             const N = this.settings.period;
 
@@ -37,10 +37,10 @@ export class WMAIndicator extends SimpleIndicator<CandlestickExt> {
             computed.uidOrig.t = source.uid.t;
             computed.uidOrig.n = source.uid.n;
 
-            const value = this.accessor(source);
+            const value = accessor(source);
             if (value !== undefined) {
                 const lastComputedValue = lastComputed !== undefined ? lastComputed.c : undefined;
-                computed.c = this.ma.compute(N, sourceItems, this.accessor, undefined, lastComputedValue);
+                computed.c = this.ma.compute(N, sourceItems, accessor, undefined, lastComputedValue);
                 computed.h = computed.c;
                 computed.l = computed.c;
             }

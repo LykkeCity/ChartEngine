@@ -24,7 +24,7 @@ export class TPIndicator extends SimpleIndicator<CandlestickExt> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<CandlestickExt>): CandlestickExt {
+                         computedArray: FixedSizeArray<CandlestickExt>, accessor: IValueAccessor): CandlestickExt {
 
         const source = sourceItems.last();
 

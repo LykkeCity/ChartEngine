@@ -27,14 +27,12 @@ export class PCROscillator extends SimpleIndicator<CandlestickExt> {
         super(CandlestickExt, source, context);
         this.name = 'PCR';
 
-        this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
-
         // Set default settings
         this.settings.period = 14;
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<CandlestickExt>): CandlestickExt {
+                         computedArray: FixedSizeArray<CandlestickExt>, accessor: IValueAccessor): CandlestickExt {
 
         const N = this.settings.period;
 

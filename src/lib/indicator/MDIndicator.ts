@@ -31,8 +31,6 @@ export class MDIndicator extends SimpleIndicator<MDCandlestick> {
         super(MDCandlestick, source, context);
         this.name = 'MD';
 
-        this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
-
         this.ema = MovingAverageFactory.instance.create(MovingAverageType.Exponential);
     }
 
@@ -41,8 +39,7 @@ export class MDIndicator extends SimpleIndicator<MDCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<MDCandlestick>
-                         ): MDCandlestick {
+                         computedArray: FixedSizeArray<MDCandlestick>, accessor: IValueAccessor): MDCandlestick {
 
         const period1 = this.extsettings.period1;
         const period2 = this.extsettings.period2;
@@ -55,13 +52,13 @@ export class MDIndicator extends SimpleIndicator<MDCandlestick> {
         computed.uidOrig.t = source.uid.t;
         computed.uidOrig.n = source.uid.n;
 
-        const value = this.accessor(source);
+        const value = accessor(source);
         if (value !== undefined) {
 
             const lastComputedEMA1 = lastComputed !== undefined ? lastComputed.EMA1 : undefined;
 
             // 1. Compute EMA1
-            computed.EMA1 = this.ema.compute(period1, sourceItems, this.accessor, undefined, lastComputedEMA1);
+            computed.EMA1 = this.ema.compute(period1, sourceItems, accessor, undefined, lastComputedEMA1);
 
             if (computed.EMA1 !== undefined) {
                 computed.dev = value - computed.EMA1;
@@ -108,6 +105,23 @@ export class MDIndicator extends SimpleIndicator<MDCandlestick> {
             dispalyName: '3d smoothing period'
         }));
 
+        group.setSetting('valueType', new SettingSet({
+            name: 'valueType',
+            dispalyName: 'Calculate using',
+            value: this.settings.valueType.toString(),
+            settingType: SettingType.select,
+            options: [
+                { value: ValueAccessorType.close.toString(), text: 'close' },
+                { value: ValueAccessorType.open.toString(), text: 'open' },
+                { value: ValueAccessorType.high.toString(), text: 'high' },
+                { value: ValueAccessorType.low.toString(), text: 'low' },
+                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+            ]
+        }));
+
         return group;
     }
 
@@ -120,6 +134,9 @@ export class MDIndicator extends SimpleIndicator<MDCandlestick> {
 
         const period3 = value.getSetting('datasource.period3');
         this.extsettings.period3 = (period3 && period3.value) ? parseInt(period3.value, 10) : this.extsettings.period3;
+
+        const valueType = value.getSetting('datasource.valueType');
+        this.settings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.settings.valueType;
 
         // recompute
         this.compute();

@@ -15,7 +15,6 @@ import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './Value
 
 export abstract class SimpleIndicator<T extends CandlestickExt> extends IndicatorDataSource<T> {
 
-    protected accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
     protected settings: SimpleSettings = new SimpleSettings();
 
     constructor (dataType: new(date: Date) => T, source: IDataSource<Candlestick>, context: IContext) {
@@ -29,6 +28,8 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
     protected compute(arg?: DataChangedArgument): DataChangedArgument | undefined {
         // If arg is not defined build all data
         // Compute data till the end (update data from current place to end)
+
+        const accessor = ValueAccessorFactory.instance.create(this.settings.valueType);
 
         // Remove extended (fake) items
         this.dataStorage.trimRight(item => item.isFake);
@@ -77,7 +78,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
             lastUid = iterator.current.uid;
             sourceItems.push(iterator.current);
 
-            const computed = this.computeOne(sourceItems, computedItems);
+            const computed = this.computeOne(sourceItems, computedItems, accessor);
 
             computedArray.push(computed);
             computedItems.push(computed);
@@ -95,7 +96,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         return shiftedArg;
     }
 
-    protected abstract computeOne(sourceItems: FixedSizeArray<Candlestick>, computed: FixedSizeArray<T>): T;
+    protected abstract computeOne(sourceItems: FixedSizeArray<Candlestick>, computed: FixedSizeArray<T>, accessor: IValueAccessor): T;
 
     protected afterCompute(arg?: DataChangedArgument) {
     }
@@ -272,7 +273,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
             let follow = false;
 
             // Move lead iterator to the first not fake item
-            let moves = iterLead.moveTo(item => !item.isFake);
+            let moves = iterLead.moveNext() ? iterLead.moveTo(item => !item.isFake) : -1; // Before moveTo, moveNext should be called
             lead = moves > 0;
 
             // Follow iterator should be "shift" items back from lead
@@ -311,7 +312,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
 
         if (shift < 0) {
             // Get count of fake items
-            const moved = iter.moveTo(item => !item.isFake);
+            const moved = iter.moveNext() ? iter.moveTo(item => !item.isFake) : -1; // Before moveTo, moveNext should be called
             const fakeItems = (moved !== -1) ? moved - 1 : 0;
 
             // Add fake items
@@ -371,6 +372,23 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
             dispalyName: 'Displacement'
         }));
 
+        group.setSetting('valueType', new SettingSet({
+            name: 'valueType',
+            dispalyName: 'Calculate using',
+            value: this.settings.valueType.toString(),
+            settingType: SettingType.select,
+            options: [
+                { value: ValueAccessorType.close.toString(), text: 'close' },
+                { value: ValueAccessorType.open.toString(), text: 'open' },
+                { value: ValueAccessorType.high.toString(), text: 'high' },
+                { value: ValueAccessorType.low.toString(), text: 'low' },
+                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+            ]
+        }));
+
         return group;
     }
 
@@ -380,6 +398,9 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
 
         const displacement = value.getSetting('datasource.displacement');
         this.settings.displacement = (displacement && displacement.value) ? parseInt(displacement.value, 10) : this.settings.displacement;
+
+        const valueType = value.getSetting('datasource.valueType');
+        this.settings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.settings.valueType;
 
         // recompute
         this.compute();
@@ -391,6 +412,5 @@ export class SimpleSettings {
     public displacement: number = 0;
     public upperThreshold: number = 0;
     public lowerThreshold: number = 0;
-    constructor() { }
+    public valueType: ValueAccessorType = ValueAccessorType.close;
 }
-

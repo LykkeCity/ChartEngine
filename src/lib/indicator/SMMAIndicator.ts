@@ -26,25 +26,25 @@ export class SMMAIndicator extends SimpleIndicator<CandlestickExt> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<CandlestickExt>): CandlestickExt {
+                         computedArray: FixedSizeArray<CandlestickExt>, accessor: IValueAccessor): CandlestickExt {
 
-            const N = this.settings.period;
+        const N = this.settings.period;
 
-            const source = sourceItems.last();
-            const lastComputed = computedArray.lastOrDefault();
+        const source = sourceItems.last();
+        const lastComputed = computedArray.lastOrDefault();
 
-            const computed = new CandlestickExt(source.date);
-            computed.uidOrig.t = source.uid.t;
-            computed.uidOrig.n = source.uid.n;
+        const computed = new CandlestickExt(source.date);
+        computed.uidOrig.t = source.uid.t;
+        computed.uidOrig.n = source.uid.n;
 
-            const value = this.accessor(source);
-            if (value !== undefined) {
-                const lastComputedValue = lastComputed !== undefined ? lastComputed.c : undefined;
-                computed.c = this.ma.compute(N, sourceItems, this.accessor, undefined, lastComputedValue);
-                computed.h = computed.c;
-                computed.l = computed.c;
-            }
+        const value = accessor(source);
+        if (value !== undefined) {
+            const lastComputedValue = lastComputed !== undefined ? lastComputed.c : undefined;
+            computed.c = this.ma.compute(N, sourceItems, accessor, undefined, lastComputedValue);
+            computed.h = computed.c;
+            computed.l = computed.c;
+        }
 
-            return computed;
+        return computed;
     }
 }

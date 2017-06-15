@@ -63,8 +63,7 @@ export class PSARIndicator extends SimpleIndicator<PSARCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<PSARCandlestick>
-                         ): PSARCandlestick {
+                         computedArray: FixedSizeArray<PSARCandlestick>, accessor: IValueAccessor): PSARCandlestick {
 
         const initialFactor = this.extsettings.initialFactor;
         const increment = this.extsettings.increment;

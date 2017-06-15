@@ -22,7 +22,7 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
 
     private ma: IMovingAverageStrategy;
     private extsettings: RATIOSettings = new RATIOSettings();
-    private accessor: IValueAccessor;
+    //private accessor: IValueAccessor;
     private base: number|undefined;
 
     constructor (source: IDataSource<Candlestick>, context: IContext) {
@@ -30,12 +30,13 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
         this.name = 'RATIO';
 
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
-        this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
     }
 
     protected compute(arg?: DataChangedArgument): DataChangedArgument | undefined {
         // If arg is not defined build all data
         // Compute data till the end (update data from current place to end)
+
+        const accessor = ValueAccessorFactory.instance.create(this.extsettings.valueType);
 
         // Get compare data souce
         const compareDataSource = this.extsettings.uid ? this.context.register.getItem(this.extsettings.uid) : undefined;
@@ -83,7 +84,7 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
             }
 
             if (found) {
-                const computed = this.computeOne(source, compareIter.current, this.base);
+                const computed = this.computeOne(source, compareIter.current, this.base, accessor);
                 computedArray.push(computed);
             }
 
@@ -98,20 +99,23 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
 
     private handler = (res: [Candlestick, Candlestick]) => {
         const [candleA, candleB] = res;
-        // Compute base koefficient and recompute
-        const p = this.accessor(candleA);
-        const s = this.accessor(candleB);
-        if (p !== undefined && s !== undefined && s !== 0) {
-            this.base = p / s;
-            this.compute();
-            this.context.render();
+        if (candleA !== undefined && candleB !== undefined) {
+            // Compute base koefficient and recompute
+            const accessor = ValueAccessorFactory.instance.create(this.extsettings.valueType);
+            const p = accessor(candleA);
+            const s = accessor(candleB);
+            if (p !== undefined && s !== undefined && s !== 0) {
+                this.base = p / s;
+                this.compute();
+                this.context.render();
+            }
         }
     }
 
-    protected computeOne(sourceItem: Candlestick, compareItem: Candlestick, base: number): CandlestickExt {
+    protected computeOne(sourceItem: Candlestick, compareItem: Candlestick, base: number, accessor: IValueAccessor): CandlestickExt {
 
-        const p = this.accessor(sourceItem);
-        const s = this.accessor(compareItem);
+        const p = accessor(sourceItem);
+        const s = accessor(compareItem);
 
         const computed = new CandlestickExt(sourceItem.date);
         computed.uidOrig.t = sourceItem.uid.t;
@@ -146,6 +150,23 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
             options: sources.map(item => { return { value: item.id, text: item.value }; })
         }));
 
+        group.setSetting('valueType', new SettingSet({
+            name: 'valueType',
+            dispalyName: 'Calculate using',
+            value: this.extsettings.valueType.toString(),
+            settingType: SettingType.select,
+            options: [
+                { value: ValueAccessorType.close.toString(), text: 'close' },
+                { value: ValueAccessorType.open.toString(), text: 'open' },
+                { value: ValueAccessorType.high.toString(), text: 'high' },
+                { value: ValueAccessorType.low.toString(), text: 'low' },
+                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+            ]
+        }));
+
         return group;
     }
 
@@ -156,6 +177,9 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
 
         const d = value.getSetting('datasource.basedate');
         this.extsettings.basedate = (d && d.value) ? DateUtils.parseIsoDate(d.value) : undefined;
+
+        const valueType = value.getSetting('datasource.valueType');
+        this.extsettings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.extsettings.valueType;
 
         // cleare stored base value
         this.base = undefined;
@@ -169,4 +193,5 @@ class RATIOSettings {
     public period: number = 10;
     public uid: string|undefined;
     public basedate: Date|undefined;
+    public valueType: ValueAccessorType = ValueAccessorType.close;
 }

@@ -28,7 +28,7 @@ export class STDEVIndicator extends SimpleIndicator<CandlestickExt> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<CandlestickExt>): CandlestickExt {
+                         computedArray: FixedSizeArray<CandlestickExt>, accessor: IValueAccessor): CandlestickExt {
 
         const N = this.settings.period;
 
@@ -42,7 +42,7 @@ export class STDEVIndicator extends SimpleIndicator<CandlestickExt> {
         const array = [];
         let sum = 0;
         for (let i = sourceItems.length - 1; i >= 0 && array.length < N ; i -= 1) {
-            const value = this.accessor(sourceItems.getItem(i));
+            const value = accessor(sourceItems.getItem(i));
             if (value !== undefined) {
                 array.push(value);
                 sum += value;
@@ -74,12 +74,32 @@ export class STDEVIndicator extends SimpleIndicator<CandlestickExt> {
             dispalyName: 'Period'
         }));
 
+        group.setSetting('valueType', new SettingSet({
+            name: 'valueType',
+            dispalyName: 'Calculate using',
+            value: this.settings.valueType.toString(),
+            settingType: SettingType.select,
+            options: [
+                { value: ValueAccessorType.close.toString(), text: 'close' },
+                { value: ValueAccessorType.open.toString(), text: 'open' },
+                { value: ValueAccessorType.high.toString(), text: 'high' },
+                { value: ValueAccessorType.low.toString(), text: 'low' },
+                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+            ]
+        }));
+
         return group;
     }
 
     public setSettings(value: SettingSet): void {
         const period = value.getSetting('datasource.period');
         this.settings.period = (period && period.value) ? parseInt(period.value, 10) : this.settings.period;
+
+        const valueType = value.getSetting('datasource.valueType');
+        this.settings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.settings.valueType;
 
         // recompute
         this.compute();

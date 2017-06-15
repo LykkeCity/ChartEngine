@@ -47,7 +47,6 @@ export class MACDCandlestick extends CandlestickExt {
 
 export class MACDIndicator extends SimpleIndicator<MACDCandlestick> {
 
-    protected accessor: IValueAccessor;
     protected ema: IMovingAverageStrategy;
     private extsettings: MACDSettings = new MACDSettings();
 
@@ -63,7 +62,7 @@ export class MACDIndicator extends SimpleIndicator<MACDCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<MACDCandlestick>): MACDCandlestick {
+                         computedArray: FixedSizeArray<MACDCandlestick>, accessor: IValueAccessor): MACDCandlestick {
 
         const periodFast = this.extsettings.periodFast;
         const periodSlow = this.extsettings.periodSlow;
@@ -76,16 +75,16 @@ export class MACDIndicator extends SimpleIndicator<MACDCandlestick> {
         computed.uidOrig.t = source.uid.t;
         computed.uidOrig.n = source.uid.n;
 
-        const value = this.accessor(source);
+        const value = accessor(source);
         if (value !== undefined) {
 
             // Compute Slow EMA
             const lastComputedEMAslow = lastComputed !== undefined ? lastComputed.EMAslow : undefined;
-            computed.EMAslow = this.ema.compute(periodSlow, sourceItems, this.accessor, undefined, lastComputedEMAslow);
+            computed.EMAslow = this.ema.compute(periodSlow, sourceItems, accessor, undefined, lastComputedEMAslow);
 
             // Compute Fast EMA
             const lastComputedEMAfast = lastComputed !== undefined ? lastComputed.EMAfast : undefined;
-            computed.EMAfast = this.ema.compute(periodFast, sourceItems, this.accessor, undefined, lastComputedEMAfast);
+            computed.EMAfast = this.ema.compute(periodFast, sourceItems, accessor, undefined, lastComputedEMAfast);
 
             if (computed.EMAslow !== undefined && computed.EMAfast !== undefined) {
 
@@ -134,6 +133,23 @@ export class MACDIndicator extends SimpleIndicator<MACDCandlestick> {
             dispalyName: 'Signal period'
         }));
 
+        group.setSetting('valueType', new SettingSet({
+            name: 'valueType',
+            dispalyName: 'Calculate using',
+            value: this.settings.valueType.toString(),
+            settingType: SettingType.select,
+            options: [
+                { value: ValueAccessorType.close.toString(), text: 'close' },
+                { value: ValueAccessorType.open.toString(), text: 'open' },
+                { value: ValueAccessorType.high.toString(), text: 'high' },
+                { value: ValueAccessorType.low.toString(), text: 'low' },
+                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+            ]
+        }));
+
         return group;
     }
 
@@ -146,6 +162,9 @@ export class MACDIndicator extends SimpleIndicator<MACDCandlestick> {
 
         const periodSignal = value.getSetting('datasource.periodSignal');
         this.extsettings.periodSignal = (periodSignal && periodSignal.value) ? parseInt(periodSignal.value, 10) : this.extsettings.periodSignal;
+
+        const valueType = value.getSetting('datasource.valueType');
+        this.settings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.settings.valueType;
 
         // recompute
         this.compute();

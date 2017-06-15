@@ -58,7 +58,7 @@ export class STIndicator extends SimpleIndicator<STCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<STCandlestick>): STCandlestick {
+                         computedArray: FixedSizeArray<STCandlestick>, accessor: IValueAccessor): STCandlestick {
 
         const N = this.settings.period;
         const multiplier = this.extsettings.multiplier;
@@ -169,12 +169,7 @@ export class STIndicatorRenderer implements IChartRender<Candlestick> {
                   timeAxis: ITimeAxis,
                   yAxis: IAxis<number>): void {
 
-        // // Start drawing
-        // canvas.beginPath();
-        // canvas.setStrokeStyle('#499E0C');
-
         let found = false;
-        //let isFirstPoint = true;
         let curPoint: IPoint|undefined = undefined;
         let prevPoint: IPoint|undefined = undefined;
         let curItem: STCandlestick|undefined = undefined;
@@ -215,57 +210,6 @@ export class STIndicatorRenderer implements IChartRender<Candlestick> {
                 }
             }
         });
-
-
-        // timeAxis.reset();
-        // while (timeAxis.moveNext()) {
-        //     const curUid = timeAxis.current;
-        //     const curTime = curUid.t.getTime();
-        //     const curn = curUid.n;
-        //     const x = timeAxis.currentX;
-
-        //     if (!found) {
-        //         found = data.goTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn);
-        //     } else {
-        //         found = data.moveTo(item => item.uid.t.getTime() === curTime && item.uid.n === curn) !== -1;
-        //     }
-
-        //     if (found) {
-
-        //         curItem = (data.current instanceof STCandlestick) ? <STCandlestick>data.current : undefined;
-
-        //         let cur = undefined;
-        //         if (curItem) {
-        //             const st = <STCandlestick>curItem;
-        //             if (st && st.c !== undefined) {
-        //                 cur = { uid: curItem.uid, v: st.c };
-
-        //                 const y = yAxis.toX(cur.v);
-        //                 curPoint = { x: x, y: y };
-
-        //                 if (prevItem) {
-        //                     if (curItem.trend === Type.Up && prevItem.trend === Type.Up) {
-        //                         canvas.setStrokeStyle('#56B50E');
-        //                     } else if (curItem.trend === Type.Down && prevItem.trend === Type.Down) {
-        //                         canvas.setStrokeStyle('#FF0000');
-        //                     } else {
-        //                         canvas.setStrokeStyle('#606060');
-        //                     }
-        //                 }
-
-        //                 if (prevPoint) {
-        //                     canvas.beginPath();
-        //                     canvas.moveTo(prevPoint.x, prevPoint.y);
-        //                     canvas.lineTo(curPoint.x, curPoint.y);
-        //                     canvas.stroke();
-        //                 }
-
-        //                 prevItem = curItem;
-        //                 prevPoint = curPoint;
-        //             }
-        //         }
-        //     }
-        //}
     }
 
     public testHitArea(

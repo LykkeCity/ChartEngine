@@ -384,7 +384,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     }
 
     private createContext(dataService: IDataService|undefined) {
-        const render = this.render;
+        const self = this;
         return {
             addInterval: this.addInterval,
             interval: (): TimeInterval => { return this.timeAxis.interval; },
@@ -394,7 +394,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
                     resolve(undefined);
                 });
             },
-            render: () => { render(); },
+            render: () => { self.render(); },
             register: this.dataSourceRegister
         };
     }

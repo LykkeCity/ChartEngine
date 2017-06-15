@@ -46,22 +46,19 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
 
     private ma: IMovingAverageStrategy;
     private extsettings: CORSettings = new CORSettings();
-    private accessor: IValueAccessor;
 
     constructor (source: IDataSource<Candlestick>, context: IContext) {
         super(CORCandlestick, source, context);
         this.name = 'COR';
 
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
-        this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
-
-        // Set default settings
-        // this.settings.period = 10;
     }
 
     protected compute(arg?: DataChangedArgument): DataChangedArgument | undefined {
         // If arg is not defined build all data
         // Compute data till the end (update data from current place to end)
+
+        const accessor = ValueAccessorFactory.instance.create(this.extsettings.valueType);
 
         let computedArray: CORCandlestick[] = [];
 
@@ -69,7 +66,6 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
         const sourceItems = new FixedSizeArray<Candlestick>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
         const compareItems = new FixedSizeArray<Candlestick>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
         const computedItems = new FixedSizeArray<CORCandlestick>(N, (lhs, rhs) => { throw new Error('Not implemented.'); });
-
 
         // Get compare data souce
 
@@ -138,8 +134,6 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
             if (!sourceIter.moveNext()) { throw new Error('Source does not contain updated data'); }
         }
 
-
-
         // Calculations
         // 
 
@@ -163,7 +157,7 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
 
             compareItems.push(found ? compareIter.current : new Candlestick(source.date));
 
-            const computed = this.computeOne(sourceItems, compareItems, computedItems);
+            const computed = this.computeOne(sourceItems, compareItems, computedItems, accessor);
 
             computedArray.push(computed);
             computedItems.push(computed);
@@ -172,23 +166,21 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
         // Merge using origUid, not uid
         this.dataStorage.merge(computedArray);
 
-        const origArg = new DataChangedArgument(firstUid, lastUid, computedArray.length);
-        return origArg;
+        return new DataChangedArgument(firstUid, lastUid, computedArray.length);
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
                          compareItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<CORCandlestick>): CORCandlestick {
+                         computedArray: FixedSizeArray<CORCandlestick>, accessor: IValueAccessor): CORCandlestick {
 
         const N = this.extsettings.period;
 
-        const accessor = this.accessor;
         const source = sourceItems.last();
         const compare = compareItems.lastOrDefault();
         const lastComputed = computedArray.lastOrDefault();
 
-        const p = this.accessor(source);
-        const s = compare ? this.accessor(compare) : undefined;
+        const p = accessor(source);
+        const s = compare ? accessor(compare) : undefined;
 
         const computed = new CORCandlestick(source.date);
         computed.uidOrig.t = source.uid.t;
@@ -263,6 +255,23 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
             options: sources.map(item => { return { value: item.id, text: item.value }; })
         }));
 
+        group.setSetting('valueType', new SettingSet({
+            name: 'valueType',
+            dispalyName: 'Calculate using',
+            value: this.extsettings.valueType.toString(),
+            settingType: SettingType.select,
+            options: [
+                { value: ValueAccessorType.close.toString(), text: 'close' },
+                { value: ValueAccessorType.open.toString(), text: 'open' },
+                { value: ValueAccessorType.high.toString(), text: 'high' },
+                { value: ValueAccessorType.low.toString(), text: 'low' },
+                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+            ]
+        }));
+
         return group;
     }
 
@@ -273,6 +282,9 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
         const uid = value.getSetting('datasource.uid');
         this.extsettings.uid = (uid && uid.value) ? uid.value : this.extsettings.uid;
 
+        const valueType = value.getSetting('datasource.valueType');
+        this.extsettings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.extsettings.valueType;
+
         // recompute
         this.compute();
     }
@@ -281,4 +293,5 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
 class CORSettings {
     public period: number = 10;
     public uid: string|undefined;
+    public valueType: ValueAccessorType = ValueAccessorType.close;
 }

@@ -44,7 +44,7 @@ export class HHLLIndicator extends SimpleIndicator<DoubleCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<DoubleCandlestick>): DoubleCandlestick {
+                         computedArray: FixedSizeArray<DoubleCandlestick>, accessor: IValueAccessor): DoubleCandlestick {
 
             const N = this.settings.period;
 

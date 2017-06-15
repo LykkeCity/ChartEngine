@@ -32,41 +32,40 @@ export class TMAIndicator extends SimpleIndicator<TMACandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<TMACandlestick>
-                         ): TMACandlestick {
+                         computedArray: FixedSizeArray<TMACandlestick>, accessor: IValueAccessor): TMACandlestick {
 
-            const N = this.settings.period;
+        const N = this.settings.period;
 
-            const source = sourceItems.last(); // source must contain at least one item.
-            const lastComputed = computedArray.lastOrDefault(); // computed can contain no items.
+        const source = sourceItems.last(); // source must contain at least one item.
+        const lastComputed = computedArray.lastOrDefault(); // computed can contain no items.
 
-            const computed = new TMACandlestick(source.date);
-            computed.uidOrig.t = source.uid.t;
-            computed.uidOrig.n = source.uid.n;
+        const computed = new TMACandlestick(source.date);
+        computed.uidOrig.t = source.uid.t;
+        computed.uidOrig.n = source.uid.n;
 
-            const value = this.accessor(source);
-            if (value !== undefined) {
+        const value = accessor(source);
+        if (value !== undefined) {
 
-                const lastComputedSMA = lastComputed !== undefined ? lastComputed.SMA : undefined;
+            const lastComputedSMA = lastComputed !== undefined ? lastComputed.SMA : undefined;
 
-                // 1. Compute SMA
-                computed.SMA = this.sma.compute(N, sourceItems, this.accessor, undefined, lastComputedSMA);
+            // 1. Compute SMA
+            computed.SMA = this.sma.compute(N, sourceItems, accessor, undefined, lastComputedSMA);
 
-                if (computed.SMA !== undefined) {
-                    // 2. Compute TMA. On base of computed TMA
+            if (computed.SMA !== undefined) {
+                // 2. Compute TMA. On base of computed TMA
 
-                    const lastComputedTMA = lastComputed !== undefined ? lastComputed.c : undefined;
+                const lastComputedTMA = lastComputed !== undefined ? lastComputed.c : undefined;
 
-                    // Adding last computed EMA to calculate DEMA
-                    const TMA = this.tma.compute(N, computedArray, item => (<TMACandlestick>item).SMA, computed, lastComputedTMA);
-                    if (TMA !== undefined) {
-                        computed.c = TMA;
-                        computed.h = computed.c;
-                        computed.l = computed.c;
-                    }
+                // Adding last computed EMA to calculate DEMA
+                const TMA = this.tma.compute(N, computedArray, item => (<TMACandlestick>item).SMA, computed, lastComputedTMA);
+                if (TMA !== undefined) {
+                    computed.c = TMA;
+                    computed.h = computed.c;
+                    computed.l = computed.c;
                 }
             }
+        }
 
-            return computed;
+        return computed;
     }
 }

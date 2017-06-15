@@ -31,8 +31,7 @@ export class DEMAIndicator extends SimpleIndicator<DEMACandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<DEMACandlestick>
-                         ): DEMACandlestick {
+                         computedArray: FixedSizeArray<DEMACandlestick>, accessor: IValueAccessor): DEMACandlestick {
 
             const N = this.settings.period;
 
@@ -43,13 +42,13 @@ export class DEMAIndicator extends SimpleIndicator<DEMACandlestick> {
             computed.uidOrig.t = source.uid.t;
             computed.uidOrig.n = source.uid.n;
 
-            const value = this.accessor(source);
+            const value = accessor(source);
             if (value !== undefined) {
 
                 const lastComputedEMA = lastComputed !== undefined ? lastComputed.EMA : undefined;
 
                 // 1. Compute EMA
-                computed.EMA = this.ema.compute(N, sourceItems, this.accessor, undefined, lastComputedEMA);
+                computed.EMA = this.ema.compute(N, sourceItems, accessor, undefined, lastComputedEMA);
 
                 if (computed.EMA !== undefined) {
                     // 2. Compute DEMA. On base of computed EMA

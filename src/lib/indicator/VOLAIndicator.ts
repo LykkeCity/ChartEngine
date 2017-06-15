@@ -39,18 +39,14 @@ export class VOLAIndicator extends SimpleIndicator<RSICandlestick> {
         super(RSICandlestick, source, context);
         this.name = 'VOLA';
 
-        this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
-
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
 
         // VOLA requires "Return"
-        this.ext = new LogReturnExtension(this.accessor); // accessor
-        this.source.addExtension(this.ext.uname, this.ext);
+        this.initExtension();
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<RSICandlestick>
-                         ): RSICandlestick {
+                         computedArray: FixedSizeArray<RSICandlestick>, accessor: IValueAccessor): RSICandlestick {
 
         const N = this.settings.period;
 
@@ -62,7 +58,6 @@ export class VOLAIndicator extends SimpleIndicator<RSICandlestick> {
         computed.uidOrig.n = source.uid.n;
 
         const ext = this.ext;
-        const accessor = this.accessor;
 
         // Compute moving average
         const lastComputedMA = lastComputed !== undefined ? lastComputed.MA : undefined;
@@ -122,6 +117,23 @@ export class VOLAIndicator extends SimpleIndicator<RSICandlestick> {
             dispalyName: 'Period'
         }));
 
+        group.setSetting('valueType', new SettingSet({
+            name: 'valueType',
+            dispalyName: 'Calculate using',
+            value: this.settings.valueType.toString(),
+            settingType: SettingType.select,
+            options: [
+                { value: ValueAccessorType.close.toString(), text: 'close' },
+                { value: ValueAccessorType.open.toString(), text: 'open' },
+                { value: ValueAccessorType.high.toString(), text: 'high' },
+                { value: ValueAccessorType.low.toString(), text: 'low' },
+                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+            ]
+        }));
+
         return group;
     }
 
@@ -129,7 +141,25 @@ export class VOLAIndicator extends SimpleIndicator<RSICandlestick> {
         const period = value.getSetting('datasource.period');
         this.settings.period = (period && period.value) ? parseInt(period.value, 10) : this.settings.period;
 
+        const valueType = value.getSetting('datasource.valueType');
+        this.settings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.settings.valueType;
+
+        // re-init extension with new value type
+        this.initExtension();
+
         // recompute
         this.compute();
+    }
+
+    private initExtension() {
+        // remove old extension and add new one
+        //
+        if (this.ext) {
+            this.source.removeExtension(this.ext.uname);
+        }
+
+        const accessor = ValueAccessorFactory.instance.create(this.settings.valueType);
+        this.ext = new LogReturnExtension(accessor);
+        this.source.addExtension(this.ext.uname, this.ext);
     }
 }

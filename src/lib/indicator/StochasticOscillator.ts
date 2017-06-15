@@ -58,8 +58,7 @@ export class FastStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<DoubleCandlestick>
-                         ): DoubleCandlestick {
+                         computedArray: FixedSizeArray<DoubleCandlestick>, accessor: IValueAccessor): DoubleCandlestick {
 
         const N = this.settings.period;
         const periodK = this.extsettings.periodK;
@@ -147,8 +146,7 @@ export class SlowStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<DoubleCandlestick>
-                         ): DoubleCandlestick {
+                         computedArray: FixedSizeArray<DoubleCandlestick>, accessor: IValueAccessor): DoubleCandlestick {
 
         const N = this.settings.period;
         const periodK = this.extsettings.periodK;
@@ -240,8 +238,7 @@ export class OBOSOscillator extends SimpleIndicator<DoubleCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<DoubleCandlestick>
-                         ): DoubleCandlestick {
+                         computedArray: FixedSizeArray<DoubleCandlestick>, accessor: IValueAccessor): DoubleCandlestick {
 
         const periodK = this.settings.period;
 

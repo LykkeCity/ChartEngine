@@ -65,13 +65,13 @@ export class ADXIndicator extends DMIIndicator {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<ADXCandlestick>): ADXCandlestick {
+                         computedArray: FixedSizeArray<ADXCandlestick>, accessor: IValueAccessor): ADXCandlestick {
 
             const N = this.settings.period;
 
             const lastComputed = computedArray.lastOrDefault();
 
-            const computedDMI = super.computeOne(sourceItems, computedArray);
+            const computedDMI = super.computeOne(sourceItems, computedArray, accessor);
 
             // Copy values from computed DMI
             const computed = new ADXCandlestick(computedDMI.date);

@@ -32,48 +32,47 @@ export class TEMAIndicator extends SimpleIndicator<TEMACandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<TEMACandlestick>
-                         ): TEMACandlestick {
+                         computedArray: FixedSizeArray<TEMACandlestick>, accessor: IValueAccessor): TEMACandlestick {
 
-            const N = this.settings.period;
+        const N = this.settings.period;
 
-            const source = sourceItems.last(); // source must contain at least one item.
-            const lastComputed = computedArray.lastOrDefault(); // computed can contain no items.
+        const source = sourceItems.last(); // source must contain at least one item.
+        const lastComputed = computedArray.lastOrDefault(); // computed can contain no items.
 
-            const computed = new TEMACandlestick(source.date);
-            computed.uidOrig.t = source.uid.t;
-            computed.uidOrig.n = source.uid.n;
+        const computed = new TEMACandlestick(source.date);
+        computed.uidOrig.t = source.uid.t;
+        computed.uidOrig.n = source.uid.n;
 
-            const value = this.accessor(source);
-            if (value !== undefined) {
+        const value = accessor(source);
+        if (value !== undefined) {
 
-                const lastComputedEMA = lastComputed !== undefined ? lastComputed.EMA : undefined;
+            const lastComputedEMA = lastComputed !== undefined ? lastComputed.EMA : undefined;
 
-                // 1. Compute EMA
-                computed.EMA = this.ema.compute(N, sourceItems, this.accessor, undefined, lastComputedEMA);
+            // 1. Compute EMA
+            computed.EMA = this.ema.compute(N, sourceItems, accessor, undefined, lastComputedEMA);
 
-                if (computed.EMA !== undefined) {
-                    // 2. Compute DEMA. On base of computed EMA
-                    const lastComputedDEMA = lastComputed !== undefined ? lastComputed.DEMA : undefined;
+            if (computed.EMA !== undefined) {
+                // 2. Compute DEMA. On base of computed EMA
+                const lastComputedDEMA = lastComputed !== undefined ? lastComputed.DEMA : undefined;
 
-                    // Adding last computed EMA to calculate DEMA
-                    computed.DEMA = this.ema.compute(N, computedArray, item => (<TEMACandlestick>item).EMA, computed, lastComputedDEMA);
-                    if (computed.DEMA !== undefined) {
+                // Adding last computed EMA to calculate DEMA
+                computed.DEMA = this.ema.compute(N, computedArray, item => (<TEMACandlestick>item).EMA, computed, lastComputedDEMA);
+                if (computed.DEMA !== undefined) {
 
-                        // 3. Compute TEMA. On base of computed DEMA
-                        const lastComputedTEMA = lastComputed !== undefined ? lastComputed.TEMA : undefined;
+                    // 3. Compute TEMA. On base of computed DEMA
+                    const lastComputedTEMA = lastComputed !== undefined ? lastComputed.TEMA : undefined;
 
-                        computed.TEMA = this.ema.compute(N, computedArray, item => (<TEMACandlestick>item).DEMA, computed, lastComputedTEMA);
+                    computed.TEMA = this.ema.compute(N, computedArray, item => (<TEMACandlestick>item).DEMA, computed, lastComputedTEMA);
 
-                        if (computed.TEMA !== undefined) {
-                            computed.c = 3 * computed.EMA - 3 * computed.DEMA + computed.TEMA;
-                            computed.h = computed.c;
-                            computed.l = computed.c;
-                        }
+                    if (computed.TEMA !== undefined) {
+                        computed.c = 3 * computed.EMA - 3 * computed.DEMA + computed.TEMA;
+                        computed.h = computed.c;
+                        computed.l = computed.c;
                     }
                 }
             }
+        }
 
-            return computed;
+        return computed;
     }
 }

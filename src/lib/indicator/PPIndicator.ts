@@ -61,9 +61,10 @@ export class PPCandlestick extends CandlestickExt {
             + `${this.p !== undefined ? this.p.toFixed(precision) : 'n/a'}`;
     }
 }
+
 export class PPIndicator extends IndicatorDataSource<PPCandlestick> {
 
-    protected accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
+    protected settings: PPSettings = new PPSettings();
 
     constructor (source: IDataSource<Candlestick>, context: IContext) {
         super(PPCandlestick, source, context);
@@ -97,7 +98,6 @@ export class PPIndicator extends IndicatorDataSource<PPCandlestick> {
             lastUid = iterator.current.uid;
 
             const source = iterator.current;
-
 
             // Compute base time
             // 
@@ -152,6 +152,15 @@ export class PPIndicator extends IndicatorDataSource<PPCandlestick> {
         return arg;
     }
 
+    public getSettings(): SettingSet {
+        return new SettingSet({ name: 'datasource', group: true });
+    }
+
+    public setSettings(value: SettingSet): void {
+        // recompute
+        this.compute();
+    }
+
     private extendInterval(interval: TimeInterval): TimeInterval {
         switch (interval) {
             case TimeInterval.sec: return TimeInterval.day;
@@ -173,10 +182,8 @@ export class PPIndicator extends IndicatorDataSource<PPCandlestick> {
     }
 }
 
-class PPSettings {
-    public initialFactor: number = 0.02;
-    public increment: number = 0.02;
-    public maxFactor: number = 0.2;
+export class PPSettings {
+    public valueType: ValueAccessorType = ValueAccessorType.close;
 }
 
 class Line {

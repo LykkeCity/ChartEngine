@@ -32,15 +32,15 @@ export class CCIOscillator extends SimpleIndicator<CCICandlestick> {
         super(CCICandlestick, source, context);
         this.name = 'CCI';
 
-        this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.hlc3); // by default use typical price
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Simple);
 
         // Set default settings
         this.settings.period = 20;
+        this.settings.valueType = ValueAccessorType.hlc3;
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<CCICandlestick>): CCICandlestick {
+                         computedArray: FixedSizeArray<CCICandlestick>, accessor: IValueAccessor): CCICandlestick {
 
         const N = this.settings.period;
 
@@ -51,16 +51,16 @@ export class CCIOscillator extends SimpleIndicator<CCICandlestick> {
         computed.uidOrig.t = source.uid.t;
         computed.uidOrig.n = source.uid.n;
 
-        const value = this.accessor(source);
+        const value = accessor(source);
         if (value !== undefined) {
 
             // Compute SMA
             const lastComputedSMA = lastComputed !== undefined ? lastComputed.SMA : undefined;
-            computed.SMA = this.ma.compute(N, sourceItems, this.accessor, undefined, lastComputedSMA);
+            computed.SMA = this.ma.compute(N, sourceItems, accessor, undefined, lastComputedSMA);
 
             if (computed.SMA !== undefined) {
                 // Compute deviation around SMA.
-                const mad = Utils.MAD(N, sourceItems, this.accessor, computed.SMA);
+                const mad = Utils.MAD(N, sourceItems, accessor, computed.SMA);
 
                 if (mad !== undefined) {
                     // Compute CCI
@@ -84,12 +84,32 @@ export class CCIOscillator extends SimpleIndicator<CCICandlestick> {
             dispalyName: 'Period'
         }));
 
+        group.setSetting('valueType', new SettingSet({
+            name: 'valueType',
+            dispalyName: 'Calculate using',
+            value: this.settings.valueType.toString(),
+            settingType: SettingType.select,
+            options: [
+                { value: ValueAccessorType.close.toString(), text: 'close' },
+                { value: ValueAccessorType.open.toString(), text: 'open' },
+                { value: ValueAccessorType.high.toString(), text: 'high' },
+                { value: ValueAccessorType.low.toString(), text: 'low' },
+                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+            ]
+        }));
+
         return group;
     }
 
     public setSettings(value: SettingSet): void {
         const period = value.getSetting('datasource.period');
         this.settings.period = (period && period.value) ? parseInt(period.value, 10) : this.settings.period;
+
+        const valueType = value.getSetting('datasource.valueType');
+        this.settings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.settings.valueType;
 
         // recompute
         this.compute();

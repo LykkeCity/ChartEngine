@@ -36,11 +36,6 @@ export class SettingSet {
     public options: IOption[] = [];
     public settings: IHashTable<SettingSet> = {};
 
-    // public constructor(name: string, value?: string) {
-    //     this.name = name;
-    //     this.value = value || '';
-    // }
-
     public constructor(param: IParameters|string) {
         if (typeof param === 'string') {
             this.name = param;
@@ -74,13 +69,6 @@ export class SettingSet {
             if (i === parts.length - 1) {
                 dest[part] = setting;
             }
-
-            //if (i === parts.length - 1) {
-            //    // copy
-            //    dest[part].name = setting.name;
-            //    dest[part].value = setting.value;
-            //    dest[part].setting
-            //}
 
             dest = dest[part].settings;
         }

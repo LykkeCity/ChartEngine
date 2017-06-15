@@ -43,7 +43,7 @@ export class RBIndicator extends SimpleIndicator<RainbowCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<RainbowCandlestick>): RainbowCandlestick {
+                         computedArray: FixedSizeArray<RainbowCandlestick>, accessor: IValueAccessor): RainbowCandlestick {
 
         const source = sourceItems.last();
         const lastComputed = computedArray.lastOrDefault();
@@ -52,16 +52,25 @@ export class RBIndicator extends SimpleIndicator<RainbowCandlestick> {
         computed.uidOrig.t = source.uid.t;
         computed.uidOrig.n = source.uid.n;
 
-        const value = this.accessor(source);
+        const value = accessor(source);
         if (value !== undefined) {
 
             for (let i = 0; i < RBIndicator.K; i += 1) {
                 const lastComputedValue = lastComputed !== undefined ? lastComputed.line[i] : undefined;
-                computed.line[i] = this.ma.compute(RBIndicator.periods[i], sourceItems, this.accessor, undefined, lastComputedValue);
+                computed.line[i] = this.ma.compute(RBIndicator.periods[i], sourceItems, accessor, undefined, lastComputedValue);
             }
         }
 
         return computed;
+    }
+
+    public getSettings(): SettingSet {
+        return new SettingSet({ name: 'datasource', group: true });
+    }
+
+    public setSettings(value: SettingSet): void {
+        // recompute
+        this.compute();
     }
 }
 

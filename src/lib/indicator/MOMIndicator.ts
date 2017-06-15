@@ -20,8 +20,6 @@ export class MOMIndicator extends SimpleIndicator<CandlestickExt> {
     constructor (source: IDataSource<Candlestick>, context: IContext) {
         super(CandlestickExt, source, context);
         this.name = 'MOM';
-
-        this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
     }
 
     protected get requiredItemsOnCompute(): number {
@@ -29,7 +27,7 @@ export class MOMIndicator extends SimpleIndicator<CandlestickExt> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<CandlestickExt>): CandlestickExt {
+                         computedArray: FixedSizeArray<CandlestickExt>, accessor: IValueAccessor): CandlestickExt {
 
         const N = this.settings.period;
         const L = sourceItems.length;
@@ -44,8 +42,8 @@ export class MOMIndicator extends SimpleIndicator<CandlestickExt> {
         if (i >= 0 && i < sourceItems.length) {
             const prev = sourceItems.getItem(i);
 
-            const curValue = this.accessor(source);
-            const prevValue = this.accessor(prev);
+            const curValue = accessor(source);
+            const prevValue = accessor(prev);
 
             if (curValue !== undefined && prevValue !== undefined) {
                 computed.c = curValue - prevValue;
@@ -66,12 +64,32 @@ export class MOMIndicator extends SimpleIndicator<CandlestickExt> {
             dispalyName: 'Period'
         }));
 
+        group.setSetting('valueType', new SettingSet({
+            name: 'valueType',
+            dispalyName: 'Calculate using',
+            value: this.settings.valueType.toString(),
+            settingType: SettingType.select,
+            options: [
+                { value: ValueAccessorType.close.toString(), text: 'close' },
+                { value: ValueAccessorType.open.toString(), text: 'open' },
+                { value: ValueAccessorType.high.toString(), text: 'high' },
+                { value: ValueAccessorType.low.toString(), text: 'low' },
+                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+            ]
+        }));
+
         return group;
     }
 
     public setSettings(value: SettingSet): void {
         const period = value.getSetting('datasource.period');
         this.settings.period = (period && period.value) ? parseInt(period.value, 10) : this.settings.period;
+
+        const valueType = value.getSetting('datasource.valueType');
+        this.settings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.settings.valueType;
 
         // recompute
         this.compute();

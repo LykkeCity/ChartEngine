@@ -30,7 +30,6 @@ export class RSLOscillator extends SimpleIndicator<RSLCandlestick> {
         super(RSLCandlestick, source, context);
         this.name = 'RSL';
 
-        this.accessor = ValueAccessorFactory.instance.create(ValueAccessorType.close);
         this.ma = MovingAverageFactory.instance.create(MovingAverageType.Exponential);
 
         // Set default settings
@@ -38,7 +37,7 @@ export class RSLOscillator extends SimpleIndicator<RSLCandlestick> {
     }
 
     protected computeOne(sourceItems: FixedSizeArray<Candlestick>,
-                         computedArray: FixedSizeArray<RSLCandlestick>): RSLCandlestick {
+                         computedArray: FixedSizeArray<RSLCandlestick>, accessor: IValueAccessor): RSLCandlestick {
 
         const N = this.settings.period;
 
@@ -49,11 +48,11 @@ export class RSLOscillator extends SimpleIndicator<RSLCandlestick> {
         computed.uidOrig.t = source.uid.t;
         computed.uidOrig.n = source.uid.n;
 
-        const value = this.accessor(source);
+        const value = accessor(source);
 
         // Compute average gain/loss
         const lastComputedMA = lastComputed !== undefined ? lastComputed.MA : undefined;
-        computed.MA = this.ma.compute(N, sourceItems, this.accessor, undefined, lastComputedMA);
+        computed.MA = this.ma.compute(N, sourceItems, accessor, undefined, lastComputedMA);
 
         if (computed.MA !== undefined && value !== undefined) {
             computed.c = computed.MA !== 0 ? value / computed.MA : undefined;
@@ -62,26 +61,5 @@ export class RSLOscillator extends SimpleIndicator<RSLCandlestick> {
         }
 
         return computed;
-    }
-
-    public getSettings(): SettingSet {
-        const group = new SettingSet({ name: 'datasource', group: true });
-
-        group.setSetting('period', new SettingSet({
-            name: 'period',
-            value: this.settings.period.toString(),
-            settingType: SettingType.numeric,
-            dispalyName: 'Period'
-        }));
-
-        return group;
-    }
-
-    public setSettings(value: SettingSet): void {
-        const period = value.getSetting('datasource.period');
-        this.settings.period = (period && period.value) ? parseInt(period.value, 10) : this.settings.period;
-
-        // recompute
-        this.compute();
     }
 }
