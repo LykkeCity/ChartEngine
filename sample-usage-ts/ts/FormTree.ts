@@ -7,7 +7,6 @@ import IEvent = lychart.shared.IEvent;
 import Event = lychart.shared.Event;
 import VisualComponent = lychart.core.VisualComponent;
 
-
 export class ItemSelectedArg {
     constructor(
         public readonly uid: string,
@@ -18,7 +17,6 @@ export class ItemSelectedArg {
 
 export class ItemSelectedEvent extends Event<ItemSelectedArg> {
 }
-
 
 export class FormTree {
     private container: HTMLElement;
@@ -73,6 +71,8 @@ export class FormTree {
     private appendItem(htmlEl: HTMLElement, uid: string, name: string, margin: number) {
         const item = document.createElement('div');
         item.style.setProperty('margin-left', margin + 'px');
+        item.classList.add('treeitem');
+
         const caption = document.createElement('div');
         caption.innerText = name;
         caption.setAttribute('data-uid', uid);

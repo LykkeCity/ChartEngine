@@ -85,72 +85,64 @@ export class FormProps {
             return;
         }
 
+        const $div = $('<div />')
+            .addClass('prop')
+            .appendTo(this.props);
+
+        $('<span />')
+            .html(ss.dispalyName)
+            .addClass('proptitle')
+            .appendTo($div);
+
         switch (ss.settingType) {
             case SettingType.check:
-                $('<span />')
-                    .html(ss.dispalyName)
-                    .appendTo(this.props);
-
                 $('<input />', {
                     type : 'checkbox',
                     name: fullPath,
                     checked: ss.value === 'true',
                     value: ss.value
                 })
-                .addClass('prop')
-                .appendTo(this.props);
-
+                .addClass('propfield')
+                .appendTo($div);
                 break;
 
             case SettingType.color:
-                $('<span />')
-                    .html(ss.dispalyName)
-                    .appendTo(this.props);
                 $('<input />', {
                     type : 'color',
                     name: fullPath,
                     value: ss.value
                 })
-                .addClass('prop')
-                .appendTo(this.props);
+                .addClass('propfield')
+                .appendTo($div);
                 break;
 
             case SettingType.numeric:
-                $('<span />')
-                    .html(ss.dispalyName)
-                    .appendTo(this.props);
                 $('<input />', {
                     type : 'text',
                     name: fullPath,
                     value: ss.value
                 })
-                .addClass('prop')
-                .appendTo(this.props);
+                .addClass('propfield')
+                .appendTo($div);
                 break;
 
             case SettingType.date:
-                $('<span />')
-                    .html(ss.dispalyName)
-                    .appendTo(this.props);
                 $('<input />', {
                     type : 'date',
                     name: fullPath,
                     value: ss.value
                 })
-                .addClass('prop')
-                .appendTo(this.props);
+                .addClass('propfield')
+                .appendTo($div);
                 break;
 
             case SettingType.select:
-                $('<span />')
-                    .html(ss.dispalyName)
-                    .appendTo(this.props);
                 let sel = $('<select />', {
                     name: fullPath
 //                    value: ss.value
                 })
-                .addClass('prop')
-                .appendTo(this.props);
+                .addClass('propfield')
+                .appendTo($div);
 
                 ss.options.forEach(option => {
                     $('<option />', {
@@ -168,7 +160,6 @@ export class FormProps {
     private collectSettings(): SettingSet {
 
         const s = new SettingSet(this.settingName);
-
         const elements = $('.prop', this.props).get();
 
         for (const element of elements) {

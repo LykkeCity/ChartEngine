@@ -24,7 +24,7 @@
         }
         #panel {
             float: left;
-            width: 20%;
+            width: 250px;
             padding-top: 35px;
             display: block; /* turn off */
         }
@@ -39,119 +39,143 @@
         .select2-selection__rendered {
             height: 25px;
         }
+
+        /* Properties */
+        .treeitem:hover {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .prop {
+            margin-bottom: 5px;
+        }
+
+        .proptitle {
+            margin-right: 5px;
+            font-size: 0.8em;
+        }
+
+        td {
+            vertical-align: top;
+        }
     </style>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
 </head>
 <body>
-    <div>
-        <div id="lsection">
-            <div id="menu">
-                <fieldset>
-                    <legend>Chart: </legend>                
-                    <select class="assetpair"></select>
-                    <select class="timeinterval">
-                        <option value="sec">Sec</option>
-                        <option value="min" selected="selected">1 min</option>
-                        <!--<option value="min5">5 min</option>
-                        <option value="min15">15 min</option>
-                        <option value="min30">30 min</option>-->
-                        <option value="hour">1 hour</option>
-                        <!--<option value="hour4">4 hours</option>
-                        <option value="hour6">6 hours</option>
-                        <option value="hour12">12 hours</option>-->
-                        <option value="day">Day</option>
-                        <!--<option value="week">Week</option>-->
-                        <option value="month">Month</option>
-                    </select>
-                    <select class="charttype">
-                        <option value="candle" selected="selected">Candles</option>
-                        <option value="heikinashi">Heikin-Ashi</option>
-                        <option value="hollow">Hollow</option>
-                        <option value="line">Line</option>
-                        <option value="mountain">Mountain</option>
-                        <option value="ohlc">OHLC</option>
-                        <option value="rangebar">Range Bars</option>
-                        <option value="renko">Renko</option>
-                        <option value="linebreak">Line Break</option>
-                    </select>
-                </fieldset>
+    <table>
+        <tr>
+            <td>
+                <div id="lsection">
+                    <div id="menu">
+                        <fieldset>
+                            <legend>Chart: </legend>                
+                            <select class="assetpair"></select>
+                            <select class="timeinterval">
+                                <option value="sec">Sec</option>
+                                <option value="min" selected="selected">1 min</option>
+                                <!--<option value="min5">5 min</option>
+                                <option value="min15">15 min</option>
+                                <option value="min30">30 min</option>-->
+                                <option value="hour">1 hour</option>
+                                <!--<option value="hour4">4 hours</option>
+                                <option value="hour6">6 hours</option>
+                                <option value="hour12">12 hours</option>-->
+                                <option value="day">Day</option>
+                                <!--<option value="week">Week</option>-->
+                                <option value="month">Month</option>
+                            </select>
+                            <select class="charttype">
+                                <option value="candle" selected="selected">Candles</option>
+                                <option value="heikinashi">Heikin-Ashi</option>
+                                <option value="hollow">Hollow</option>
+                                <option value="line">Line</option>
+                                <option value="mountain">Mountain</option>
+                                <option value="ohlc">OHLC</option>
+                                <option value="rangebar">Range Bars</option>
+                                <option value="renko">Renko</option>
+                                <option value="linebreak">Line Break</option>
+                            </select>
+                        </fieldset>
 
-                <fieldset>
-                    <legend>Compare: </legend>
-                    <select class="assetpair-compare"></select>
-                    <button class="add-compare">Add</button>
-                </fieldset>
+                        <fieldset>
+                            <legend>Compare: </legend>
+                            <select class="assetpair-compare"></select>
+                            <button class="add-compare">Add</button>
+                        </fieldset>
 
-                <fieldset>
-                    <legend>Figures: </legend>
-                    <button class="add-line">Line</button>&nbsp;
-                    <button class="add-hline">H-Line</button>
-                </fieldset>
+                        <fieldset>
+                            <legend>Figures: </legend>
+                            <button class="add-line">Line</button>&nbsp;
+                            <button class="add-hline">H-Line</button>
+                        </fieldset>
 
-                    <span>Indicators: </span>
+                        <span>Indicators: </span>
 
-                    <select id="sel-indicators" multiple="multiple" style="width: 200px; height: 25px;">
-                        <!-- AVERAGES -->
-                        <option value="DEMA_0">DEMA</option>
-                        <option value="EMA_0">EMA</option>
-                        <option value="SMA_0">SMA</option>
-                        <option value="SMMA_0">SMMA</option>
-                        <option value="TEMA_0">TEMA</option>
-                        <option value="TMA_0">TMA</option>
-                        <option value="WMA_0">WMA</option>
+                        <select id="sel-indicators" multiple="multiple" style="width: 200px; height: 25px;">
+                            <!-- AVERAGES -->
+                            <option value="DEMA_0">DEMA</option>
+                            <option value="EMA_0">EMA</option>
+                            <option value="SMA_0">SMA</option>
+                            <option value="SMMA_0">SMMA</option>
+                            <option value="TEMA_0">TEMA</option>
+                            <option value="TMA_0">TMA</option>
+                            <option value="WMA_0">WMA</option>
 
-                        <!-- MISC -->
-                        <option value="ADX_1">ADX</option>
-                        <option value="ARO_1">ARO</option>
-                        <option value="ATR">ATR</option>
-                        <option value="bollinger_0">BB</option>
-                        <option value="DMI_1">DMI</option>
-                        <option value="HHLL_0">HHLL</option>
-                        <option value="RB_0">RB</option>
-                        <option value="STDEV_1">STDEV</option>
-                        <option value="TP_0">TP</option>
-                        <option value="MD_1">MD</option>
-                        <option value="ST_0">ST</option>
-                        <option value="IKH_0">IKH</option>
-                        <option value="PSAR_0">PSAR</option>
-                        <option value="PP_0">PP</option>
-                        <option value="VOLA_1">VOLA</option>
-                        <option value="COR_1">COR</option>
-                        <option value="RATIO_1">RATIOCATOR</option>
+                            <!-- MISC -->
+                            <option value="ADX_1">ADX</option>
+                            <option value="ARO_1">ARO</option>
+                            <option value="ATR">ATR</option>
+                            <option value="bollinger_0">BB</option>
+                            <option value="DMI_1">DMI</option>
+                            <option value="HHLL_0">HHLL</option>
+                            <option value="RB_0">RB</option>
+                            <option value="STDEV_1">STDEV</option>
+                            <option value="TP_0">TP</option>
+                            <option value="MD_1">MD</option>
+                            <option value="ST_0">ST</option>
+                            <option value="IKH_0">IKH</option>
+                            <option value="PSAR_0">PSAR</option>
+                            <option value="PP_0">PP</option>
+                            <option value="VOLA_1">VOLA</option>
+                            <option value="COR_1">COR</option>
+                            <option value="RATIO_1">RATIOCATOR</option>
 
-                        <!-- OSCILLATORS -->
-                        <option value="AOS_1">AOS</option>
-                        <option value="DIX_1">DIX</option>
-                        <option value="DSSBR_1">DSSBR</option>
-                        <option value="OBOS_1">OBOS</option>
-                        <option value="PCR_1">PCR</option>
-                        <option value="MOM_1">MOM</option>
-                        <option value="ROC_1">ROC</option>
-                        <option value="RSI_1">RSI</option>
-                        <option value="FSTOC_1">FSTOC</option>
-                        <option value="SSTOC_1">SSTOC</option>
+                            <!-- OSCILLATORS -->
+                            <option value="AOS_1">AOS</option>
+                            <option value="DIX_1">DIX</option>
+                            <option value="DSSBR_1">DSSBR</option>
+                            <option value="OBOS_1">OBOS</option>
+                            <option value="PCR_1">PCR</option>
+                            <option value="MOM_1">MOM</option>
+                            <option value="ROC_1">ROC</option>
+                            <option value="RSI_1">RSI</option>
+                            <option value="FSTOC_1">FSTOC</option>
+                            <option value="SSTOC_1">SSTOC</option>
 
-                        <!-- TREND FOLLOWING -->
-                        <option value="CCI_1">CCI</option>
-                        <option value="MACD_1">MACD</option>
-                        <option value="RSL_1">RSL</option>
-                    </select>
-            </div>
-            <div class="chart-container">
-            </div>
-        </div>
-
-        <div id="panel">
-            <div class="tree"></div>
-            <div class="properties" style="display: none">
-                <div>
-                    <button id="applyPropsBtn">Apply</button>
-                    <button id="closePropsBtn">close</button>
+                            <!-- TREND FOLLOWING -->
+                            <option value="CCI_1">CCI</option>
+                            <option value="MACD_1">MACD</option>
+                            <option value="RSL_1">RSL</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            </td>
+            <td>
+                <div id="panel">
+                    <div class="tree"></div>
+                    <div class="properties" style="display: none">
+                        <div>
+                            <button id="applyPropsBtn">Apply</button>
+                            <button id="closePropsBtn">close</button>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
     <script type="text/javascript" src="dist/sampleapp.bundle.js"></script>    
 </body>
