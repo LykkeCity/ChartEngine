@@ -88,26 +88,26 @@ export class MDIndicator extends SimpleIndicator<MDCandlestick> {
             name: 'period1',
             value: this.extsettings.period1.toString(),
             settingType: SettingType.numeric,
-            dispalyName: '1st smoothing period'
+            displayName: '1st smoothing period'
         }));
 
         group.setSetting('period2', new SettingSet({
             name: 'period2',
             value: this.extsettings.period2.toString(),
             settingType: SettingType.numeric,
-            dispalyName: '2nd smoothing period'
+            displayName: '2nd smoothing period'
         }));
 
         group.setSetting('period3', new SettingSet({
             name: 'period3',
             value: this.extsettings.period3.toString(),
             settingType: SettingType.numeric,
-            dispalyName: '3d smoothing period'
+            displayName: '3d smoothing period'
         }));
 
         group.setSetting('valueType', new SettingSet({
             name: 'valueType',
-            dispalyName: 'Calculate using',
+            displayName: 'Calculate using',
             value: this.settings.valueType.toString(),
             settingType: SettingType.select,
             options: [

@@ -18,6 +18,7 @@ export class FormProps {
     private readonly board: ChartBoard;
     private readonly obj: any;
     private readonly settingName: string;
+    private readonly title: string;
     public readonly propsClosingEvent = new PropsEvent();
     public readonly propsAppliedEvent = new PropsEvent();
 
@@ -39,24 +40,35 @@ export class FormProps {
         $('#applyPropsBtn').unbind();
         $('#applyPropsBtn').click(this.onApplyClick);
 
+        this.title = obj.name || '';
+
+        const $div = $('<h3 />')
+            .text(this.title)
+            .appendTo(this.props);
+
         if (typeof obj.getSettings === 'function') {
             const settings = <SettingSet>obj.getSettings();
             this.settingName = settings.name;
-            this.iterate(settings, '');
+            this.iterate(settings, '', this.title);
         } else {
             this.settingName = '';
         }
     }
 
-    private iterate(ss: SettingSet, path: string) {
+    private iterate(ss: SettingSet, path: string, title: string) {
         path = path ? path + '.' + ss.name : ss.name;
 
         for (const s of Object.keys(ss.settings)) {
             const setting = ss.settings[s];
 
-            this.populateSetting(setting, path + '.' + setting.name);
+            if (setting.group && setting.dispalyName) {
+                const $div = $('<h4 />')
+                    .text(setting.dispalyName)
+                    .appendTo(this.props);
+            }
 
-            this.iterate(setting, path);
+            this.populateSetting(setting, path + '.' + setting.name);
+            this.iterate(setting, path, '');
         }
     }
 
@@ -90,7 +102,7 @@ export class FormProps {
             .appendTo(this.props);
 
         $('<span />')
-            .html(ss.dispalyName)
+            .text(ss.dispalyName)
             .addClass('proptitle')
             .appendTo($div);
 
@@ -160,7 +172,7 @@ export class FormProps {
     private collectSettings(): SettingSet {
 
         const s = new SettingSet(this.settingName);
-        const elements = $('.prop', this.props).get();
+        const elements = $('.propfield', this.props).get();
 
         for (const element of elements) {
 

@@ -99,7 +99,7 @@ export class ADXIndicator extends DMIIndicator {
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         return group;

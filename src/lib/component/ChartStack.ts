@@ -243,7 +243,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
 
         settings.setSetting('showGrid', new SettingSet({
             name: 'showGrid',
-            dispalyName: 'Show grid',
+            displayName: 'Show grid',
             settingType: SettingType.check,
             value: this.settings.showGrid.toString()
         }));

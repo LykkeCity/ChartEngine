@@ -135,7 +135,7 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
 
         group.setSetting('basedate', new SettingSet({
             name: 'basedate',
-            dispalyName: 'Base date',
+            displayName: 'Base date',
             value: this.extsettings.basedate ? DateUtils.toIsoDate(this.extsettings.basedate) : '',
             settingType: SettingType.date
         }));
@@ -144,7 +144,7 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
         sources.push(new IdValue('', ''));
         group.setSetting('uid', new SettingSet({
             name: 'uid',
-            dispalyName: 'Compare',
+            displayName: 'Compare',
             value: this.extsettings.uid,
             settingType: SettingType.select,
             options: sources.map(item => { return { value: item.id, text: item.value }; })
@@ -152,7 +152,7 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
 
         group.setSetting('valueType', new SettingSet({
             name: 'valueType',
-            dispalyName: 'Calculate using',
+            displayName: 'Calculate using',
             value: this.extsettings.valueType.toString(),
             settingType: SettingType.select,
             options: [

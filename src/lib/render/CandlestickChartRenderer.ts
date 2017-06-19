@@ -13,10 +13,10 @@ import { RenderUtils } from './RenderUtils';
 
 export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
 
+    private settings = new CandleRenderSettings();
+
     private readonly minCandleWidth = 1;
     private readonly maxCandleWidth = 21;
-
-    public constructor() { }
 
     public render(
         canvas: ICanvas,
@@ -200,28 +200,26 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         canvas.lineTo(x2, y2);
     }
 
-    private settings: CandleRenderSettings = new CandleRenderSettings();
-
     public getSettings(): SettingSet {
-        const settings = new SettingSet({ name: 'visual', group: true });
+        const settings = new SettingSet({ name: 'visual', group: true, displayName: 'visual' });
 
         settings.setSetting('colorUp', new SettingSet({
             name: 'colorUp',
-            dispalyName: 'Rising color',
+            displayName: 'Rising color',
             settingType: SettingType.color,
             value: this.settings.colorUp.toString()
         }));
 
         settings.setSetting('colorDown', new SettingSet({
             name: 'colorDown',
-            dispalyName: 'Falling color',
+            displayName: 'Falling color',
             settingType: SettingType.color,
             value: this.settings.colorDown.toString()
         }));
 
         settings.setSetting('colorBorder', new SettingSet({
             name: 'colorBorder',
-            dispalyName: 'Border color',
+            displayName: 'Border color',
             settingType: SettingType.color,
             value: this.settings.colorBorder.toString()
         }));

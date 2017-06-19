@@ -13,7 +13,7 @@ export class SettingType {
 
 export interface IParameters {
     name: string;
-    dispalyName?: string;
+    displayName?: string;
     value?: string;
     settingType?: string;
     visible?: boolean;
@@ -43,7 +43,7 @@ export class SettingSet {
             this.name = param.name;
             this.value = param.value || '';
             this.settingType = param.settingType || '';
-            this.dispalyName = param.dispalyName || '';
+            this.dispalyName = param.displayName || '';
             this.visible = param.visible !== undefined ? param.visible : true;
             this.group = param.group || false;
             this.options = param.options || [];

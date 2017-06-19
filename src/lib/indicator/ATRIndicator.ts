@@ -64,7 +64,7 @@ export class ATRIndicator extends SimpleIndicator<CandlestickExt> {
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         return group;

@@ -167,28 +167,28 @@ export class IKHIndicator extends SimpleIndicator<IKHCandlestick> {
             name: 'periodConversion',
             value: this.extsettings.periodConversion.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Tenkan-Sen period'
+            displayName: 'Tenkan-Sen period'
         }));
 
         group.setSetting('periodBase', new SettingSet({
             name: 'periodBase',
             value: this.extsettings.periodBase.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Kijun-Sen period'
+            displayName: 'Kijun-Sen period'
         }));
 
         group.setSetting('periodSpanB', new SettingSet({
             name: 'periodSpanB',
             value: this.extsettings.periodSpanB.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Senkou Span B period'
+            displayName: 'Senkou Span B period'
         }));
 
         group.setSetting('ikhDisplacement', new SettingSet({
             name: 'ikhDisplacement',
             value: this.extsettings.ikhDisplacement.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Displacment'
+            displayName: 'Displacment'
         }));
 
         return group;

@@ -130,7 +130,7 @@ export class LineBreakDataSource extends ComputedDataSource<Candlestick> {
 
         group.setSetting('breakType', new SettingSet({
             name: 'breakType',
-            dispalyName: 'Box',
+            displayName: 'Box',
             value: this.settings.breakType.toString(),
             settingType: SettingType.select,
             options: [

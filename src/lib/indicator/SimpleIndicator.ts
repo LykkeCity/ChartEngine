@@ -362,19 +362,19 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         group.setSetting('displacement', new SettingSet({
             name: 'displacement',
             value: this.settings.displacement.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Displacement'
+            displayName: 'Displacement'
         }));
 
         group.setSetting('valueType', new SettingSet({
             name: 'valueType',
-            dispalyName: 'Calculate using',
+            displayName: 'Calculate using',
             value: this.settings.valueType.toString(),
             settingType: SettingType.select,
             options: [

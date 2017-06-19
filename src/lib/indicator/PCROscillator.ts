@@ -68,7 +68,7 @@ export class PCROscillator extends SimpleIndicator<CandlestickExt> {
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: '%R Period'
+            displayName: '%R Period'
         }));
 
         return group;

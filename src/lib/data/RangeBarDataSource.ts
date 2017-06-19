@@ -157,7 +157,7 @@ export class RangeBarDataSource extends ComputedDataSource<Candlestick> {
 
         group.setSetting('mode', new SettingSet({
             name: 'mode',
-            dispalyName: 'Mode',
+            displayName: 'Mode',
             value: this.settings.mode.toString(),
             settingType: SettingType.select,
             options: [
@@ -168,7 +168,7 @@ export class RangeBarDataSource extends ComputedDataSource<Candlestick> {
 
         group.setSetting('range', new SettingSet({
             name: 'range',
-            dispalyName: 'Range',
+            displayName: 'Range',
             value: this.settings.range.toString(),
             settingType: SettingType.numeric,
             visible: this.settings.mode === Mode.Fixed

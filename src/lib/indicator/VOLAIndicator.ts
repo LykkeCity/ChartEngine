@@ -114,12 +114,12 @@ export class VOLAIndicator extends SimpleIndicator<RSICandlestick> {
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         group.setSetting('valueType', new SettingSet({
             name: 'valueType',
-            dispalyName: 'Calculate using',
+            displayName: 'Calculate using',
             value: this.settings.valueType.toString(),
             settingType: SettingType.select,
             options: [

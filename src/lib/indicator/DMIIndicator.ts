@@ -125,7 +125,7 @@ export class DMIIndicator extends SimpleIndicator<DMICandlestick> {
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         return group;

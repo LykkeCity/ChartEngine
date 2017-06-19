@@ -149,21 +149,21 @@ export class PSARIndicator extends SimpleIndicator<PSARCandlestick> {
             name: 'initialFactor',
             value: this.extsettings.initialFactor.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Initial factor'
+            displayName: 'Initial factor'
         }));
 
         group.setSetting('increment', new SettingSet({
             name: 'increment',
             value: this.extsettings.increment.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Increment'
+            displayName: 'Increment'
         }));
 
         group.setSetting('maxFactor', new SettingSet({
             name: 'maxFactor',
             value: this.extsettings.maxFactor.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Maximum factor'
+            displayName: 'Maximum factor'
         }));
 
         return group;

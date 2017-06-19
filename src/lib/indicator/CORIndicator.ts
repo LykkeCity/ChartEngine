@@ -242,14 +242,14 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
             name: 'period',
             value: this.extsettings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         const sources = this.context.register.list();
         sources.push(new IdValue('', ''));
         group.setSetting('uid', new SettingSet({
             name: 'uid',
-            dispalyName: 'Compare',
+            displayName: 'Compare',
             value: this.extsettings.uid,
             settingType: SettingType.select,
             options: sources.map(item => { return { value: item.id, text: item.value }; })
@@ -257,7 +257,7 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
 
         group.setSetting('valueType', new SettingSet({
             name: 'valueType',
-            dispalyName: 'Calculate using',
+            displayName: 'Calculate using',
             value: this.extsettings.valueType.toString(),
             settingType: SettingType.select,
             options: [

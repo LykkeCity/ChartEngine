@@ -4,7 +4,7 @@
  * @classdesc Renders candlesticks in a form of line chart.
  */
 import { ICanvas } from '../canvas/index';
-import { IAxis, IPoint, ITimeAxis, SettingSet } from '../core/index';
+import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick } from '../model/index';
 import { IRect } from '../shared/index';
@@ -12,6 +12,8 @@ import { IChartRender } from './Interfaces';
 import { RenderUtils } from './RenderUtils';
 
 export class LinestickChartRenderer implements IChartRender<Candlestick> {
+
+    private settings = new RenderSettings();
 
     public render(
         canvas: ICanvas,
@@ -37,7 +39,8 @@ export class LinestickChartRenderer implements IChartRender<Candlestick> {
 
         // Start drawing
         canvas.beginPath();
-        canvas.setStrokeStyle('#555555');
+        canvas.setStrokeStyle(this.settings.color);
+        canvas.lineWidth = this.settings.width;
 
         RenderUtils.renderLineChart(canvas, dataIterator, item => {
             if (item.c !== undefined) {
@@ -71,11 +74,38 @@ export class LinestickChartRenderer implements IChartRender<Candlestick> {
         return undefined;
     }
 
-
     public getSettings(): SettingSet {
-        return new SettingSet('renderer');
+        const settings = new SettingSet({ name: 'visual', group: true, displayName: 'visual' });
+
+        settings.setSetting('color', new SettingSet({
+            name: 'color',
+            displayName: 'Color',
+            settingType: SettingType.color,
+            value: this.settings.color.toString()
+        }));
+
+        settings.setSetting('width', new SettingSet({
+            name: 'width',
+            displayName: 'Line width',
+            settingType: SettingType.numeric,
+            value: this.settings.width.toString()
+        }));
+
+        return settings;
     }
 
-    public setSettings(settings: SettingSet): void {
+    public setSettings(value: SettingSet): void {
+        const colorUp = value.getSetting('visual.color');
+        this.settings.color = (colorUp && colorUp.value) ? colorUp.value : this.settings.color;
+
+        const width = value.getSetting('visual.width');
+        this.settings.width = (width && width.value) ? parseInt(width.value, 10) : this.settings.width;
+
+        
     }
+}
+
+class RenderSettings {
+    public color = '#555555';
+    public width = 1;
 }

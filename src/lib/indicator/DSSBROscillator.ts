@@ -125,21 +125,21 @@ export class DSSBROscillator extends SimpleIndicator<DSSBRCandlestick> {
             name: 'periodK',
             value: this.extsettings.periodK.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Stochastic period'
+            displayName: 'Stochastic period'
         }));
 
         group.setSetting('periodX', new SettingSet({
             name: 'periodX',
             value: this.extsettings.periodX.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Smoothing period'
+            displayName: 'Smoothing period'
         }));
 
         group.setSetting('periodZ', new SettingSet({
             name: 'periodZ',
             value: this.extsettings.periodZ.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Trigger period'
+            displayName: 'Trigger period'
         }));
 
         return group;

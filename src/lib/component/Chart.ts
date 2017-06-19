@@ -135,8 +135,8 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
 
     public getSettings(): SettingSet {
         const merged = new SettingSet('chartsettings');
-        merged.setSetting('visual', this.renderer.getSettings());
         merged.setSetting('datasource', this.dataSource.getSettings());
+        merged.setSetting('visual', this.renderer.getSettings());
         return merged;
     }
 

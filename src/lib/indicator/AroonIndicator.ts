@@ -56,21 +56,21 @@ export class AroonIndicator extends SimpleIndicator<DoubleCandlestick> {
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         group.setSetting('upperthreshold', new SettingSet({
             name: 'upperthreshold',
             value: this.settings.upperThreshold.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Upper threshold'
+            displayName: 'Upper threshold'
         }));
 
         group.setSetting('lowerthreshold', new SettingSet({
             name: 'lowerthreshold',
             value: this.settings.lowerThreshold.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Lower threshold'
+            displayName: 'Lower threshold'
         }));
 
         return group;
@@ -124,7 +124,7 @@ export class AroonOscillator extends SimpleIndicator<DoubleCandlestick> {
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         return group;

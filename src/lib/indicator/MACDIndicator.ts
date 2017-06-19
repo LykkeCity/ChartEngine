@@ -116,26 +116,26 @@ export class MACDIndicator extends SimpleIndicator<MACDCandlestick> {
             name: 'periodFast',
             value: this.extsettings.periodFast.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Fast period'
+            displayName: 'Fast period'
         }));
 
         group.setSetting('periodSlow', new SettingSet({
             name: 'periodSlow',
             value: this.extsettings.periodSlow.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Slow period'
+            displayName: 'Slow period'
         }));
 
         group.setSetting('periodSignal', new SettingSet({
             name: 'periodSignal',
             value: this.extsettings.periodSignal.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Signal period'
+            displayName: 'Signal period'
         }));
 
         group.setSetting('valueType', new SettingSet({
             name: 'valueType',
-            dispalyName: 'Calculate using',
+            displayName: 'Calculate using',
             value: this.settings.valueType.toString(),
             settingType: SettingType.select,
             options: [

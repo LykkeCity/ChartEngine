@@ -132,14 +132,14 @@ export class STIndicator extends SimpleIndicator<STCandlestick> {
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         group.setSetting('multiplier', new SettingSet({
             name: 'multiplier',
             value: this.extsettings.multiplier.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Factor'
+            displayName: 'Factor'
         }));
 
         return group;

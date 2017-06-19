@@ -170,7 +170,7 @@ export class RenkoDataSource extends ComputedDataSource<RenkoCandle> {
 
         group.setSetting('boxType', new SettingSet({
             name: 'boxType',
-            dispalyName: 'Box',
+            displayName: 'Box',
             value: this.settings.boxType.toString(),
             settingType: SettingType.select,
             options: [
@@ -181,7 +181,7 @@ export class RenkoDataSource extends ComputedDataSource<RenkoCandle> {
 
         group.setSetting('boxSize', new SettingSet({
             name: 'boxSize',
-            dispalyName: 'Box size',
+            displayName: 'Box size',
             value: this.settings.boxSize.toString(),
             settingType: SettingType.numeric,
             visible: this.settings.boxType === BoxType.Fixed

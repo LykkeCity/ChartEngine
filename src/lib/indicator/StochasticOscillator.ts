@@ -99,14 +99,14 @@ export class FastStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
             name: 'periodK',
             value: this.extsettings.periodK.toString(),
             settingType: SettingType.numeric,
-            dispalyName: '%K period'
+            displayName: '%K period'
         }));
 
         group.setSetting('periodD', new SettingSet({
             name: 'periodD',
             value: this.extsettings.periodD.toString(),
             settingType: SettingType.numeric,
-            dispalyName: '%D period'
+            displayName: '%D period'
         }));
 
         return group;
@@ -188,21 +188,21 @@ export class SlowStochasticOscillator extends SimpleIndicator<DoubleCandlestick>
             name: 'periodK',
             value: this.extsettings.periodK.toString(),
             settingType: SettingType.numeric,
-            dispalyName: '%K period'
+            displayName: '%K period'
         }));
 
         group.setSetting('periodD', new SettingSet({
             name: 'periodD',
             value: this.extsettings.periodD.toString(),
             settingType: SettingType.numeric,
-            dispalyName: '%D period'
+            displayName: '%D period'
         }));
 
         group.setSetting('period2D', new SettingSet({
             name: 'period2D',
             value: this.extsettings.period2D.toString(),
             settingType: SettingType.numeric,
-            dispalyName: '2nd %D period'
+            displayName: '2nd %D period'
         }));
 
         return group;
@@ -267,7 +267,7 @@ export class OBOSOscillator extends SimpleIndicator<DoubleCandlestick> {
             name: 'period',
             value: this.settings.period.toString(),
             settingType: SettingType.numeric,
-            dispalyName: 'Period'
+            displayName: 'Period'
         }));
 
         return group;
