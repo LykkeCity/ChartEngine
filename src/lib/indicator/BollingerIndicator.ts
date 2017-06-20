@@ -137,26 +137,70 @@ export class BollingerIndicator extends IndicatorDataSource<TripleCandlestick> {
 
 export class BollingerIndicatorRenderer implements IChartRender<Candlestick> {
 
-    //private static inst?: BollingerIndicatorRenderer;
-
-    constructor() { }
-
-    // public static get instance(): BollingerIndicatorRenderer {
-    //     if (!this.inst) {
-    //         this.inst = new BollingerIndicatorRenderer();
-    //     }
-    //     return this.inst;
-    // }
-
     public render(canvas: ICanvas,
                   data: IDataIterator<Candlestick>,
                   frame: IRect,
                   timeAxis: ITimeAxis,
                   yAxis: IAxis<number>): void {
 
-        // Start drawing
+
+        // Collect charts points
+        //
+        const top: IPoint[] = [];
+        top.length = timeAxis.count; // preallocate memory
+        let i = 0;
+
+        RenderUtils.iterate(timeAxis, data, (item, x) => {
+            if (item instanceof TripleCandlestick) {
+                const t = <TripleCandlestick>item;
+                if (t && t.top && t.top.c !== undefined) {
+                    const y = yAxis.toX(t.top.c);
+                    top[i] = { x: x, y: y };
+                    i += 1;
+                }
+            }
+        });
+
+        const bottom: IPoint[] = [];
+        bottom.length = timeAxis.count; // preallocate memory
+        let j = 0;
+
+        RenderUtils.iterate(timeAxis, data, (item, x) => {
+            if (item instanceof TripleCandlestick) {
+                const t = <TripleCandlestick>item;
+                if (t && t.bottom && t.bottom.c !== undefined) {
+                    const y = yAxis.toX(t.bottom.c);
+                    bottom[j] = { x: x, y: y };
+                    j += 1;
+                }
+            }
+        });
+
+        // Fill area between lines
+
+        canvas.beginPath();
+        top.forEach((p, index) => {
+            if (p) {
+                (index === 0) ? canvas.moveTo(p.x, p.y) : canvas.lineTo(p.x, p.y);
+            }
+        });
+
+        for (let k = bottom.length - 1; k >= 0; k -= 1) {
+            const p = bottom[k];
+            if (p) {
+                canvas.lineTo(p.x, p.y);
+            }
+        }
+
+        canvas.closePath();
+        canvas.setFillStyle('rgba(0, 100, 150, 0.3)');
+        canvas.fill();
+
+        // Lines
+        //
         canvas.beginPath();
         canvas.setStrokeStyle('#333333');
+
         // Middle
         RenderUtils.renderLineChart(canvas, data, item => {
             if (item instanceof TripleCandlestick) {
@@ -169,32 +213,26 @@ export class BollingerIndicatorRenderer implements IChartRender<Candlestick> {
         }, frame, timeAxis, yAxis);
         canvas.stroke();
 
+        // Top
+        //
         canvas.beginPath();
         canvas.setStrokeStyle('#0400FF');
-        // Top
-        RenderUtils.renderLineChart(canvas, data, item => {
-            if (item instanceof TripleCandlestick) {
-                const triple = <TripleCandlestick>item;
-                if (triple.top && triple.top.c !== undefined) {
-                    const value = triple.top.c;
-                    return { uid: item.uid, v: value };
-                }
+        top.forEach((p, index) => {
+            if (p) {
+                (index === 0) ? canvas.moveTo(p.x, p.y) : canvas.lineTo(p.x, p.y);
             }
-        }, frame, timeAxis, yAxis);
+        });
         canvas.stroke();
 
+        // Bottom
+        //
         canvas.beginPath();
         canvas.setStrokeStyle('#0400FF');
-        // Bottom
-        RenderUtils.renderLineChart(canvas, data, item => {
-            if (item instanceof TripleCandlestick) {
-                const triple = <TripleCandlestick>item;
-                if (triple.bottom && triple.bottom.c !== undefined) {
-                    const value = triple.bottom.c;
-                    return { uid: item.uid, v: value };
-                }
+        bottom.forEach((p, index) => {
+            if (p) {
+                (index === 0) ? canvas.moveTo(p.x, p.y) : canvas.lineTo(p.x, p.y);
             }
-        }, frame, timeAxis, yAxis);
+        });
         canvas.stroke();
     }
 

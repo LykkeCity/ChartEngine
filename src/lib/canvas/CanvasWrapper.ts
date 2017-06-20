@@ -153,6 +153,18 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.strokeText(text, this.round(x), this.round(y), maxWidth);
     }
 
+    public save() {
+        this.ctx.save();
+    }
+
+    public restore() {
+        this.ctx.restore();
+    }
+
+    public clip(fillRule?: string) {
+        this.ctx.clip(fillRule);
+    }
+
     private round(n: number): number {
         return (0.5 + n) | 0;
     }

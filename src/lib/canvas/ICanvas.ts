@@ -33,4 +33,7 @@ export interface ICanvas {
     strokeRect(x: number, y: number, w: number, h: number): void;
     strokeText(text: string, x: number, y: number, maxWidth?: number): void;
     rect(x: number, y: number, w: number, h: number): void;
+    save(): void;
+    restore(): void;
+    clip(fillRule?: string): void;
 }

@@ -82,6 +82,39 @@ export class RenderUtils {
         }
     }
 
+    /**
+     * Fills overlap of the line over specified level.
+     * @param canvas 
+     * @param points Points of line
+     * @param level Y coordinate to calculate overlapping
+     * @param up If true - overlapping from up, false - from bottom.
+     * @param fillStyle
+     */
+    public static fillOverlap(canvas: ICanvas, points: IPoint[], level: number, up: boolean, fillStyle: any) {
+        if (points.length > 1) {
+            const first = points[0];
+            const last = points[points.length - 1];
+
+            canvas.beginPath();
+            points.forEach((p, index) => {
+                if (p) {
+                    (index === 0) ? canvas.moveTo(p.x, p.y) : canvas.lineTo(p.x, p.y);
+                }
+            });
+            canvas.lineTo(last.x, up ? canvas.h : 0);
+            canvas.lineTo(first.x, up ? canvas.h : 0);
+            canvas.closePath();
+
+            canvas.save();
+            canvas.clip();
+
+            canvas.setFillStyle(fillStyle);
+            canvas.fillRect(0, up ? 0 : level, canvas.w, up ? level : (canvas.h - level));
+
+            canvas.restore();
+        }
+    }
+
     public static PATTERN2SEG(pattern: LinePattern) {
         switch (pattern) {
             case LinePattern.Solid: return [];

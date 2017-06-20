@@ -6,7 +6,7 @@ import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType, TimeInterval } from 
 import { ArrayDataStorage, DataChangedArgument, DataSource,
     DataSourceConfig, IContext, IDataIterator, IDataSource, IDataStorage } from '../data/index';
 import { Candlestick, Point, Uid } from '../model/index';
-import { IChartRender, RenderUtils } from '../render/index';
+import { ChartRenderer, IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
@@ -295,9 +295,11 @@ class SlowStochasticSettings {
     constructor() { }
 }
 
-export class StochasticOscillatorRenderer implements IChartRender<Candlestick> {
+export class StochasticOscillatorRenderer extends ChartRenderer implements IChartRender<Candlestick> {
 
-    constructor() { }
+    constructor() {
+        super();
+    }
 
     public render(canvas: ICanvas,
                   data: IDataIterator<Candlestick>,
@@ -305,19 +307,47 @@ export class StochasticOscillatorRenderer implements IChartRender<Candlestick> {
                   timeAxis: ITimeAxis,
                   yAxis: IAxis<number>): void {
 
-        // Start drawing
+        const overlapfill = this.settings.zone.overlapfill;
+        const upthreshold = this.settings.zone.upthreshold;
+        const lowthreshold = this.settings.zone.lowthreshold;
+
+        const upper = yAxis.toX(upthreshold);
+        const lower = yAxis.toX(lowthreshold);
+
+        // Collect charts points
+        //
+        const K: IPoint[] = [];
+        K.length = timeAxis.count; // preallocate memory
+        let i = 0;
+
+        RenderUtils.iterate(timeAxis, data, (item, x) => {
+            if (item instanceof DoubleCandlestick) {
+                const d = <DoubleCandlestick>item;
+                if (d && d.K !== undefined) {
+                    const y = yAxis.toX(d.K);
+                    K[i] = { x: x, y: y };
+                    i += 1;
+                }
+            }
+        });
+        K.length = i;
+
+        if (overlapfill && K.length > 1) {
+            RenderUtils.fillOverlap(canvas, K, upper, true, 'green');
+            RenderUtils.fillOverlap(canvas, K, lower, false, 'red');
+        }
+
         canvas.beginPath();
-        canvas.setStrokeStyle('#00B730');
         RenderUtils.renderLineChart(canvas, data, item => {
             if (item instanceof DoubleCandlestick) {
                 const double = <DoubleCandlestick>item;
                 if (double.K !== undefined) {
-                    //const x = timeAxis.toX(index);
-                    const value = double.K;
-                    return { uid: item.uid, v: value };
+                    return { uid: item.uid, v: double.K };
                 }
             }
         }, frame, timeAxis, yAxis);
+
+        canvas.setStrokeStyle('#00B730');
         canvas.stroke();
 
         canvas.beginPath();
@@ -345,10 +375,18 @@ export class StochasticOscillatorRenderer implements IChartRender<Candlestick> {
     }
 
     public getSettings(): SettingSet {
-        return new SettingSet('renderer');
+        const zone = super.getZonesSettings();
+
+        const visual = new SettingSet('visual');
+        visual.setSetting('zones', zone);
+        return visual;
     }
 
     public setSettings(settings: SettingSet): void {
+        const zone = settings.getSetting('visual.zones');
+        if (zone) {
+            super.setZonesSettings(zone);
+        }
     }
 }
 
