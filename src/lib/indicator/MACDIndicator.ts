@@ -98,11 +98,11 @@ export class MACDIndicator extends SimpleIndicator<MACDCandlestick> {
                 if (computed.SIG !== undefined) {
                     // Computed Histogram
                     computed.HIS = computed.MACD - computed.SIG;
-
-                    // computed.c = ;
-                    // computed.h = computed.c;
-                    // computed.l = computed.c;
                 }
+
+                computed.c = computed.MACD;
+                computed.h = Math.max(computed.MACD, computed.SIG !== undefined ? computed.SIG : -Infinity, computed.HIS !== undefined ? computed.HIS : -Infinity);
+                computed.l = Math.min(computed.MACD, computed.SIG !== undefined ? computed.SIG : -Infinity, computed.HIS !== undefined ? computed.HIS : -Infinity);
             }
         }
 
@@ -186,10 +186,10 @@ export class MACDIndicatorRenderer implements IChartRender<Candlestick> {
                   timeAxis: ITimeAxis,
                   yAxis: IAxis<number>): void {
 
-        // Start drawing
+        // MACD
+        //
         canvas.beginPath();
         canvas.setStrokeStyle('#0026FF');
-        // MACD
         RenderUtils.renderLineChart(canvas, data, item => {
             if (item instanceof MACDCandlestick) {
                 const c = <MACDCandlestick>item;
@@ -201,9 +201,10 @@ export class MACDIndicatorRenderer implements IChartRender<Candlestick> {
         }, frame, timeAxis, yAxis);
         canvas.stroke();
 
+        // Signal
+        //
         canvas.beginPath();
         canvas.setStrokeStyle('#FF0800');
-        // Signal
         RenderUtils.renderLineChart(canvas, data, item => {
             if (item instanceof MACDCandlestick) {
                 const c = <MACDCandlestick>item;
@@ -215,18 +216,28 @@ export class MACDIndicatorRenderer implements IChartRender<Candlestick> {
         }, frame, timeAxis, yAxis);
         canvas.stroke();
 
+        // Histogram
+        //
         canvas.beginPath();
         canvas.setStrokeStyle('#399F16');
-        // Histogram
-        RenderUtils.renderLineChart(canvas, data, item => {
+
+        const y0 = yAxis.toX(0);
+        const wi = frame.w / timeAxis.count;
+
+        RenderUtils.iterate(timeAxis, data, (item, x) => {
             if (item instanceof MACDCandlestick) {
-                const c = <MACDCandlestick>item;
-                if (c && c.HIS !== undefined) {
-                    const value = c.HIS;
-                    return { uid: item.uid, v: value };
+                const m = <MACDCandlestick>item;
+                if (m && m.HIS !== undefined) {
+                    const y = yAxis.toX(m.HIS);
+                    if (wi >= 2) {
+                        canvas.rect(x - wi / 2, Math.min(y, y0), wi, Math.abs(y - y0));
+                    } else {
+                        canvas.moveTo(x, y0);
+                        canvas.lineTo(x, y);
+                    }
                 }
             }
-        }, frame, timeAxis, yAxis);
+        });
         canvas.stroke();
     }
 
