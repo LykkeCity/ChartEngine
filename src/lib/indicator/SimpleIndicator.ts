@@ -15,7 +15,7 @@ import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './Value
 
 export abstract class SimpleIndicator<T extends CandlestickExt> extends IndicatorDataSource<T> {
 
-    protected settings: SimpleSettings = new SimpleSettings();
+    protected settings = new SimpleSettings();
 
     constructor (dataType: new(date: Date) => T, source: IDataSource<Candlestick>, context: IContext) {
         super(dataType, source, context, (lhs: T, rhs: T) => { return lhs.uidOrig.compare(rhs.uidOrig); });
@@ -98,8 +98,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
 
     protected abstract computeOne(sourceItems: FixedSizeArray<Candlestick>, computed: FixedSizeArray<T>, accessor: IValueAccessor): T;
 
-    protected afterCompute(arg?: DataChangedArgument) {
-    }
+    protected afterCompute(arg?: DataChangedArgument) { }
 
     protected shiftTime(arg: DataChangedArgument, shift: number): DataChangedArgument {
         // TODO: arg can narrow shift area
@@ -405,6 +404,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         // recompute
         this.compute();
     }
+
 }
 
 export class SimpleSettings {

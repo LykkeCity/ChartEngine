@@ -94,4 +94,3 @@ export interface IConfigurable {
     getSettings(): SettingSet;
     setSettings(settings: SettingSet): void;
 }
-

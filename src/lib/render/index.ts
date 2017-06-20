@@ -2,6 +2,7 @@
  * 
  */
 import { CandlestickChartRenderer } from './CandlestickChartRenderer';
+import { ChartRenderer } from './ChartRenderer';
 import { IAxesRender, IChartRender, IMarkRender, IPopupRender, IRenderLocator, ITimeAxisRender } from './Interfaces';
 import { LineChartRenderer } from './LineChartRenderer';
 import { LinestickChartRenderer } from './LinestickChartRenderer';
@@ -12,6 +13,7 @@ import { TimeAxisRenderer } from './TimeAxisRenderer';
 
 export {
     CandlestickChartRenderer,
+    ChartRenderer,
     IAxesRender,
     IChartRender,
     IMarkRender,

@@ -1,7 +1,7 @@
 /**
  * 
  */
-import { ICanvas } from '../canvas/index';
+import { ICanvas, LinePattern } from '../canvas/index';
 import { ChartPoint, IAxis, IPoint, ITimeAxis } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick, IUidValue } from '../model/index';
@@ -23,7 +23,6 @@ export class RenderUtils {
         let isFirstPoint = true;
         let firstPoint: IPoint | undefined;
         let lastPoint: IPoint | undefined;
-
 
         RenderUtils.iterate(timeAxis, dataIterator, (data, x) => {
             const point = getPoint(data);
@@ -80,6 +79,15 @@ export class RenderUtils {
             if (found) {
                 action(iter.current, x);
             }
+        }
+    }
+
+    public static PATTERN2SEG(pattern: LinePattern) {
+        switch (pattern) {
+            case LinePattern.Solid: return [];
+            case LinePattern.Dashed: return [5, 10];
+            case LinePattern.Pointed: return [2, 8];
+            default: throw new Error(`Unexpected line pattern: ${pattern}`);
         }
     }
 }

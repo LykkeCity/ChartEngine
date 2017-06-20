@@ -6,7 +6,7 @@ import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType, TimeInterval } from 
 import { ArrayDataStorage, DataChangedArgument, DataSource,
     DataSourceConfig, IContext, IDataIterator, IDataSource, IDataStorage } from '../data/index';
 import { Candlestick, Point, Uid } from '../model/index';
-import { IChartRender, RenderUtils } from '../render/index';
+import { ChartRenderer, IChartRender, RenderUtils } from '../render/index';
 import { FixedSizeArray, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
@@ -49,6 +49,10 @@ export class AroonIndicator extends SimpleIndicator<DoubleCandlestick> {
         return computeAroon(sourceItems, this.settings.period);
     }
 
+    public getValuesRange(range: IRange<Uid>): IRange<number> {
+        return { start: 0, end: 100 };
+    }
+
     public getSettings(): SettingSet {
         const group = new SettingSet({ name: 'datasource', group: true });
 
@@ -74,10 +78,6 @@ export class AroonIndicator extends SimpleIndicator<DoubleCandlestick> {
         }));
 
         return group;
-    }
-
-    public getValuesRange(range: IRange<Uid>): IRange<number> {
-        return { start: 0, end: 100 };
     }
 
     public setSettings(value: SettingSet): void {
@@ -139,7 +139,7 @@ export class AroonOscillator extends SimpleIndicator<DoubleCandlestick> {
     }
 }
 
-export class AroonIndicatorRenderer implements IChartRender<Candlestick> {
+export class AroonIndicatorRenderer extends ChartRenderer implements IChartRender<Candlestick> {
 
     public render(canvas: ICanvas,
                   data: IDataIterator<Candlestick>,
@@ -147,9 +147,46 @@ export class AroonIndicatorRenderer implements IChartRender<Candlestick> {
                   timeAxis: ITimeAxis,
                   yAxis: IAxis<number>): void {
 
-        // Start drawing
+        const zonevisible = this.settings.zone.visible;
+        const fill = this.settings.zone.fill;
+        const fillcolor = this.settings.zone.fillcolor;
+        const showthreshold = this.settings.zone.showthreshold;
+        const upthreshold = this.settings.zone.upthreshold;
+        const lowthreshold = this.settings.zone.lowthreshold;
+
+        const upper = yAxis.toX(upthreshold);
+        const lower = yAxis.toX(lowthreshold);
+
+        // Fill area b/w top and bottom zone lines
+        if (zonevisible && fill) {
+            canvas.setFillStyle(fillcolor);
+            canvas.fillRect(frame.x, Math.min(upper, lower), frame.x + frame.w, Math.abs(upper - lower));
+        }
+
+        // Draw zone lines
+        if (zonevisible && showthreshold) {
+            canvas.beginPath();
+            canvas.setStrokeStyle(this.settings.zone.tlinecolor);
+            canvas.setLineDash(RenderUtils.PATTERN2SEG(this.settings.zone.tlinepattern));
+            canvas.lineWidth = this.settings.zone.tlinewidth;
+            canvas.moveTo(frame.x, upper);
+            canvas.lineTo(frame.x + frame.w, upper);
+            canvas.stroke();
+
+            canvas.beginPath();
+            canvas.setStrokeStyle(this.settings.zone.blinecolor);
+            canvas.setLineDash(RenderUtils.PATTERN2SEG(this.settings.zone.blinepattern));
+            canvas.lineWidth = this.settings.zone.blinewidth;
+            canvas.moveTo(frame.x, lower);
+            canvas.lineTo(frame.x + frame.w, lower);
+            canvas.stroke();
+        }
+
         canvas.beginPath();
         canvas.setStrokeStyle('#FF5900');
+        canvas.setLineDash([]);
+        canvas.lineWidth = 1;
+
         // Up
         RenderUtils.renderLineChart(canvas, data, item => {
             if (item instanceof DoubleCandlestick) {
@@ -186,12 +223,19 @@ export class AroonIndicatorRenderer implements IChartRender<Candlestick> {
                return undefined;
     }
 
-
     public getSettings(): SettingSet {
-        return new SettingSet('visual');
+        const zone = super.getZonesSettings();
+
+        const visual = new SettingSet('visual');
+        visual.setSetting('zones', zone);
+        return visual;
     }
 
     public setSettings(settings: SettingSet): void {
+        const zone = settings.getSetting('visual.zones');
+        if (zone) {
+            super.setZonesSettings(zone);
+        }
     }
 }
 

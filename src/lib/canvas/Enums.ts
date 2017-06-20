@@ -13,3 +13,9 @@ export enum CanvasTextBaseLine {
     Middle,
     Bottom
 }
+
+export enum LinePattern {
+    Solid,
+    Dashed,
+    Pointed
+}
