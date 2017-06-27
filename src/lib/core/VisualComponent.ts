@@ -80,35 +80,41 @@ export abstract class VisualComponent { //implements IMouseHandler {
         }
     }
 
-    public forEach(delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void }, directOrder: boolean = true): boolean {
-        return this.forEachAggregator(delegate, directOrder, new Point(0, 0));
+    public forEach(delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void },
+                   childrenFirst: boolean = false,
+                   directOrder: boolean = true): void {
+        this.forEachAggregator(delegate, childrenFirst, directOrder, new Point(0, 0));
     }
 
     private forEachAggregator(
         delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void },
-        directOrder: boolean = true,
+        childrenFirst: boolean,
+        directOrder: boolean,
         initialOffset: Point): boolean {
 
         // 1. Execute for this component
 
-        const offset = new Point(
-            initialOffset.x + this.offset.x, // + child.offset.x,
-            initialOffset.y + this.offset.y  // - child.offset.y
-            );
+        const offset = new Point(initialOffset.x + this.offset.x,
+                                 initialOffset.y + this.offset.y);
 
-        if (!delegate(this, offset)) {
+        if (!childrenFirst && !delegate(this, offset)) {
             return false; // stop iterating
         }
 
         // 2. Iterating through children in direct or reverse order
         let index = directOrder ? 0 : this._children.length - 1;
-        while ((directOrder && index < this._children.length - 1)
+        while ((directOrder && index < this._children.length)
                || (!directOrder && index >= 0)) {
-            if (!this._children[index].forEachAggregator(delegate, directOrder, offset)) {
+            if (!this._children[index].forEachAggregator(delegate, childrenFirst, directOrder, offset)) {
                 return false; // stop iterating through children
             }
             index = directOrder ? index + 1 : index - 1;
         }
-        return true; // continute
+
+        if (childrenFirst && !delegate(this, offset)) {
+            return false; // stop iterating
+        }
+
+        return true; // continue
     }
 }

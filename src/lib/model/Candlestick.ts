@@ -36,6 +36,14 @@ export class Uid {
             throw new Error('Argument is not defined');
         }
     }
+
+    public equals(other: Uid): boolean {
+        if (other) {
+            if (other === this) { return true; }
+            if (other.t.getTime() === this.t.getTime() && other.n === this.n) { return true; }
+        }
+        return false;
+    }
 }
 
 export class Candlestick implements ITimeValue, IUidValue {

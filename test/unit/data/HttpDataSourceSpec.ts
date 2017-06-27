@@ -98,8 +98,8 @@ describe('HttpDataSource tests', () => {
                     const response = {
                             data: filteredData,
                             interval: interval,
-                            startDateTime: timeStart,
-                            endDateTime: timeEnd
+                            dateFrom: timeStart,
+                            dateTo: timeEnd
                     };
 
                     if (promise) {
@@ -130,7 +130,7 @@ describe('HttpDataSource tests', () => {
         const d1 = makeUtcDate(2017, 0, 1);
         const d2 = makeUtcDate(2017, 0, 2);
 
-        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.day, dataReader.readData, dataReader.resolveData);
+        const httpConfig = new HttpDataSourceConfig<Candlestick>('url', TimeInterval.day, dataReader.readData, dataReader.resolveData, 3);
         const ads = new HttpDataSource(Candlestick, httpConfig);
         ads.loadRange(new Uid(d1), new Uid(d2));
         const iterator = ads.getIterator(item => item.date.getTime() >= d1.getTime() && item.date.getTime() <= d2.getTime());

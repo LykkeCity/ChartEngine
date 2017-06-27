@@ -3,6 +3,8 @@
  */
 import { IPoint } from '../core/index';
 
+const MINDIST = 0.001;
+
 export class DrawUtils {
     /**
      * Checks wether the point lies on the specified line.
@@ -10,7 +12,7 @@ export class DrawUtils {
      * @param p1 Start point of line.
      * @param p2 End point of line.
      */
-    public static isPointInLine(p: IPoint, pa: IPoint, pb: IPoint, precision: number): boolean {
+    public static IS_POINT_ON_LINE(p: IPoint, pa: IPoint, pb: IPoint, precision: number): boolean {
 
         const minx = Math.min(pa.x, pb.x);
         const maxx = Math.max(pa.x, pb.x);
@@ -18,21 +20,20 @@ export class DrawUtils {
         const maxy = Math.max(pa.y, pb.y);
 
         // Check hitting the rectangle area around the line
-        if (p.x > minx - 3 && p.x < maxx + 3 && p.y > miny - 3 && p.y < maxy + 3) {
-        } else {
+        if (p.x < minx - precision || p.x > maxx + precision || p.y < miny - precision || p.y > maxy + precision) {
             return false;
         }
 
-        // If very short line
-        if (maxx - minx < 3 && maxy - miny < 3) {
-            if (Math.abs(minx - p.x) < 3 && Math.abs(miny - p.y) < 3) {
-                return true;
-            }
-            return false;
-        } else {
-            const diff = (p.x - pa.x) / (pb.x - pa.x) - (p.y - pa.y) / (pb.y - pa.y);
-            return (Math.abs(diff) < precision);
+        const distx = pb.x - pa.x;
+        const disty = pb.y - pa.y;
+
+        if (Math.abs(distx) > MINDIST && Math.abs(disty) > MINDIST) {
+            // Compute distance from a point to a line
+            const dist = Math.abs( disty * p.x - distx * p.y + pb.x * pa.y - pb.y * pa.x )
+                / Math.sqrt( disty * disty + distx * distx );
+            return dist < precision;
         }
+        return true;
     }
 
     /**
@@ -41,7 +42,7 @@ export class DrawUtils {
      * @param pb 
      * @param precision 
      */
-    public static isPointOver(pa: IPoint, pb: IPoint, precision: number): boolean {
+    public static IS_POINT_OVER(pa: IPoint, pb: IPoint, precision: number): boolean {
         return Math.abs(pa.x - pb.x) < precision
                && Math.abs(pa.y - pb.y) < precision;
     }

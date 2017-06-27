@@ -1,8 +1,8 @@
 /**
  * 
  */
-import { IMouse, Mouse, VisualComponent } from '../core/index';
-import { IChartBoard, IHoverable, isEditable, isHoverable, IStateController } from './Interfaces';
+import { Events, IMouse, Mouse, ObjectArgument, VisualComponent } from '../core/index';
+import { IChartBoard, IHoverable, isEditable, ISelectable, isHoverable, isSelectable, IStateController } from './Interfaces';
 
 export class HoverState implements IStateController {
     private static inst?: HoverState;
@@ -15,45 +15,83 @@ export class HoverState implements IStateController {
         return this.inst;
     }
 
-    public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
+    private hitComponent?: VisualComponent;
+    private selectionMode = false;
+    private ignoreNextMove = false;
+
+    public onMouseDown(board: IChartBoard, mouse: IMouse): void {
+        this.selectionMode = true;
+        this.ignoreNextMove = true;
+        this.hitComponent = this.getHitComponent(board, mouse);
+    }
+
+    public onMouseUp(board: IChartBoard, mouse: IMouse): void {
+        if (this.selectionMode) {
+            // clear current selection
+            board.forEach(component => {
+                if (isSelectable(component)) {
+                    component.setSelected(false);
+                }
+                return true; // continue
+            });
+        }
+
+        // If mouse was moved do not select
+        if (this.hitComponent) {
+            if (isSelectable(this.hitComponent)) {
+                // select component
+                this.hitComponent.setSelected(true);
+                Events.instance.objectSelected.trigger(new ObjectArgument(this.hitComponent));
+            }
+        }
+    }
+
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
 
-        const hitComponent = this.getHitComponent(board, mouse);
-
-        if (hitComponent) {
-            hitComponent.setPopupVisibility(true);
+        // handle chrome behavior: click = down + move + up
+        if (this.ignoreNextMove) {
+            this.ignoreNextMove = false;
+            return;
         }
+
+        if (mouse.isDown && this.hitComponent) {
+            if (isHoverable(this.hitComponent)) { this.hitComponent.setHovered(false); }
+            if (isSelectable(this.hitComponent)) { this.hitComponent.setSelected(true); }
+            // change state
+            if (isEditable(this.hitComponent)) {
+                const editState = this.hitComponent.getEditState();
+                board.changeState(editState, { component: this.hitComponent });
+            }
+        } else if (mouse.isDown && !this.hitComponent) {
+            board.changeState('movechart');
+        } else if (!mouse.isDown) {
+            const hitComponent = this.getHitComponent(board, mouse);
+            if (hitComponent) {
+                hitComponent.setHovered(true);
+                board.setCursor('pointer');
+            } else {
+                board.setCursor('crosshair');
+            }
+        }
+        this.selectionMode = false;
+        this.hitComponent = undefined;
     }
+
     public onMouseEnter(board: IChartBoard, mouse: IMouse): void { }
     public onMouseLeave(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseUp(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseDown(board: IChartBoard, mouse: IMouse): void {
+    public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
 
-        const hitComponent = this.getHitComponent(board, mouse);
-
-        if (hitComponent) {
-            // edit element
-            //const editState = this.getEditState(hitComponent);
-            if (isEditable(hitComponent)) {
-            //if (editState) {
-                hitComponent.setPopupVisibility(false);
-
-                const editState = hitComponent.getEditState();
-                board.changeState(editState, { component: hitComponent });
-            }
-        } else {
-            board.changeState('movechart');
-        }
+    public activate(board: IChartBoard, mouse: IMouse): void {
+        this.selectionMode = false;
+        this.ignoreNextMove = false;
+        this.hitComponent = undefined;
+        board.setCursor('crosshair');
     }
 
-    public activate(board: IChartBoard, mouse: IMouse): void { }
-
     public deactivate(board: IChartBoard, mouse: IMouse): void {
-        // traverse all hoverable components and show popup
-
         board.forEach(component => {
             if (isHoverable(component)) {
-                component.setPopupVisibility(false);
+                component.setHovered(false);
             }
             return true; // continue
         });
@@ -74,11 +112,12 @@ export class HoverState implements IStateController {
                         //component.setPopupVisibility(true);
                         //return false; // do not continue
                     } else {
-                        component.setPopupVisibility(false);
+                        component.setHovered(false);
                     }
                 }
                 return true; // continue
             },
+            true, // check children first
             false); // iterating in reverse order so that rendered last charts will be asked first.
 
         return hitComponent;

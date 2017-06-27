@@ -11,15 +11,22 @@ export interface IDrawing {
     cancel(): void;
 }
 
+export interface ISelectable {
+    setSelected(selected: boolean): void;
+}
+
+export function isSelectable(obj: any): obj is ISelectable {
+    return (<ISelectable>obj).setSelected !== undefined;
+}
+
 export interface IHoverable {
     isHit(mouseX: number, mouseY: number): boolean;
-    // TODO: Change name. It shows not only popups, but can also change component's view
-    setPopupVisibility(visible: boolean): void;
+    setHovered(hovered: boolean): void;
 }
 
 export function isHoverable(obj: any): obj is IHoverable {
     return (<IHoverable>obj).isHit !== undefined
-     && (<IHoverable>obj).setPopupVisibility !== undefined;
+     && (<IHoverable>obj).setHovered !== undefined;
 }
 
 export interface IEditable {
@@ -33,9 +40,10 @@ export function isEditable(obj: any): obj is IEditable {
 export interface IChartBoard {
     offset: IPoint;
     changeState(state: string | IStateController, activationParameters?: IHashTable<any>): void;
-    forEach(delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void }, directOrder?: boolean): boolean;
+    forEach(delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void }, childrenFirst?: boolean, directOrder?: boolean): void;
     getHitStack(mouseX: number, mouseY: number): IChartStack | undefined;
     moveX(shift: number): void;
+    setCursor(style: string): void;
 }
 
 export interface IChartStack extends ICoordsConverter {

@@ -2,18 +2,20 @@
  * Classes for drawing lines.
  */
 
-import { FigureComponent, IChartBoard, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, ICoordsConverter, IMouse, Mouse, VisualContext } from '../core/index';
+import { FigureComponent, IChartBoard, IChartStack, IEditable, IHoverable, ISelectable, IStateController } from '../component/index';
+import { ChartPoint, IAxis, IConfigurable, ICoordsConverter, IMouse, ISetting, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, ISize, Point } from '../shared/index';
 import { DrawUtils } from '../utils/index';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class LineFigureComponent extends FigureComponent implements IHoverable, IEditable {
+class LineFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
+    private settings = new LineSettings();
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
     private isHovered = false;
+    private isSelected = false;
 
     public get pointA(): ChartPoint {
         return this.pa.point;
@@ -28,8 +30,6 @@ class LineFigureComponent extends FigureComponent implements IHoverable, IEditab
         offset: Point,
         size: ISize,
         private coords: ICoordsConverter
-        // private timeAxis: IAxis<Date>,
-        // private yAxis: IAxis<number>
         ) {
         super(offset, size);
 
@@ -41,34 +41,30 @@ class LineFigureComponent extends FigureComponent implements IHoverable, IEditab
     }
 
     public isHit(x: number, y: number): boolean {
+        const ca = this.pa.getXY();
+        const cb = this.pb.getXY();
 
-        // if ((!this.pa.point.t && !this.pa.point.uid) || !this.pa.point.v
-        //   || (!this.pb.point.t && !this.pb.point.uid) || !this.pb.point.v) {
-        //     return false;
-        // }
-
-        if (!this.pa.point.uid || !this.pa.point.v
-          || !this.pb.point.uid || !this.pb.point.v) {
-            return false;
-        }
-
-        return false;
-
-        // // TODO: Can be stored when coords are changed
-        // const ax = this.coords.toX(this.pa.point.t === undefined ? <string>this.pa.point.uid : this.pa.point.t);
-        // const bx = this.coords.toX(this.pb.point.t === undefined ? <string>this.pb.point.uid : this.pb.point.t);
-
-        // const ay = this.coords.toY(this.pa.point.v);
-        // const by = this.coords.toY(this.pb.point.v);
-
-        // if (ax && bx) {
-        //     return DrawUtils.isPointInLine({ x: x, y: y }, { x: ax, y: ay }, { x: bx, y: by }, 0.05);
-        // }
-        // return false;
+        return (ca && cb)
+            ? DrawUtils.IS_POINT_ON_LINE({ x: x, y: y }, ca, cb, 5)
+            : false;
     }
 
-    public setPopupVisibility(visible: boolean): void {
-        this.isHovered = visible;
+    public setHovered(hovered: boolean): void {
+        this.isHovered = hovered;
+        this.pa.setHovered(hovered);
+        this.pb.setHovered(hovered);
+    }
+
+    public setSelected(selected: boolean): void {
+        this.isSelected = selected;
+        this.pa.setSelected(selected);
+        this.pb.setSelected(selected);
+    }
+
+    public shift(dx: number, dy: number): boolean {
+        const a = this.pa.shift(dx, dy);
+        const b = this.pb.shift(dx, dy);
+        return a || b;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
@@ -78,34 +74,18 @@ class LineFigureComponent extends FigureComponent implements IHoverable, IEditab
             return;
         }
 
-        if (this.pa.point.uid && this.pa.point.v && this.pb.point.uid && this.pb.point.v) {
+        const ca = this.pa.getXY();
+        const cb = this.pb.getXY();
 
-            //const ax = this.coords.toX(this.pa.point.t === undefined ? <string>this.pa.point.uid : this.pa.point.t);
-            const ax = this.coords.toX(this.pa.point.uid);
-            const ay = this.coords.toY(this.pa.point.v);
+        if (ca && cb) {
+            const canvas = this.area.frontCanvas;
 
-            //const bx = this.coords.toX(this.pb.point.t === undefined ? <string>this.pb.point.uid : this.pb.point.t);
-            const bx = this.coords.toX(this.pb.point.uid);
-            const by = this.coords.toY(this.pb.point.v);
-
-            if (ax && bx) {
-                const canvas = this.area.frontCanvas;
-
-                if (this.isHovered) {
-                    canvas.setStrokeStyle('#000BEF');
-                } else {
-                    canvas.setStrokeStyle('#C9001D');
-                }
-
-                canvas.lineWidth = 2;
-                canvas.beginPath();
-
-                canvas.moveTo(ax, ay);
-                canvas.lineTo(bx, by);
-
-                canvas.stroke();
-                canvas.closePath();
-            }
+            canvas.setStrokeStyle(this.settings.color);
+            canvas.lineWidth = this.settings.width;
+            canvas.beginPath();
+            canvas.moveTo(ca.x, ca.y);
+            canvas.lineTo(cb.x, cb.y);
+            canvas.stroke();
         }
 
         super.render(context, renderLocator);
@@ -114,8 +94,40 @@ class LineFigureComponent extends FigureComponent implements IHoverable, IEditab
     public getEditState(): IStateController {
         return EditLineState.instance;
     }
+
+    public getSettings(): SettingSet {
+        return new SettingSet({
+            name: 'line',
+            group: true,
+            settings: [
+                {
+                    name: 'color',
+                    value: this.settings.color.toString(),
+                    settingType: SettingType.color,
+                    displayName: 'Color'
+                }, {
+                    name: 'width',
+                    value: this.settings.width.toString(),
+                    settingType: SettingType.numeric,
+                    displayName: 'Width'
+                }
+            ]
+        });
+    }
+
+    public setSettings(value: SettingSet): void {
+        this.settings.color = value.getValueOrDefault<string>('line.color', this.settings.color);
+        this.settings.width = value.getValueOrDefault<number>('line.width', this.settings.width);
+
+        // rerender
+        //this.context.render();
+    }
 }
 
+export class LineSettings {
+    public color = '#FF0000';
+    public width = 1;
+}
 
 export class DrawLineState implements IStateController {
     private static inst?: DrawLineState;
@@ -227,35 +239,15 @@ class EditLineState implements IStateController {
 
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
         if (this.line && this.chartStack) {
-        //     const timeNumberCoords = this.chartStack.mouseToCoords(
-        //         mouse.x - board.offset.x - this.chartStack.offset.x,
-        //         mouse.y - board.offset.y - this.chartStack.offset.y);
-
-            const coordX = this.chartStack.xToValue(mouse.x - board.offset.x - this.chartStack.offset.x);
-            const coordY = this.chartStack.yToValue(mouse.y - board.offset.y - this.chartStack.offset.y);
-
-        //     // Calculate difference
-        //     // TODO: Get rid of excessive check for undefined values
-        //     if (timeNumberCoords.t && timeNumberCoords.v
-        //         && this.currentCoords && this.currentCoords.t && this.currentCoords.v
-        //         && this.line.pointA.t && this.line.pointA.v && this.line.pointB.t && this.line.pointB.v) {
-
-        //         const tdiff = timeNumberCoords.t.getTime() - this.currentCoords.t.getTime();
-        //         const vdiff = timeNumberCoords.v - this.currentCoords.v;
-
-        //         this.line.pointA.t = new Date(this.line.pointA.t.getTime() + tdiff);
-        //         this.line.pointA.v = this.line.pointA.v + vdiff;
-
-        //         this.line.pointB.t = new Date(this.line.pointB.t.getTime() + tdiff);
-        //         this.line.pointB.v = this.line.pointB.v + vdiff;
-
-        //         this.currentCoords = timeNumberCoords;
-        //     }
+            // Change mouse x/y only if line was shifted. Ignoring "empty" movement.
+            const shifted = this.line.shift(mouse.x - this.mouse.x, mouse.y - this.mouse.y);
+            if (shifted) {
+                [this.mouse.x, this.mouse.y] = [mouse.x, mouse.y];
+            }
         } else {
+            [this.mouse.x, this.mouse.y] = [mouse.x, mouse.y];
             console.debug('Edit state: line or chartStack is not found.');
         }
-
-        [this.mouse.x, this.mouse.y] = [mouse.x, mouse.y];
     }
 
     public onMouseEnter(board: IChartBoard, mouse: IMouse): void {

@@ -35,9 +35,11 @@ export class DateUtils {
         return `${year}-${month}-${day} ${hour}:${min}:${sec}`;
     }
 
-    public static parseIsoDate(text: string): Date|undefined {
+    public static parseIsoDate(text: string): Date {
         if (text) {
             return new Date(text);
+        } else {
+            throw new Error('Argument "text" is undefined');
         }
     }
 

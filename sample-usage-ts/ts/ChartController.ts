@@ -50,6 +50,8 @@ export class ChartController implements lychart.core.IDataService {
         $('.assetpair', this.container).val(selectedAsset); // select default value
 
         // Hook up event handlers
+        this.board.objectSelected.on(this.onObjectSelected);
+
         $('.add-compare', container).click(this.onAddCompare);
         $('.add-line', container).click(this.onAddLine);
         $('.add-hline', container).click(this.onAddHLine);
@@ -100,10 +102,14 @@ export class ChartController implements lychart.core.IDataService {
 
     private onItemSelected = (arg: ItemSelectedArg) => {
         this.tree.hide();
-        this.props = new FormProps($('.properties', '#panel')[0], this.board, arg.uid, arg.object);
+        this.props = new FormProps($('.properties', '#panel')[0], this.board, arg.object); // arg.uid
         this.props.propsClosingEvent.on(this.onPropsClosing);
         this.props.propsAppliedEvent.on(this.onPropsApplied);
         this.props.show();
+    }
+
+    private onObjectSelected = (arg: lychart.core.ObjectArgument) => {
+        this.onItemSelected(new ItemSelectedArg('', arg.obj));
     }
 
     private onChartTypeChange = () => {

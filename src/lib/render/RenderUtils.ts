@@ -2,7 +2,7 @@
  * 
  */
 import { ICanvas, LinePattern } from '../canvas/index';
-import { ChartPoint, IAxis, IPoint, ITimeAxis } from '../core/index';
+import { IAxis, IChartPoint, IPoint, ITimeAxis } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick, IUidValue } from '../model/index';
 import { IRect } from '../shared/index';
@@ -13,7 +13,7 @@ export class RenderUtils {
     public static renderLineChart(
         canvas: ICanvas,
         dataIterator: IDataIterator<Candlestick>,
-        getPoint: (item: Candlestick) => ChartPoint | undefined,
+        getPoint: (item: Candlestick) => IChartPoint | undefined,
         frame: IRect,
         timeAxis: ITimeAxis,
         yAxis: IAxis<number>,

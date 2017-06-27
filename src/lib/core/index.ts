@@ -5,6 +5,7 @@ import { AmountRange, AmountRangeOps } from './AmountRange';
 import { ChartType } from './ChartType';
 import { CObject } from './CObject';
 import { TimeInterval } from './Enums';
+import { Events, ObjectArgument } from './Events';
 import { Grid,
          IAxis,
          IConfigurable,
@@ -15,9 +16,9 @@ import { Grid,
          IStorage,
          ITimeAxis,
          TimeBar } from './Interfaces';
-import { ChartPoint, Mouse } from './Model';
+import { ChartPoint, IChartPoint, Mouse } from './Model';
 
-import { SettingSet, SettingType } from './SettingSet';
+import { ISetting, SettingSet, SettingType } from './SettingSet';
 import { Storage } from './Storage';
 import { VisualComponent } from './VisualComponent';
 import { VisualContext } from './VisualContext';
@@ -28,8 +29,10 @@ export {
     ChartPoint,
     ChartType,
     CObject,
+    Events,
     Grid,
     IAxis,
+    IChartPoint,
     IConfigurable,
     ICoordsConverter,
     IDataService,
@@ -38,9 +41,11 @@ export {
     IPoint,
     IQuicktip,
     IQuicktipBuilder,
+    ISetting,
     IStorage,
     ITimeAxis,
     Mouse,
+    ObjectArgument,
     SettingSet,
     SettingType,
     Storage,

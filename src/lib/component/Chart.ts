@@ -128,7 +128,7 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         return false;
     }
 
-    public setPopupVisibility(visible: boolean): void {
+    public setHovered(visible: boolean): void {
         // TODO: uncomment
         //this.popup.visible = visible;
     }

@@ -119,4 +119,8 @@ export class BoardArea {
         this.timeArea.offset = { x: this.timeArea.offset.x, y: yOffset };
         this.timeArea.resize(this.chartWidth, this.xAxisHeight);
     }
+
+    public setCursor(style: string) {
+        this.table.setAttribute('cursor', style);
+    }
 }

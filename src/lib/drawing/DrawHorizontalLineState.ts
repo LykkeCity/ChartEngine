@@ -49,7 +49,7 @@ class HorizontalLineFigureComponent extends FigureComponent implements IHoverabl
         return y >= pointy - 3 && y <= pointy + 3;
     }
 
-    public setPopupVisibility(visible: boolean): void {
+    public setHovered(visible: boolean): void {
         this.isHovered = visible;
     }
 

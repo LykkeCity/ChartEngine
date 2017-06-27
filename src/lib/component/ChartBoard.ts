@@ -3,13 +3,13 @@
  * 
  * @classdesc Facade for the chart library.
  */
-import { ChartType, IDataService, IQuicktip, IQuicktipBuilder, IStorage, Mouse, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { ChartType, Events, IDataService, IQuicktip, IQuicktipBuilder, IStorage, Mouse, ObjectArgument, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, DataSourceFactory, DataSourceRegister, IDataSource, IndicatorDataSource } from '../data/index';
 import { IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
 import { Candlestick, Point } from '../model/index';
 import { RenderLocator } from '../render/index';
-import { IHashTable, IRange, Point as IPoint, throttle } from '../shared/index';
+import { IEvent, IHashTable, IRange, Point as IPoint, throttle } from '../shared/index';
 import { DateUtils, UidUtils } from '../utils/index';
 import { ChartStack } from './ChartStack';
 import { IChartBoard, IDrawing, isStateController, IStateController } from './Interfaces';
@@ -48,6 +48,13 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private storage: Storage;
     private dataService?: IDataService;
     protected timeRange: IRange<Date>;
+
+    // Public Events
+    public get objectSelected(): IEvent<ObjectArgument> {
+        return Events.instance.objectSelected;
+    }
+
+    // End of "Public Events"
 
     constructor(
         private readonly container: HTMLElement,
@@ -439,6 +446,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private onMouseUp = (event: any) => {
         this.mouse.isDown = false;
         this.state.onMouseUp(this, this.mouse);
+        this.renderLayers(false, true);
     }
 
     private onMouseDown = (event: any) => {
@@ -447,9 +455,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     }
 
     public moveX(diffX: number) {
-        //if (this.timeAxis) {
-            this.timeAxis.move(diffX);
-        //}
+        this.timeAxis.move(diffX);
     }
 
     public getHitStack(localX: number, localY: number): ChartStack | undefined {
@@ -466,6 +472,11 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
                 return cStack;
             }
         }
+    }
+
+    public setCursor(style: string) {
+        //this.area.setCursor(style);
+        this.container.style.setProperty('cursor', style);
     }
 
     public get drawing(): IDrawing {

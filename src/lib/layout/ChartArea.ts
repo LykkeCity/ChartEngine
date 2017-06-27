@@ -62,7 +62,6 @@ export class XArea extends Area {
         div.style.setProperty('position', 'relative');
         div.style.setProperty('width', this._size.width + 'px');
         div.style.setProperty('height', this._size.height + 'px');
-        div.style.setProperty('cursor', 'crosshair');
 
         this.appendCanvases(div, this._size.width, this._size.height);
     }
@@ -106,7 +105,6 @@ export class ChartArea extends Area {
         div.style.setProperty('position', 'relative');
         div.style.setProperty('height', this._size.height + 'px');
         div.style.setProperty('width', this._size.width + 'px');
-        div.style.setProperty('cursor', 'crosshair');
 
         this.appendCanvases(div, this._size.width, this._size.height);
 

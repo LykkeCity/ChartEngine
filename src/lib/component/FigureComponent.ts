@@ -7,4 +7,3 @@ import { IStateController } from './Interfaces';
 export abstract class FigureComponent extends VisualComponent {
     public abstract getEditState(): IStateController;
 }
-

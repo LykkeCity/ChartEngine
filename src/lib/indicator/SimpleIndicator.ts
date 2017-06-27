@@ -355,56 +355,48 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
     }
 
     public getSettings(): SettingSet {
-        const group = new SettingSet({ name: 'datasource', group: true });
-
-        group.setSetting('period', new SettingSet({
-            name: 'period',
-            value: this.settings.period.toString(),
-            settingType: SettingType.numeric,
-            displayName: 'Period'
-        }));
-
-        group.setSetting('displacement', new SettingSet({
-            name: 'displacement',
-            value: this.settings.displacement.toString(),
-            settingType: SettingType.numeric,
-            displayName: 'Displacement'
-        }));
-
-        group.setSetting('valueType', new SettingSet({
-            name: 'valueType',
-            displayName: 'Calculate using',
-            value: this.settings.valueType.toString(),
-            settingType: SettingType.select,
-            options: [
-                { value: ValueAccessorType.close.toString(), text: 'close' },
-                { value: ValueAccessorType.open.toString(), text: 'open' },
-                { value: ValueAccessorType.high.toString(), text: 'high' },
-                { value: ValueAccessorType.low.toString(), text: 'low' },
-                { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
-                { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
-                { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
-                { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+        return new SettingSet({
+            name: 'datasource',
+            group: true,
+            settings: [
+                {
+                    name: 'period',
+                    value: this.settings.period.toString(),
+                    settingType: SettingType.numeric,
+                    displayName: 'Period'
+                }, {
+                    name: 'displacement',
+                    value: this.settings.displacement.toString(),
+                    settingType: SettingType.numeric,
+                    displayName: 'Displacement'
+                }, {
+                    name: 'valueType',
+                    value: this.settings.valueType.toString(),
+                    settingType: SettingType.select,
+                    displayName: 'Calculate using',
+                    options: [
+                        { value: ValueAccessorType.close.toString(), text: 'close' },
+                        { value: ValueAccessorType.open.toString(), text: 'open' },
+                        { value: ValueAccessorType.high.toString(), text: 'high' },
+                        { value: ValueAccessorType.low.toString(), text: 'low' },
+                        { value: ValueAccessorType.hl2.toString(), text: 'hl2' },
+                        { value: ValueAccessorType.hlc3.toString(), text: 'hlc3' },
+                        { value: ValueAccessorType.ohlc4.toString(), text: 'ohlc4' },
+                        { value: ValueAccessorType.hlcc4.toString(), text: 'hlcc4' }
+                    ]
+                }
             ]
-        }));
-
-        return group;
+        });
     }
 
     public setSettings(value: SettingSet): void {
-        const period = value.getSetting('datasource.period');
-        this.settings.period = (period && period.value) ? parseInt(period.value, 10) : this.settings.period;
-
-        const displacement = value.getSetting('datasource.displacement');
-        this.settings.displacement = (displacement && displacement.value) ? parseInt(displacement.value, 10) : this.settings.displacement;
-
-        const valueType = value.getSetting('datasource.valueType');
-        this.settings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.settings.valueType;
+        this.settings.period = value.getValueOrDefault<number>('datasource.period', this.settings.period);
+        this.settings.displacement = value.getValueOrDefault<number>('datasource.displacement', this.settings.displacement);
+        this.settings.valueType = value.getValueOrDefault<number>('datasource.valueType', this.settings.valueType);
 
         // recompute
         this.compute();
     }
-
 }
 
 export class SimpleSettings {

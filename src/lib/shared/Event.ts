@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Typed events for TypeScript.
  */
 

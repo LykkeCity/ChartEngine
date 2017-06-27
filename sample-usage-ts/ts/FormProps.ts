@@ -22,7 +22,7 @@ export class FormProps {
     public readonly propsClosingEvent = new PropsEvent();
     public readonly propsAppliedEvent = new PropsEvent();
 
-    constructor(container: HTMLElement, board: ChartBoard, uid: string, obj: any) {
+    constructor(container: HTMLElement, board: ChartBoard, obj: any) {
         this.container = container;
         this.board = board;
         this.obj = obj;
@@ -115,6 +115,7 @@ export class FormProps {
                     value: ss.value
                 })
                 .addClass('propfield')
+                .attr('data-type', ss.settingType)
                 .appendTo($div);
                 break;
 
@@ -125,6 +126,7 @@ export class FormProps {
                     value: ss.value
                 })
                 .addClass('propfield')
+                .attr('data-type', ss.settingType)
                 .appendTo($div);
                 break;
 
@@ -135,6 +137,7 @@ export class FormProps {
                     value: ss.value
                 })
                 .addClass('propfield')
+                .attr('data-type', ss.settingType)
                 .appendTo($div);
                 break;
 
@@ -145,15 +148,16 @@ export class FormProps {
                     value: ss.value
                 })
                 .addClass('propfield')
+                .attr('data-type', ss.settingType)
                 .appendTo($div);
                 break;
 
             case SettingType.select:
                 let sel = $('<select />', {
                     name: fullPath
-//                    value: ss.value
                 })
                 .addClass('propfield')
+                .attr('data-type', ss.settingType)
                 .appendTo($div);
 
                 ss.options.forEach(option => {
@@ -183,6 +187,7 @@ export class FormProps {
                 const name = parts.length > 0 ? parts[parts.length - 1] : '';
                 const ss = new SettingSet(name);
 
+                ss.settingType = element.getAttribute('data-type') || '';
                 if (attrType === 'checkbox') {
                     ss.value = (<HTMLInputElement>element).checked.toString();
                 } else if (attrType === 'color') {
