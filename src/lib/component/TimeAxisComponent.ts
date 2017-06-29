@@ -4,6 +4,7 @@
 import { IAxis, ITimeAxis, VisualComponent, VisualContext } from '../core/index';
 import { BoardArea, SizeChangedArgument, XArea } from '../layout/index';
 import { IAxesRender, IRenderLocator, ITimeAxisRender } from '../render/index';
+import { ISize } from '../shared/index';
 import { TimeMarker } from './TimeMarker';
 
 export class TimeAxisComponent extends VisualComponent {
@@ -19,12 +20,15 @@ export class TimeAxisComponent extends VisualComponent {
         super();
         this.tAxis = timeAxis;
 
-        this.area = area.addXAxis();
+        this.area = area.getXArea();
         this.area.sizeChanged.on(this.onresize);
 
         this._size = this.area.size;
 
-        this.marker = new TimeMarker(this.area, this.offset, this.size, timeAxis);
+        this.marker = new TimeMarker(this.area, this.offset, this.size, timeAxis, (ctx: VisualContext, size: ISize) => {
+            const mouseX = ctx.mousePosition ? ctx.mousePosition.x : -1;
+            return (mouseX > 0 && mouseX < size.width) ? timeAxis.toValue(mouseX) : undefined;
+        });
         this.addChild(this.marker);
     }
 

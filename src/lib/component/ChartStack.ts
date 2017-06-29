@@ -2,7 +2,7 @@
  * ChartStack class.
  */
 import { NumberAxis, PriceAxis } from '../axes/index';
-import { ChartPoint, IAxis, IConfigurable, ICoordsConverter, IPoint, ITimeAxis, SettingSet, SettingType, VisualComponent, VisualContext } from '../core/index';
+import { ChartPoint, IAxis, IConfigurable, ICoordsConverter, IPoint, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, SettingSet, SettingType, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { Area, BoardArea, ChartArea, SizeChangedArgument } from '../layout/index';
 import { Candlestick, Uid } from '../model/index';
@@ -135,8 +135,8 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this.updateChartingSettings();
     }
 
-    public addFigure(ctor: {(area: Area, offset: IPoint, size: ISize, coords: ICoordsConverter): FigureComponent}) : FigureComponent {
-        const figure = ctor(this.area, { x: 0, y: 0 }, this.size, this);
+    public addFigure(ctor: {(area: ChartArea, offset: IPoint, size: ISize, settings: IChartingSettings, tcoord: ITimeCoordConverter, vcoord: IValueCoordConverter<number>): FigureComponent}) : FigureComponent {
+        const figure = ctor(this.area, { x: 0, y: 0 }, this.size, this, this.tAxis, this.yAxis);
         this.figures.push(figure);
         this.addChild(figure);
         return figure;
@@ -225,9 +225,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this.yAxisComponent.resize(axisSize.width, axisSize.height);
 
         for (const vc of this._children) {
-            if (vc instanceof Chart) {
-                vc.resize(w, h);
-            }
+            vc.resize(w, h);
         }
         this.crosshair.resize(w, h);
         this.grid.resize(w, h);

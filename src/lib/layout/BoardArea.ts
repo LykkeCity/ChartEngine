@@ -28,6 +28,13 @@ export class BoardArea {
 
         this.chartWidth = this.size.width - this.yAxisWidth;
         this.chartHeight = this.size.height - this.xAxisHeight;
+
+        // create x axis area
+        const xrow = this.table.insertRow(-1); // to end
+        this.timeArea = new XArea(xrow,
+                                  { x: 0, y: this.chartHeight },
+                                  { width: this.chartWidth, height: this.xAxisHeight },
+                                  this.xAxisHeight);
     }
 
     public addChart() : ChartArea {
@@ -39,7 +46,8 @@ export class BoardArea {
         const area = new ChartArea(row,
                                    { x: 0, y: 0},
                                    { width: this.chartWidth, height: this.chartHeight },
-                                   this.yAxisWidth);
+                                   this.yAxisWidth,
+                                   this.timeArea);
         this.chartAreas.push(area);
         return area;
     }
@@ -59,18 +67,7 @@ export class BoardArea {
         }
     }
 
-    public addXAxis() : XArea {
-        if (this.timeArea) {
-            throw new Error('XArea is already defined.');
-        }
-
-        const row = this.table.insertRow(-1); // to end
-
-        this.timeArea = new XArea(row,
-                                  { x: 0, y: this.chartHeight },
-                                  { width: this.chartWidth, height: this.xAxisHeight },
-                                  this.xAxisHeight);
-
+    public getXArea(): XArea {
         return this.timeArea;
     }
 
@@ -91,10 +88,6 @@ export class BoardArea {
     public get chartLength() {
         return this.chartWidth;
     }
-
-    // public get timeAxisLength() {
-    //     return this.chartWidth;
-    // }
 
     public resize(w: number, h: number): void {
 

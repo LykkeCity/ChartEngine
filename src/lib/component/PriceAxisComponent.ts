@@ -23,7 +23,7 @@ export class PriceAxisComponent extends VisualComponent {
         super(offset, size);
 
         this.axis = priceAxis;
-        this.area = chartArea.addYAxis();
+        this.area = chartArea.getYArea();
         this.area.sizeChanged.on(this.onresize);
 
         const priceMarker = new PriceMarker(this.area, {x: 0, y: 0}, size, priceAxis, settings);

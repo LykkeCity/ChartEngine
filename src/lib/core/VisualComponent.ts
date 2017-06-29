@@ -12,7 +12,7 @@ export abstract class VisualComponent { //implements IMouseHandler {
     protected _size: Size;
     protected _children: VisualComponent[] = [];
     // protected childrenDesc: VisualComponentDesc[] = [];
-    protected _visible: boolean;
+    protected _visible = true;
 
     public get offset(): Point {
         return this._offset;

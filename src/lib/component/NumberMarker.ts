@@ -2,7 +2,7 @@
  * NumberMarker class.
  */
 import { NumberAxis } from '../axes/index';
-import { VisualComponent, VisualContext } from '../core/index';
+import { IValueCoordConverter, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IMarkRender, IRenderLocator } from '../render/index';
 import { ISize, Point } from '../shared/index';
@@ -10,31 +10,30 @@ import { IChartingSettings } from './Interfaces';
 
 export class NumberMarker extends VisualComponent {
 
-    private readonly axis: NumberAxis;
+    private readonly yaxis: IValueCoordConverter<number>;
     private readonly settings: IChartingSettings;
+    private readonly getter: (ctx: VisualContext, size: ISize) => number|undefined;
 
     constructor(
         private readonly area: Area,
-        offset: Point, size: ISize, axis: NumberAxis, settings: IChartingSettings) {
+        offset: Point, size: ISize, yaxis: IValueCoordConverter<number>, settings: IChartingSettings, getter: (ctx: VisualContext, size: ISize) => number|undefined ) {
         super(offset, size);
-        this.axis = axis;
+        this.yaxis = yaxis;
         this.settings = settings;
+        this.getter = getter;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
-        if (!context.renderFront)  {
+        if (!context.renderFront || !this.visible)  {
             // only render on front
             return ;
         }
 
-        if (context.mousePosition) {
-            const mouseY = context.mousePosition.y;
-
-            if (mouseY > 0 && mouseY < this.size.height) {
-                const render = <IMarkRender<number>>renderLocator.getMarkRender('number');
-                const num = this.axis.toValue(mouseY);
-                render.render(this.area.frontCanvas, num, { x: 0, y: mouseY }, this.size, this.settings.precision());
-            }
+        const value = this.getter(context, this.size);
+        if (value) {
+            const render = <IMarkRender<number>>renderLocator.getMarkRender('number');
+            const y = this.yaxis.toX(value);
+            render.render(this.area.frontCanvas, value, { x: 0, y: y }, this.size, this.settings.precision());
         }
     }
 }

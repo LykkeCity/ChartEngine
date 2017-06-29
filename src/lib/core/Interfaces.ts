@@ -16,15 +16,23 @@ export class Grid<T> {
     public precision: number = 0;
 }
 
-export interface ITimeAxis {
+export interface ITimeCoordConverter {
+    toX(uid: Uid): number|undefined;
+    toValue(x: number): Uid|undefined;
+}
+
+export interface IValueCoordConverter<T> {
+    toX(value: number): number;
+    toValue(x: number): T | undefined;
+}
+
+export interface ITimeAxis extends ITimeCoordConverter {
     range: IRange<Uid>;
     interval: number;
     count: number;
     reset(): void;
     moveNext(): boolean;
     current: TimeBar;
-    toX(uid: Uid): number|undefined;
-    toValue(x: number): Uid|undefined;
     move(direction: number): void;
     scale(direction: number): void;
     lock(uid: Uid): void;
@@ -34,11 +42,9 @@ export interface ITimeAxis {
     getGrid(): Iterator<TimeBar>;
 }
 
-export interface IAxis<T> {
+export interface IAxis<T> extends IValueCoordConverter<T> {
     range: IRange<T>;
     interval: number;
-    toX(index: number): number;
-    toValue(x: number): T | undefined;
     getGrid(): Grid<T>;
     getValuesRange(fromX: number, toX: number): IRange<T | undefined>;
     move(direction: number): void;

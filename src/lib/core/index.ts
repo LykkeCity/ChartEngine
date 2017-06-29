@@ -15,6 +15,8 @@ import { Grid,
          IMouse, IPoint, IQuicktip, IQuicktipBuilder,
          IStorage,
          ITimeAxis,
+         ITimeCoordConverter,
+         IValueCoordConverter,
          TimeBar } from './Interfaces';
 import { ChartPoint, IChartPoint, Mouse } from './Model';
 
@@ -44,6 +46,8 @@ export {
     ISetting,
     IStorage,
     ITimeAxis,
+    ITimeCoordConverter,
+    IValueCoordConverter,
     Mouse,
     ObjectArgument,
     SettingSet,

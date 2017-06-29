@@ -2,9 +2,9 @@
  * Classes for drawing lines.
  */
 
-import { FigureComponent, IChartBoard, IChartStack, IEditable, IHoverable, ISelectable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, IConfigurable, ICoordsConverter, IMouse, ISetting, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
-import { Area } from '../layout/index';
+import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
+import { ChartPoint, IAxis, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
+import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, ISize, Point } from '../shared/index';
 import { DrawUtils } from '../utils/index';
@@ -14,8 +14,8 @@ class LineFigureComponent extends FigureComponent implements IHoverable, IEditab
     private settings = new LineSettings();
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
-    private isHovered = false;
-    private isSelected = false;
+    private timeRegion: TimeRegionMarker;
+    private valueRegion: NumberRegionMarker;
 
     public get pointA(): ChartPoint {
         return this.pa.point;
@@ -26,18 +26,38 @@ class LineFigureComponent extends FigureComponent implements IHoverable, IEditab
     }
 
     constructor(
-        private area: Area,
+        private area: ChartArea,
         offset: Point,
         size: ISize,
-        private coords: ICoordsConverter
+        settings: IChartingSettings,
+        private taxis: ITimeCoordConverter,
+        private yaxis: IValueCoordConverter<number>
         ) {
         super(offset, size);
 
-        this.pa = new PointFigureComponent(area, offset, size, coords);
-        this.pb = new PointFigureComponent(area, offset, size, coords);
+        this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
+        this.addChild(this.timeRegion);
+
+        this.valueRegion = new NumberRegionMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValueRange);
+        this.addChild(this.valueRegion);
+
+        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
+        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
 
         this.addChild(this.pa);
         this.addChild(this.pb);
+    }
+
+    private getTimeRange = (ctx: VisualContext, size: ISize) => {
+        if (this.pa.point.uid !== undefined && this.pb.point.uid !== undefined) {
+            return { start: this.pa.point.uid, end: this.pb.point.uid };
+        }
+    }
+
+    private getValueRange = (ctx: VisualContext, size: ISize) => {
+        if (this.pa.point.v !== undefined && this.pb.point.v !== undefined) {
+            return { start: this.pa.point.v, end: this.pb.point.v };
+        }
     }
 
     public isHit(x: number, y: number): boolean {
@@ -49,16 +69,10 @@ class LineFigureComponent extends FigureComponent implements IHoverable, IEditab
             : false;
     }
 
-    public setHovered(hovered: boolean): void {
-        this.isHovered = hovered;
-        this.pa.setHovered(hovered);
-        this.pb.setHovered(hovered);
-    }
-
     public setSelected(selected: boolean): void {
-        this.isSelected = selected;
-        this.pa.setSelected(selected);
-        this.pb.setSelected(selected);
+        super.setSelected(selected);
+        this.valueRegion.visible = selected;
+        this.timeRegion.visible = selected;
     }
 
     public shift(dx: number, dy: number): boolean {
@@ -183,26 +197,16 @@ export class DrawLineState implements IStateController {
         // Determine which ChartStack was hit
         this.chartStack = board.getHitStack(mouse.x - board.offset.x, mouse.y - board.offset.y);
         if (this.chartStack) {
-            this.line = <LineFigureComponent>this.chartStack.addFigure((area, offset, size, coords) => {
-                //throw new Error('Not implemented');
-                return new LineFigureComponent(area, offset, size, coords);
+            this.line = <LineFigureComponent>this.chartStack.addFigure((area, offset, size, settings, tcoord, vcoord) => {
+                return new LineFigureComponent(area, offset, size, settings, tcoord, vcoord);
             });
-
-            // const timeNumberCoords = this.chartStack.mouseToCoords(
-            //     mouse.x - board.offset.x - this.chartStack.offset.x,
-            //     mouse.y - board.offset.y - this.chartStack.offset.y
-            // );
 
             const coordX = this.chartStack.xToValue(mouse.x - board.offset.x - this.chartStack.offset.x);
             const coordY = this.chartStack.yToValue(mouse.y - board.offset.y - this.chartStack.offset.y);
 
-            // this.line.pointA.t = (typeof coordX === 'string') ? undefined : <Date>coordX;
-            // this.line.pointA.uid = (typeof coordX === 'string') ? <string>coordX : undefined;
             this.line.pointA.uid = coordX;
             this.line.pointA.v = coordY;
 
-            // this.line.pointB.t = (typeof coordX === 'string') ? undefined : <Date>coordX;
-            // this.line.pointB.uid = (typeof coordX === 'string') ? <string>coordX : undefined;
             this.line.pointB.uid = coordX;
             this.line.pointB.v = coordY;
         }

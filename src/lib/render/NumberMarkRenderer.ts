@@ -9,8 +9,8 @@ import { IMarkRender } from './Interfaces';
 export class NumberMarkRenderer implements IMarkRender<number> {
     private readonly paddingLeft = 4;
 
-    public render(canvas: ICanvas, data: number, point: IPoint, frameSize: ISize, precision: number): void {
-        const text = data.toFixed(precision).toString();
+    public render(canvas: ICanvas, value: number, point: IPoint, frameSize: ISize, precision: number): void {
+        const text = value.toFixed(precision).toString();
 
         const textWidth = canvas.measureText(text).width;
         canvas.fillStyle = '#3F3F3F';

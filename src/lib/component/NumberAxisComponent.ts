@@ -23,10 +23,13 @@ export class NumberAxisComponent extends VisualComponent {
         super(offset, size);
 
         this.axis = numberAxis;
-        this.area = chartArea.addYAxis();
+        this.area = chartArea.getYArea();
         this.area.sizeChanged.on(this.onresize);
 
-        const priceMarker = new NumberMarker(this.area, {x: 0, y: 0}, size, numberAxis, settings);
+        const priceMarker = new NumberMarker(this.area, {x: 0, y: 0}, size, numberAxis, settings, (ctx, s) => {
+            const mouseY = ctx.mousePosition ? ctx.mousePosition.y : -1;
+            return (mouseY > 0 && mouseY < this.size.height) ? numberAxis.toValue(mouseY) : undefined;
+        });
         this.addChild(priceMarker);
     }
 

@@ -81,6 +81,7 @@ export class ChartArea extends Area {
 
     private row: HTMLTableRowElement;
     private yArea: YArea;
+    private xArea: XArea;
     private yAxisWidth: number;
     private qtContater: HTMLElement;
 
@@ -88,12 +89,14 @@ export class ChartArea extends Area {
         row: HTMLTableRowElement,
         offset: IPoint,
         size: ISize,
-        yAxisWidth: number
+        yAxisWidth: number,
+        xArea: XArea
         ) {
         super(offset, size);
 
         this.row = row;
         this.yAxisWidth = yAxisWidth;
+        this.xArea = xArea;
 
         const cell = row.insertCell(0);
         cell.style.setProperty('padding', '0');
@@ -114,24 +117,23 @@ export class ChartArea extends Area {
         this.qtContater.style.setProperty('top', '5px');
         this.qtContater.style.setProperty('left', '5px');
         cell.appendChild(this.qtContater);
+
+        // create y axis area
+        const ycell = this.row.insertCell(-1);
+        this.yArea = new YArea(ycell,
+                               { x: 0, y: 0},
+                               { width: this.yAxisWidth, height: this.size.height });
     }
 
     public get qtipContainer(): HTMLElement {
         return this.qtContater;
     }
 
-    public addYAxis() : YArea {
+    public getXArea() : XArea {
+        return this.xArea;
+    }
 
-        if (this.yArea) {
-            throw new Error('YArea is already defined.');
-        }
-
-        const cell = this.row.insertCell(-1);
-
-        this.yArea = new YArea(cell,
-                               { x: 0, y: 0},
-                               { width: this.yAxisWidth, height: this.size.height });
-
+    public getYArea() : YArea {
         return this.yArea;
     }
 

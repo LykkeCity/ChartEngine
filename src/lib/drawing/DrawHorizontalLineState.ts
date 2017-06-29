@@ -2,9 +2,9 @@
  * Classes for drawing horizontal lines.
  */
 
-import { FigureComponent, IChartBoard, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, ICoordsConverter, IMouse, Mouse, VisualContext } from '../core/index';
-import { Area } from '../layout/index';
+import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
+import { ChartPoint, IAxis, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, VisualContext } from '../core/index';
+import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, ISize, Point } from '../shared/index';
 import { DrawUtils } from '../utils/index';
@@ -12,23 +12,23 @@ import { PointFigureComponent } from './PointFigureComponent';
 
 class HorizontalLineFigureComponent extends FigureComponent implements IHoverable, IEditable {
     private p: PointFigureComponent;
-    private isHovered = false;
+    //private isHovered = false;
 
     public get point(): ChartPoint {
         return this.p.point;
     }
 
     constructor(
-        private area: Area,
+        private area: ChartArea,
         offset: Point,
         size: ISize,
-        private coords: ICoordsConverter
-        // private timeAxis: IAxis<Date>,
-        // private yAxis: IAxis<number>
+        settings: IChartingSettings,
+        private taxis: ITimeCoordConverter,
+        private yaxis: IValueCoordConverter<number>
         ) {
         super(offset, size);
 
-        this.p = new PointFigureComponent(area, offset, size, coords);
+        this.p = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
 
         this.addChild(this.p);
     }
@@ -43,14 +43,10 @@ class HorizontalLineFigureComponent extends FigureComponent implements IHoverabl
         // const ax = this.coords.toX(this.pa.point.t === undefined ? <string>this.pa.point.uid : this.pa.point.t);
         // const bx = this.coords.toX(this.pb.point.t === undefined ? <string>this.pb.point.uid : this.pb.point.t);
 
-        const pointy = this.coords.toY(this.p.point.v);
+        const pointy = this.yaxis.toX(this.p.point.v);
         // const by = this.coords.toY(this.pb.point.v);
 
         return y >= pointy - 3 && y <= pointy + 3;
-    }
-
-    public setHovered(visible: boolean): void {
-        this.isHovered = visible;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
@@ -62,7 +58,7 @@ class HorizontalLineFigureComponent extends FigureComponent implements IHoverabl
 
         if (this.p.point.uid && this.p.point.v) {
 
-            const y = this.coords.toY(this.p.point.v);
+            const y = this.yaxis.toX(this.p.point.v);
 
             const canvas = this.area.frontCanvas;
 
@@ -89,7 +85,6 @@ class HorizontalLineFigureComponent extends FigureComponent implements IHoverabl
         return EditHorizontalLineState.instance;
     }
 }
-
 
 export class DrawHorizontalLineState implements IStateController {
     private static inst?: DrawHorizontalLineState;
@@ -145,8 +140,8 @@ export class DrawHorizontalLineState implements IStateController {
         // Determine which ChartStack was hit
         this.chartStack = board.getHitStack(mouse.x - board.offset.x, mouse.y - board.offset.y);
         if (this.chartStack) {
-            this.line = <HorizontalLineFigureComponent>this.chartStack.addFigure((area, offset, size, coords) => {
-                return new HorizontalLineFigureComponent(area, offset, size, coords);
+            this.line = <HorizontalLineFigureComponent>this.chartStack.addFigure((area, offset, size, settings, coords, taxis) => {
+                return new HorizontalLineFigureComponent(area, offset, size, settings, coords, taxis);
             });
 
             const coordX = this.chartStack.xToValue(mouse.x - board.offset.x - this.chartStack.offset.x);

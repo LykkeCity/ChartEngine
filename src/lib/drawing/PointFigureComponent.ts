@@ -1,35 +1,51 @@
 /**
  * 
  */
-import { FigureComponent, IChartBoard, IChartStack, IEditable, IHoverable, ISelectable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, ICoordsConverter, IMouse, IPoint, Mouse, VisualContext }
+import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberMarker, TimeMarker } from '../component/index';
+import { ChartPoint, IAxis, ICoordsConverter, IMouse, IPoint, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, VisualContext }
     from '../core/index';
-import { Area } from '../layout/index';
+import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, ISize, Point } from '../shared/index';
 
 export class PointFigureComponent extends FigureComponent implements IHoverable, IEditable, ISelectable {
     private p = new ChartPoint();
-    private isHovered = false;
-    private isSelected = false;
+    private timeMarker: TimeMarker;
+    private valueMarker: NumberMarker;
 
     public get point(): ChartPoint {
         return this.p;
     }
 
     constructor(
-        private area: Area,
+        private area: ChartArea,
         offset: Point,
         size: ISize,
-        private coords: ICoordsConverter
+        settings: IChartingSettings,
+        private taxis: ITimeCoordConverter,
+        private yaxis: IValueCoordConverter<number>
         ) {
         super(offset, size);
+
+        this.valueMarker = new NumberMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValue);
+        this.addChild(this.valueMarker);
+
+        this.timeMarker = new TimeMarker(this.area.getXArea(), this.offset, this.size, taxis, this.getUid);
+        this.addChild(this.timeMarker);
+    }
+
+    private getUid = (ctx: VisualContext, size: ISize) => {
+        return this.p.uid;
+    }
+
+    private getValue = (ctx: VisualContext, size: ISize) => {
+        return this.p.v;
     }
 
     public isHit(x: number, y: number): boolean {
         if (this.p.uid && this.p.v) {
-            const px = this.coords.toX(this.p.uid);
-            const py = this.coords.toY(this.p.v);
+            const px = this.taxis.toX(this.p.uid);
+            const py = this.yaxis.toX(this.p.v);
 
             if (px) {
                 const diff = Math.sqrt((px - x) * (px - x) + (py - y) * (py - y));
@@ -39,18 +55,16 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
         return false;
     }
 
-    public setHovered(visible: boolean): void {
-        this.isHovered = visible;
-    }
-
     public setSelected(selected: boolean): void {
-        this.isSelected = selected;
+        super.setSelected(selected);
+        this.timeMarker.visible = selected;
+        this.valueMarker.visible = selected;
     }
 
     public getXY(): IPoint|undefined {
         if (this.p.uid && this.p.v) {
-            const x = this.coords.toX(this.p.uid);
-            const y = this.coords.toY(this.p.v);
+            const x = this.taxis.toX(this.p.uid);
+            const y = this.yaxis.toX(this.p.v);
             if (x !== undefined) {
                 return { x: x, y: y };
             }
@@ -60,12 +74,12 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
     public shift(dx: number, dy: number): boolean {
         const origPoint = new ChartPoint(this.p.uid, this.p.v);
         if (this.p.uid && this.p.v) {
-            const px = this.coords.toX(this.p.uid);
-            const py = this.coords.toY(this.p.v);
+            const px = this.taxis.toX(this.p.uid);
+            const py = this.yaxis.toX(this.p.v);
 
             if (px) {
-                this.p.uid = this.coords.xToValue(px + dx);
-                this.p.v = this.coords.yToValue(py + dy);
+                this.p.uid = this.taxis.toValue(px + dx);
+                this.p.v = this.yaxis.toValue(py + dy);
             }
         }
         return !this.p.equals(origPoint);
@@ -99,6 +113,8 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
                 canvas.stroke();
             }
         }
+
+        super.render(context, renderLocator);
     }
 
     public getCreateState(): IStateController {
