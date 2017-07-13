@@ -4,10 +4,10 @@
  * @classdesc Renders candlesticks in a form of line chart.
  */
 import { ICanvas } from '../canvas/index';
-import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType } from '../core/index';
+import { IAxis, ITimeAxis, SettingSet, SettingType } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick } from '../model/index';
-import { IRect } from '../shared/index';
+import { IPoint, IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
 import { RenderUtils } from './RenderUtils';
 

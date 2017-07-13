@@ -1,15 +1,15 @@
 /**
  * Grid class.
  */
-import { IAxis, ITimeAxis, VisualComponent, VisualContext } from '../core/index';
+import { IAxis, ITimeAxis, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
-import { ISize, Point } from '../shared/index';
+import { ISize, IPoint } from '../shared/index';
 
 export class Grid extends VisualComponent {
     constructor(
         private readonly area: Area,
-        offset: Point,
+        offset: IPoint,
         size: ISize,
         private readonly timeAxis: ITimeAxis,
         private readonly yAxis: IAxis<number>) {

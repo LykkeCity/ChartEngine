@@ -23,6 +23,7 @@ import * as shared from './lib/shared';
 import * as utils from './lib/utils';
 
 function register(stateId: string, state: IStateController) {
+    // TODO: should be separate instance for each board
     StateFabric.instance.setState(stateId, state);
 }
 
@@ -31,8 +32,24 @@ register('hover', HoverState.instance);
 register('movechart', MoveChartState.instance);
 
 // Register built-in drawing tools
+register('curve', drawing.DrawCurveState.instance);
 register('line', drawing.DrawLineState.instance);
-register('horizon-line', drawing.DrawHorizontalLineState.instance);
+register('hline', drawing.DrawHorizontalLineState.instance);
+register('vline', drawing.DrawVerticalLineState.instance);
+register('rect', drawing.DrawRectState.instance);
+register('triangle', drawing.DrawTriangleState.instance);
+register('path', drawing.DrawPathState.instance);
+register('pitchfork', drawing.DrawPitchforkState.instance);
+register('text', drawing.DrawTextState.instance);
+register('ellipse', drawing.DrawEllipseState.instance);
+register('trendchannel', drawing.DrawTrendChannelState.instance);
+register('daterange', drawing.DrawDateRangeState.instance);
+register('fibofan', drawing.DrawFiboFanState.instance);
+register('fibolevel', drawing.DrawFiboLevelState.instance);
+register('fiboprojection', drawing.DrawFiboProjectionState.instance);
+register('fibotimeprojection', drawing.DrawFiboTimeProjectionState.instance);
+register('gannfan', drawing.DrawGannFanState.instance);
+register('ohlcproj', drawing.DrawOhlcProjState.instance);
 
 const states = {
     register: register

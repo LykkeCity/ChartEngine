@@ -1,11 +1,12 @@
 /**
  * 
  */
-import { Chart, IChart } from './Chart';
+import { Chart } from './Chart';
 import { ChartBoard } from './ChartBoard';
 import { ChartStack } from './ChartStack';
 import { FigureComponent } from './FigureComponent';
-import { IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController } from './Interfaces';
+import { IChart, IChartBoard, IChartingSettings, IChartStack, IEditable, IFigure, IHoverable, ISelectable, IStateController }
+    from './Interfaces';
 import { isEditable, isHoverable, isSelectable, isStateController } from './Interfaces';
 import { NumberAxisComponent } from './NumberAxisComponent';
 import { NumberMarker } from './NumberMarker';
@@ -21,6 +22,7 @@ export {
     Chart,
     ChartBoard,
     ChartStack,
+    IFigure,
     FigureComponent,
     HoverState,
     IChart,

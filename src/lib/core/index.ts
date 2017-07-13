@@ -4,21 +4,25 @@
 import { AmountRange, AmountRangeOps } from './AmountRange';
 import { ChartType } from './ChartType';
 import { CObject } from './CObject';
+import { Constants } from './Constants';
 import { TimeInterval } from './Enums';
-import { Events, ObjectArgument } from './Events';
+import { EventArgument, Events, MouseEventArgument, ObjectEventArgument } from './Events';
 import { Grid,
          IAxis,
+         IChartPoint,
          IConfigurable,
          ICoordsConverter,
          IDataService,
          IIndicatorExtension,
-         IMouse, IPoint, IQuicktip, IQuicktipBuilder,
+         IMouse, IQuicktip, IQuicktipBuilder,
+         ISource,
          IStorage,
          ITimeAxis,
          ITimeCoordConverter,
          IValueCoordConverter,
+         IVisualComponent,
          TimeBar } from './Interfaces';
-import { ChartPoint, IChartPoint, Mouse } from './Model';
+import { ChartPoint, Mouse } from './Model';
 
 import { ISetting, SettingSet, SettingType } from './SettingSet';
 import { Storage } from './Storage';
@@ -31,6 +35,8 @@ export {
     ChartPoint,
     ChartType,
     CObject,
+    Constants,
+    EventArgument,
     Events,
     Grid,
     IAxis,
@@ -40,16 +46,18 @@ export {
     IDataService,
     IMouse,
     IIndicatorExtension,
-    IPoint,
     IQuicktip,
     IQuicktipBuilder,
     ISetting,
+    ISource,
     IStorage,
     ITimeAxis,
     ITimeCoordConverter,
     IValueCoordConverter,
+    IVisualComponent,
     Mouse,
-    ObjectArgument,
+    MouseEventArgument,
+    ObjectEventArgument,
     SettingSet,
     SettingType,
     Storage,

@@ -3,7 +3,7 @@
  */
 import { Event, IEvent, IEventHandler, throttle } from './Event';
 import { FixedSizeArray } from './FixedSizeArray';
-import { IDisposable, IdValue, IHashTable, IRange, IRect, ISize, Iterator, PartialPoint, Point, Size } from './Interfaces';
+import { IDisposable, IdValue, IHashTable, IPoint, IRange, IRect, ISize, Iterator, PartialPoint, Point, Size } from './Interfaces';
 
 export {
     Event,
@@ -13,6 +13,7 @@ export {
     IEvent,
     IEventHandler,
     IHashTable,
+    IPoint,
     IRange,
     IRect,
     ISize,

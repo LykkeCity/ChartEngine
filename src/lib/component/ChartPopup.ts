@@ -1,7 +1,7 @@
 /**
  * ChartPopup class.
  */
-import { IAxis, ITimeAxis, VisualComponent, VisualContext } from '../core/index';
+import { IAxis, ITimeAxis, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
@@ -9,16 +9,7 @@ import { ISize, Point } from '../shared/index';
 
 export class ChartPopup<T> extends VisualComponent {
 
-    //private _visible = false;
     private _item?: T;
-
-    // public get visible() {
-    //     return this._visible;
-    // }
-
-    // public set visible(value: boolean) {
-    //     this._visible = value;
-    // }
 
     public get item(): T | undefined {
         return this._item;
@@ -42,20 +33,20 @@ export class ChartPopup<T> extends VisualComponent {
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
 
-        // only render on front
-        if (!context.renderFront || !context.mousePosition || !this.visible) {
-            return;
-        }
-        const mouseX = context.mousePosition.x;
-        const mouseY = context.mousePosition.y;
+        // // only render on front
+        // if (!context.renderFront || !context.mousePosition || !this.visible) {
+        //     return;
+        // }
+        // const mouseX = context.mousePosition.x;
+        // const mouseY = context.mousePosition.y;
 
-        if (mouseX > 0 && mouseX < this.size.width
-            && mouseY > 0 && mouseY < this.size.height) {
+        // if (mouseX > 0 && mouseX < this.size.width
+        //     && mouseY > 0 && mouseY < this.size.height) {
 
-            if (this._item) {
-                const popupRender = renderLocator.getPopupRender<T>(this.dataSource.dataType);
-                popupRender.render(this.area.frontCanvas, this._item, { x: mouseX, y: mouseY }, this.size);
-            }
-        }
+        //     if (this._item) {
+        //         const popupRender = renderLocator.getPopupRender<T>(this.dataSource.dataType);
+        //         popupRender.render(this.area.frontCanvas, this._item, { x: mouseX, y: mouseY }, this.size);
+        //     }
+        // }
     }
 }

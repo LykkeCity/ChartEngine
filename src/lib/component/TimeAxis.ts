@@ -166,17 +166,108 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
      * Should search most nearest Uid to the specified Uid, as interval can be changed
      * @param uid 
      */
-    public toX(uid: Uid): number | undefined { // Если возвращает undef, то не рендерить пока фигуру, т.к. не загружены данные.
-		// Рассчтитьа растояние между fs и uid +1000 | -1000
-        let counter = 0;
+    public toX(uid: Uid): number | undefined {
 
         // ensure that require uid is loaded
         if (this.dataSource) {
             this.loadRange(this.frameStart, uid);
         }
 
-        let curUid = this.frameStart.compare(uid) <= 0 ? this.frameStart : uid;
-        const lastUid = this.frameStart.compare(uid) <= 0 ? uid : this.frameStart;
+		// Compute distance b/w frame start и uid
+        const dist = this.getDistance(this.frameStart, uid);
+        return dist !== undefined ? this.index2x(dist) : undefined;
+    }
+
+    public toValue(x: number): Uid | undefined {
+        const wi = this.w / this.N;
+        const index = Math.floor((x - this.g) / wi);
+
+        return this.shiftBy(this.tempIter, index, this.frameStart);
+    }
+
+    public move(direction: number) {
+
+        if (!direction || direction === 0) {
+            return;
+        }
+
+        //let gnext = this.g + (direction > 0 ? 1 : -1);
+        let gnext = this.g + direction;
+
+        const wi = this.w / this.N;
+        const count = Math.floor(gnext / wi);
+        gnext = gnext - (count * wi);
+
+        if (count !== 0) {
+            direction = count;
+            if (this.dataSource) {
+                this.load(this.frameStart, direction > 0 ? (direction + 2 * this.N) : (direction - this.N));
+            }
+
+            this.frameStart = this.shiftBy(this.tempIter, -direction, this.frameStart);
+        }
+
+        this.g = gnext;
+    }
+
+    public scale(direction: number) {
+
+        this.g = 0;
+
+        let newN = this.N;
+        if (direction > 0) {                // zooming in
+            newN = Math.floor(this.N * 0.9);
+        } else if (direction < 0) {         // zooming out
+            newN = Math.ceil(this.N * 1.1);
+            this.load(this.frameStart, -2 * newN);
+        } else {
+            return;
+        }
+
+        if (newN >= 1 && newN <= 2000) {
+            this.frameStart = this.shiftBy(this.tempIter, this.N - newN, this.frameStart);
+            this.N = newN;
+        }
+    }
+
+    /**
+     * Visible range
+     */
+    public get range(): IRange<Uid> {
+        const start = new Uid();
+        start.t = this.frameStart.t;
+        start.n = this.frameStart.n;
+        const end = this.shiftBy(this.tempIter, this.N, this.frameStart);
+
+        return { start: start, end: end };
+    }
+
+    public lock(uid: Uid): void {
+        if (this.dataSource) {
+            this.dataSource.lock(uid);
+        }
+    }
+
+    /**
+     * For rendering grid
+     */
+    public getGrid(): Iterator<TimeBar> {
+        return new TimeAutoGrid(this.w, this._interval, this, this.range);
+    }
+
+    public dist(uidFrom: Uid, uidTo: Uid): number|undefined {
+        return this.getDistance(uidFrom, uidTo);
+    }
+
+    public add(uid: Uid, amount: number): Uid|undefined {
+        return this.shiftBy(this.tempIter, amount, uid);
+    }
+
+    private getDistance(uidFrom: Uid, uidTo: Uid): number|undefined {
+        let counter = 0;
+
+        let curUid = uidFrom.compare(uidTo) <= 0 ? uidFrom : uidTo;
+        const lastUid = uidFrom.compare(uidTo) <= 0 ? uidTo : uidFrom;
 
         const curTime = curUid.t.getTime();
         const lastTime = lastUid.t.getTime();
@@ -205,22 +296,8 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
             counter = DateUtils.diffIntervals(curUid.t, lastUid.t, this.interval);
         }
 
-		// По индексу рассчитать координату
-        const index = (this.frameStart.t < uid.t) ? counter : -counter;
-        return this.index2x(index);
-    }
-
-    public toValue(x: number): Uid | undefined {	// x = -50, x = +1000 . 
-		// Undefined на будущее. Пока можно генерировать фиктивные
-
-        const wi = this.w / this.N;
-        const index = Math.floor((x - this.g) / wi);
-
-        // if (this.dataSource) {
-        //     this.dataSource.load(this.frameStart, index);
-        // }
-
-        return this.shiftBy(this.tempIter, index, this.frameStart);
+		// Compute coordinate by index
+        return (uidFrom.t < uidTo.t) ? counter : -counter;
     }
 
     /**
@@ -308,75 +385,5 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
     private index2x(index: number): number {
         const wi = this.w / this.N;
         return (wi * index) + (wi / 2) + this.g;
-    }
-
-    public move(direction: number) {
-
-        if (!direction || direction === 0) {
-            return;
-        }
-
-        //let gnext = this.g + (direction > 0 ? 1 : -1);
-        let gnext = this.g + direction;
-
-        const wi = this.w / this.N;
-        const count = Math.floor(gnext / wi);
-        gnext = gnext - (count * wi);
-
-        if (count !== 0) {
-            direction = count;
-            if (this.dataSource) {
-                this.load(this.frameStart, direction > 0 ? (direction + 2 * this.N) : (direction - this.N));
-            }
-
-            this.frameStart = this.shiftBy(this.tempIter, -direction, this.frameStart);
-        }
-
-        this.g = gnext;
-    }
-
-    public scale(direction: number) {
-
-        this.g = 0;
-
-        let newN = this.N;
-        if (direction > 0) {                // zooming in
-            newN = Math.floor(this.N * 0.9);
-        } else if (direction < 0) {         // zooming out
-            newN = Math.ceil(this.N * 1.1);
-            this.load(this.frameStart, -2 * newN);
-        } else {
-            return;
-        }
-
-        if (newN >= 1 && newN <= 2000) {
-            this.frameStart = this.shiftBy(this.tempIter, this.N - newN, this.frameStart);
-            this.N = newN;
-        }
-    }
-
-    /**
-     * Visible range
-     */
-    public get range(): IRange<Uid> {
-        const start = new Uid();
-        start.t = this.frameStart.t;
-        start.n = this.frameStart.n;
-        const end = this.shiftBy(this.tempIter, this.N, this.frameStart);
-
-        return { start: start, end: end };
-    }
-
-    public lock(uid: Uid): void {
-        if (this.dataSource) {
-            this.dataSource.lock(uid);
-        }
-    }
-
-    /**
-     * For rendering grid
-     */
-    public getGrid(): Iterator<TimeBar> {
-        return new TimeAutoGrid(this.w, this._interval, this, this.range);
     }
 }

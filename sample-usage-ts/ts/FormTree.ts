@@ -52,20 +52,14 @@ export class FormTree {
             stack.charts.forEach(chart => {
                 this.appendItem(this.container, chart.uid, chart.name, 10);
             });
+            stack.figures.forEach(figure => {
+                this.appendItem(this.container, figure.uid, figure.name, 10);
+            });
         });
     }
 
     private getObjectById(uid: string): any|undefined {
-        for (const stack of this.board.stacks) {
-            if (stack.uid === uid) {
-                return stack;
-            }
-            for (const chart of stack.charts) {
-                if (chart.uid === uid) {
-                    return chart;
-                }
-            }
-        }
+        return this.board.getObjectById(uid);
     }
 
     private appendItem(htmlEl: HTMLElement, uid: string, name: string, margin: number) {

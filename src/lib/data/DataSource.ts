@@ -94,6 +94,40 @@ export abstract class DataSource implements IDataSource<Candlestick> {
         return { start: minValue, end: maxValue };
     }
 
+    public getHHLL(uidFrom: Uid, uidTo: Uid): Candlestick|undefined {
+
+        const start = uidFrom.compare(uidTo) <= 0 ? uidFrom : uidTo;
+        const end = uidFrom.compare(uidTo) <= 0 ? uidTo : uidFrom;
+
+        let o = undefined;
+        let c = undefined;
+        let ll = undefined;
+        let hh = undefined;
+        let uid = undefined;
+
+        const iterator = this.dataStorage.getIterator();
+        if (iterator.goTo(item => item.uid.compare(start) >= 0)) {
+
+            o = iterator.current.o;
+
+            do {
+                const h = iterator.current.h;
+                const l = iterator.current.l;
+
+                ll = ll === undefined ? l : Math.min(ll, l !== undefined ? l : +Infinity);
+                hh = hh === undefined ? h : Math.max(hh, h !== undefined ? h : -Infinity);
+                c = iterator.current.c;
+                uid = iterator.current.uid;
+            } while (iterator.moveNext() && iterator.current.uid.compare(end) <= 0);
+        }
+
+        return uid !== undefined ? new Candlestick(uid.t, c, o, hh, ll): undefined;
+    }
+
+    public getLastCandle(): Candlestick|undefined {
+        return this.dataStorage.last;
+    }
+
     private extensions: IHashTable<IIndicatorExtension|undefined> = {};
 
     public addExtension(name: string, ext: IIndicatorExtension): void {

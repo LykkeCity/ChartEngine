@@ -2,7 +2,7 @@
  * RegionMarker class.
  */
 import { NumberAxis } from '../axes/index';
-import { IValueCoordConverter, VisualComponent, VisualContext } from '../core/index';
+import { IValueCoordConverter, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IMarkRender, IRenderLocator } from '../render/index';
 import { IRange, ISize, Point } from '../shared/index';

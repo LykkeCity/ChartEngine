@@ -2,7 +2,8 @@
  * 
  */
 import { ICanvas, LinePattern } from '../canvas/index';
-import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType, TimeInterval } from '../core/index';
+import { IAxis, ITimeAxis, SettingSet, SettingType, TimeInterval } from '../core/index';
+import { IPoint } from '../shared/index';
 
 export class ChartRenderer {
 

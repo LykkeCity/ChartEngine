@@ -4,7 +4,6 @@
 import { Point } from '../shared/index';
 
 export class VisualContext {
-    public mousePosition?: Point;
     private _renderBase: boolean;
     private _renderFront: boolean;
 
@@ -18,10 +17,9 @@ export class VisualContext {
 
     constructor(
         renderBase: boolean,
-        renderFront: boolean,
-        mousePosition?: Point) {
+        renderFront: boolean
+        ) {
             this._renderBase = renderBase;
             this._renderFront = renderFront;
-            this.mousePosition = mousePosition;
     }
 }

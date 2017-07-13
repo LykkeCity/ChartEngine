@@ -2,12 +2,8 @@
  * 
  */
 import { Uid } from '../model/index';
+import { Point } from '../shared/index';
 import { IMouse } from './Interfaces';
-
-export interface IChartPoint {
-    uid?: Uid;
-    v?: number;
-}
 
 export class ChartPoint {
     public uid?: Uid;
@@ -31,8 +27,7 @@ export class ChartPoint {
 }
 
 export class Mouse implements IMouse {
-    public x: number = 0;
-    public y: number = 0;
+    public pos = new Point();
     public isDown: boolean = false;
     public isEntered: boolean = false;
 }

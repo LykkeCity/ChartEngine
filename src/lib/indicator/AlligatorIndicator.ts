@@ -2,12 +2,12 @@
  * AlligatorIndicator class.
  */
 import { ICanvas } from '../canvas/index';
-import { IAxis, IPoint, ITimeAxis, SettingSet, TimeInterval } from '../core/index';
+import { IAxis, ITimeAxis, SettingSet, TimeInterval } from '../core/index';
 import { ArrayDataStorage, DataChangedArgument, DataSource,
     DataSourceConfig, IContext, IDataIterator, IDataSource, IDataStorage, IndicatorDataSource } from '../data/index';
 import { Candlestick, Point } from '../model/index';
 import { IChartRender, RenderUtils } from '../render/index';
-import { FixedSizeArray, IRange, IRect } from '../shared/index';
+import { FixedSizeArray, IPoint, IRange, IRect } from '../shared/index';
 import { MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { IValueAccessor, ValueAccessorFactory, ValueAccessorType } from './ValueAccessor';
 

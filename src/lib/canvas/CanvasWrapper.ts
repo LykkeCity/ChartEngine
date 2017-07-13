@@ -102,6 +102,14 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.arc(this.round(x), this.round(y), radius, startAngle, endAngle, anticlockwise);
     }
 
+    public ellipse(x: number, y: number, radiusX: number, radiusY: number, rotation: number, startAngle: number, endAngle: number, anticlockwise?: boolean) {
+        this.ctx.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise);
+    }
+
+    public quadraticCurveTo(cpx: number, cpy: number, x: number, y: number) {
+        this.ctx.quadraticCurveTo(cpx, cpy, x, y);
+    }
+
     public fillText(s: string, x: number, y: number) {
         this.ctx.fillText(s, this.round(x), this.round(y));
     }

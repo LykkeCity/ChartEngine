@@ -54,6 +54,9 @@ export interface IDataSource<T> extends IDisposable, IConfigurable {
     removeExtension(name: string): void;
 
     setTimeRange(range: IRange<Date>): void;
+
+    getHHLL(uidFrom: Uid, uidTo: Uid): Candlestick|undefined;
+    getLastCandle(): Candlestick|undefined;
 }
 
 export interface IDataIterator<T> {

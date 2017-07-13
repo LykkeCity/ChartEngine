@@ -3,12 +3,12 @@
  */
 import { ICanvas } from '../canvas/index';
 import { GainLossExtension } from '../compute/index';
-import { IAxis, IPoint, ITimeAxis, SettingSet, SettingType, TimeInterval } from '../core/index';
+import { IAxis, ITimeAxis, SettingSet, SettingType, TimeInterval } from '../core/index';
 import { ArrayDataStorage, DataChangedArgument, DataSource,
     DataSourceConfig, IContext, IDataIterator, IDataSource, IDataStorage } from '../data/index';
 import { Candlestick, Point, Uid } from '../model/index';
 import { IChartRender, RenderUtils } from '../render/index';
-import { FixedSizeArray, IRange, IRect } from '../shared/index';
+import { FixedSizeArray, IPoint, IRange, IRect } from '../shared/index';
 import { CandlestickExt } from './CandlestickExt';
 import { IMovingAverageStrategy, MovingAverageFactory, MovingAverageType } from './MovingAverage';
 import { SimpleIndicator } from './SimpleIndicator';

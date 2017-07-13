@@ -2,7 +2,7 @@
  * TimeRegionMarker class.
  */
 import { NumberAxis } from '../axes/index';
-import { ITimeCoordConverter, VisualComponent, VisualContext } from '../core/index';
+import { ITimeCoordConverter, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { Uid } from '../model/index';
 import { IMarkRender, IRenderLocator } from '../render/index';

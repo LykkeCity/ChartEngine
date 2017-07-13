@@ -2,9 +2,8 @@
  * CandlestickPopupRenderer class.
  */
 import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
-import { IPoint } from '../core/index';
 import { Candlestick } from '../model/index';
-import { ISize } from '../shared/index';
+import { IPoint, ISize } from '../shared/index';
 import { IPopupRender } from './Interfaces';
 
 export class CandlestickPopupRenderer implements IPopupRender<Candlestick> {

@@ -2,7 +2,7 @@
  * Core interfaces.
  */
 import { Candlestick, Uid } from '../model/index';
-import { FixedSizeArray, IRange, Iterator } from '../shared/index';
+import { FixedSizeArray, IPoint, IRange, Iterator } from '../shared/index';
 import { TimeInterval } from './Enums';
 import { SettingSet } from './SettingSet';
 
@@ -16,9 +16,16 @@ export class Grid<T> {
     public precision: number = 0;
 }
 
+export interface IChartPoint {
+    readonly uid?: Uid;
+    readonly v?: number;
+}
+
 export interface ITimeCoordConverter {
     toX(uid: Uid): number|undefined;
     toValue(x: number): Uid|undefined;
+    dist(uidFrom: Uid, uidTo: Uid): number|undefined;
+    add(uid: Uid, amount: number): Uid|undefined;
 }
 
 export interface IValueCoordConverter<T> {
@@ -40,6 +47,16 @@ export interface ITimeAxis extends ITimeCoordConverter {
      * For rendering grid
      */
     getGrid(): Iterator<TimeBar>;
+
+    /**
+     * Returns amount of data intervals b/w specified uids.
+     */
+    dist(uidFrom: Uid, uidTo: Uid): number|undefined;
+
+    /**
+     * Adds specified amount of intervals to the specified uid.
+     */
+    add(uid: Uid, amount: number): Uid|undefined;
 }
 
 export interface IAxis<T> extends IValueCoordConverter<T> {
@@ -55,18 +72,20 @@ export interface ICoordsConverter {
     toX(value: Uid): number|undefined;
     xToValue(x: number): Uid|undefined;
 
+    toXY(point: IChartPoint): IPoint|undefined;
+    xyToValue(point: IPoint): IChartPoint;
+
     toY(value: number): number;
     yToValue(y: number): number|undefined;
 }
 
-export interface IPoint {
-    readonly x: number;
-    readonly y: number;
+export interface ISource {
+    getHHLL(uidFrom: Uid, uidTo: Uid): Candlestick|undefined;
+    getLastCandle(): Candlestick|undefined;
 }
 
 export interface IMouse {
-    x: number;
-    y: number;
+    pos: IPoint;
     isDown: boolean;
     isEntered: boolean;
 }
@@ -99,4 +118,8 @@ export interface IQuicktip {
 export interface IConfigurable {
     getSettings(): SettingSet;
     setSettings(settings: SettingSet): void;
+}
+
+export interface IVisualComponent {
+    //getGlobalOffset(): IPoint;
 }

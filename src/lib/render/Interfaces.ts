@@ -2,10 +2,10 @@
  * Interfaces related to rendering.
  */
 import { ICanvas } from '../canvas/index';
-import { IAxis, IConfigurable, IPoint, ITimeAxis } from '../core/index';
+import { IAxis, IConfigurable, ITimeAxis } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick } from '../model/index';
-import { IRect, ISize } from '../shared/index';
+import { IPoint, IRect, ISize } from '../shared/index';
 
 export interface IRenderLocator {
     getChartRender<T>(dataType: { new(d: Date): T}, chartType: string): any;

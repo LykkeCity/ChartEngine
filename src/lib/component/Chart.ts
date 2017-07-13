@@ -1,22 +1,14 @@
 /**
  * Chart class.
  */
-import { IAxis, IConfigurable, IQuicktip, ITimeAxis, SettingSet, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { Events, IAxis, IConfigurable, IQuicktip, ITimeAxis, IVisualComponent, MouseEventArgument, SettingSet, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { ChartArea } from '../layout/index';
 import { Candlestick, Uid } from '../model/index';
 import { IChartRender, IRenderLocator, RenderLocator } from '../render/index';
-import { IRange, ISize, Point } from '../shared/index';
+import { IPoint, IRange, ISize, Point } from '../shared/index';
 import { ChartPopup } from './ChartPopup';
-import { IHoverable } from './Interfaces';
-
-export interface IChart {
-    uid: string;
-    name: string;
-    precision: number;
-    getValuesRange(range: IRange<Uid>): IRange<number>;
-    render(context: VisualContext, renderLocator: IRenderLocator): void;
-}
+import { IChart, IHoverable } from './Interfaces';
 
 export class Chart extends VisualComponent implements IChart, IHoverable, IConfigurable {
     private readonly _uid: string;
@@ -25,6 +17,7 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
     private readonly tAxis: ITimeAxis;
     //private readonly popup: ChartPopup<Candlestick>;
     private readonly renderer: IChartRender<Candlestick>;
+    private isMouseOver = false;
 
     constructor(
         uid: string,
@@ -37,18 +30,21 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         private readonly dataSource: IDataSource<Candlestick>,
         private readonly yAxis: IAxis<number>,
         private readonly qtip: IQuicktip) {
-            super(offset, size);
+        super(offset, size);
 
-            this._uid = uid;
-            this._name = name;
-            this.area = chartArea;
-            this.tAxis = tAxis;
-            // this.popup = new ChartPopup<T>(chartType, this.area, { x: 0, y: 0 }, size, dataSource, timeAxis, yAxis);
-            // this.addChild(this.popup);
+        this._uid = uid;
+        this._name = name;
+        this.area = chartArea;
+        this.tAxis = tAxis;
+        // this.popup = new ChartPopup<T>(chartType, this.area, { x: 0, y: 0 }, size, dataSource, timeAxis, yAxis);
+        // this.addChild(this.popup);
 
-            //this.qtip.addTextBlock('title', 'CHART ' + uid);
+        //this.qtip.addTextBlock('title', 'CHART ' + uid);
 
-            this.renderer = <IChartRender<Candlestick>>RenderLocator.Instance.getChartRender(Candlestick, this.chartType);
+        this.renderer = <IChartRender<Candlestick>>RenderLocator.Instance.getChartRender(Candlestick, this.chartType);
+
+        // // Subscribe to events
+        // Events.instance.mouseMove.on(this.onMouseMove);
     }
 
     public get uid(): string {
@@ -67,7 +63,7 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         return this.dataSource.getValuesRange(range);
     }
 
-    public render(context: VisualContext, renderLocator: IRenderLocator) {
+    public handeMouse(relX: number, relY: number) {
 
         const iterator = this.dataSource.getIterator();
 
@@ -75,19 +71,20 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         this.qtip.removeTextBlock('value');
         this.qtip.addTextBlock('name', this.dataSource.name);
 
-        if (context.mousePosition) {
-            const mouseX = context.mousePosition.x;
-            const mouseY = context.mousePosition.y;
-
-            const uid = this.tAxis.toValue(mouseX);
-            if (uid !== undefined && iterator.goTo(item => item.uid.compare(uid) === 0)) {
-                const c = iterator.current;
-                const text = c.toString(this.precision);
-                this.qtip.addTextBlock('value', text);
-            }
+        const uid = this.tAxis.toValue(relX);
+        if (uid !== undefined && iterator.goTo(item => item.uid.compare(uid) === 0)) {
+            const c = iterator.current;
+            const text = c.toString(this.precision);
+            this.qtip.addTextBlock('value', text);
         }
 
+        super.handeMouse(relX, relY);
+    }
+
+    public render(context: VisualContext, renderLocator: IRenderLocator) {
+
         if (context.renderBase) {
+            const iterator = this.dataSource.getIterator();
             this.renderer.render(this.area.baseCanvas, iterator,
                                  { x: 0, y: 0, w: this.size.width, h: this.size.height },
                                  this.tAxis, this.yAxis);
@@ -96,7 +93,7 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         super.render(context, renderLocator);
     }
 
-    public isHit(mouseX: number, mouseY: number): boolean {
+    public isHit(p: IPoint): boolean {
 
         // if (mouseX > 0 && mouseX < this.size.width
         //     && mouseY > 0 && mouseY < this.size.height) {
@@ -125,7 +122,7 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         //         }
         //     }
         // }
-        return false;
+        return this.isMouseOver;
     }
 
     public setHovered(visible: boolean): void {
@@ -151,4 +148,12 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
             this.dataSource.setSettings(dsSettings);
         }
     }
+
+    // public dispose() {
+    //     Events.instance.mouseMove.off(this.onMouseMove);
+    // }
+
+    // protected onMouseMove = (evt: MouseEventArgument) => {
+
+    // }
 }

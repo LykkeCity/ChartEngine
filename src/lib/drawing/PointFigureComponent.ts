@@ -1,31 +1,77 @@
 /**
  * 
  */
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberMarker, TimeMarker } from '../component/index';
-import { ChartPoint, IAxis, ICoordsConverter, IMouse, IPoint, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, VisualContext }
+import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberMarker, TimeMarker }
+    from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, VisualContext }
     from '../core/index';
 import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
-import { IHashTable, ISize, Point } from '../shared/index';
+import { Event, IEvent, IHashTable, IPoint, ISize, Point } from '../shared/index';
+
+export class PointChangedEvent extends Event<void> {
+}
+
+export class PointChangedArgument {
+    private p: IPoint;
+
+    constructor(p: IPoint) {
+        this.p = p;
+    }
+
+    public get point() {
+        return this.p;
+    }
+}
 
 export class PointFigureComponent extends FigureComponent implements IHoverable, IEditable, ISelectable {
     private p = new ChartPoint();
+    private px = new Point();
     private timeMarker: TimeMarker;
     private valueMarker: NumberMarker;
+    private _pixelMode = false;
 
-    public get point(): ChartPoint {
+    public get point(): IChartPoint {
         return this.p;
+    }
+
+    public set point(value: IChartPoint) {
+        this.p.uid = value.uid;
+        this.p.v = value.v;
+        this.changedEvent.trigger();
+    }
+
+    public get pixel(): IPoint {
+        return this.px;
+    }
+
+    public set pixel(value: IPoint) {
+        this.px.x = value.x;
+        this.px.y = value.y;
+        this.changedEvent.trigger();
+    }
+
+    public get pixelMode(): boolean {
+        return this._pixelMode;
+    }
+
+    protected changedEvent = new PointChangedEvent();
+    public get changed(): IEvent<void> {
+        return this.changedEvent;
     }
 
     constructor(
         private area: ChartArea,
-        offset: Point,
+        offset: IPoint,
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        pixelMode = false
         ) {
-        super(offset, size);
+        super('Point', offset, size);
+
+        this._pixelMode = pixelMode;
 
         this.valueMarker = new NumberMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValue);
         this.addChild(this.valueMarker);
@@ -35,20 +81,28 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
     }
 
     private getUid = (ctx: VisualContext, size: ISize) => {
-        return this.p.uid;
+        return this.pixelMode ? this.taxis.toValue(this.px.x) : this.p.uid;
     }
 
     private getValue = (ctx: VisualContext, size: ISize) => {
-        return this.p.v;
+        return this.pixelMode ? this.yaxis.toValue(this.px.y) : this.p.v;
     }
 
-    public isHit(x: number, y: number): boolean {
-        if (this.p.uid && this.p.v) {
+    public isHit(p: IPoint): boolean {
+
+        if (!this.visible) {
+            return false;
+        }
+
+        if (this.pixelMode) {
+            const diff = Math.sqrt((this.px.x - p.x) * (this.px.x - p.x) + (this.px.y - p.y) * (this.px.y - p.y));
+            return diff < 5;
+        } else if (this.p.uid && this.p.v) {
             const px = this.taxis.toX(this.p.uid);
             const py = this.yaxis.toX(this.p.v);
 
             if (px) {
-                const diff = Math.sqrt((px - x) * (px - x) + (py - y) * (py - y));
+                const diff = Math.sqrt((px - p.x) * (px - p.x) + (py - p.y) * (py - p.y));
                 return diff < 5;
             }
         }
@@ -62,6 +116,9 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
     }
 
     public getXY(): IPoint|undefined {
+        if (this.pixelMode) {
+            return this.px;
+        }
         if (this.p.uid && this.p.v) {
             const x = this.taxis.toX(this.p.uid);
             const y = this.yaxis.toX(this.p.v);
@@ -72,8 +129,11 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
     }
 
     public shift(dx: number, dy: number): boolean {
-        const origPoint = new ChartPoint(this.p.uid, this.p.v);
-        if (this.p.uid && this.p.v) {
+        if (this.pixelMode) {
+            this.px.x += dx;
+            this.px.y += dy;
+        } else if (this.p.uid && this.p.v) {
+            const origPoint = new ChartPoint(this.p.uid, this.p.v);
             const px = this.taxis.toX(this.p.uid);
             const py = this.yaxis.toX(this.p.v);
 
@@ -81,8 +141,10 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
                 this.p.uid = this.taxis.toValue(px + dx);
                 this.p.v = this.yaxis.toValue(py + dy);
             }
+
+            return !this.p.equals(origPoint);
         }
-        return !this.p.equals(origPoint);
+        return false;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
@@ -92,26 +154,30 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
             return;
         }
 
-        if (this.p.uid && this.p.v) {
-            const coord = this.getXY();
-            if (coord) {
-                const canvas = this.area.frontCanvas;
+        let coord: IPoint|undefined;
+        if (this.pixelMode) {
+            coord = this.px;
+        } else if (this.p.uid && this.p.v) {
+            coord = this.getXY();
+        }
 
-                canvas.lineWidth = 2;
-                canvas.beginPath();
+        if (coord) {
+            const canvas = this.area.frontCanvas;
 
-                if (this.isHovered || this.isSelected) {
-                    canvas.arc(coord.x, coord.y, 5, 0, 2 * Math.PI, false);
+            canvas.lineWidth = 2;
+            canvas.beginPath();
 
-                    canvas.setFillStyle('#FFFFFF');
-                    canvas.setStrokeStyle('#606060');
-                    canvas.fill();
-                } else {
-                    canvas.setStrokeStyle('#C9001D');
-                }
+            if (this.isHovered || this.isSelected) {
+                canvas.arc(coord.x, coord.y, 5, 0, 2 * Math.PI, false);
 
-                canvas.stroke();
+                canvas.setFillStyle('#FFFFFF');
+                canvas.setStrokeStyle('#606060');
+                canvas.fill();
+            } else {
+                canvas.setStrokeStyle('#C9001D');
             }
+
+            canvas.stroke();
         }
 
         super.render(context, renderLocator);
@@ -136,61 +202,44 @@ class EditPointState implements IStateController {
         return this.inst;
     }
 
-    private mouse = new Mouse();
     private chartStack?: IChartStack;
     private point?: PointFigureComponent;
-    private currentCoords?: ChartPoint;
-
-    public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
 
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
         if (this.point && this.chartStack) {
-
-            //this.point.shift(mouse.x - this.mouse.x, mouse.y - this.mouse.y);
-
-            const coordX = this.chartStack.xToValue(mouse.x - board.offset.x - this.chartStack.offset.x);
-            const coordY = this.chartStack.yToValue(mouse.y - board.offset.y - this.chartStack.offset.y);
-
-            this.point.point.uid = coordX;
-            this.point.point.v = coordY;
-
+            const relX = mouse.pos.x - board.offset.x - this.chartStack.offset.x;
+            const relY = mouse.pos.y - board.offset.y - this.chartStack.offset.y;
+            if (this.point.pixelMode) {
+                this.point.pixel = { x: relX, y: relY };
+            } else {
+                const coordX = this.chartStack.xToValue(relX);
+                const coordY = this.chartStack.yToValue(relY);
+                this.point.point = { uid: coordX, v: coordY };
+            }
         } else {
             console.debug('Edit state: line or chartStack is not found.');
         }
-
-        [this.mouse.x, this.mouse.y] = [mouse.x, mouse.y];
     }
 
-    public onMouseEnter(board: IChartBoard, mouse: IMouse): void {
-        this.mouse.isEntered = true;
-    }
-    public onMouseLeave(board: IChartBoard, mouse: IMouse): void {
-        this.mouse.isEntered = false;
-        this.mouse.isDown = false;
-    }
+    public onMouseEnter(board: IChartBoard, mouse: IMouse): void { }
+    public onMouseLeave(board: IChartBoard, mouse: IMouse): void { }
     public onMouseUp(board: IChartBoard, mouse: IMouse): void {
-        this.mouse.isDown = false;
         this.exit(board, mouse);
     }
-    public onMouseDown(board: IChartBoard, mouse: IMouse): void {
-        this.mouse.isDown = true;
-    }
+    public onMouseDown(board: IChartBoard, mouse: IMouse): void { }
+    public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
 
-    public activate(board: IChartBoard, mouse: IMouse, activationParameters?: IHashTable<any>): void {
-        [this.mouse.x, this.mouse.y, this.mouse.isDown, this.mouse.isEntered] = [mouse.x, mouse.y, mouse.isDown, mouse.isEntered];
-
+    public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
         // Determine which ChartStack was hit
-        this.chartStack = board.getHitStack(mouse.x - board.offset.x, mouse.y - board.offset.y);
-        if (this.chartStack) {
-            // this.currentCoords = this.chartStack.mouseToCoords(
-            //     mouse.x - board.offset.x - this.chartStack.offset.x,
-            //     mouse.y - board.offset.y - this.chartStack.offset.y);
-
-
-
-        } else {
-            throw new Error('Can not find hit chart stack.');
-        }
+        //this.chartStack = board.getHitStack(mouse.x - board.offset.x, mouse.y - board.offset.y);
+        this.chartStack = stack;
+        // if (stack) {
+        //     // this.currentCoords = this.chartStack.mouseToCoords(
+        //     //     mouse.x - board.offset.x - this.chartStack.offset.x,
+        //     //     mouse.y - board.offset.y - this.chartStack.offset.y);
+        // } else {
+        //     throw new Error('Can not find hit chart stack.');
+        // }
 
         if (activationParameters && activationParameters['component']) {
             this.point = <PointFigureComponent>activationParameters['component'];

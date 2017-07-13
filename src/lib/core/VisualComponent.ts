@@ -1,17 +1,15 @@
 /**
  * VisualComponent class.
  */
-import { IPoint } from '../core/index';
 import { IRenderLocator } from '../render/index';
-import { ISize, Point, Size } from '../shared/index';
+import { IPoint, ISize, Point, Size } from '../shared/index';
+import { IVisualComponent } from './Interfaces';
 import { VisualContext } from './VisualContext';
 
-export abstract class VisualComponent { //implements IMouseHandler {
-
+export abstract class VisualComponent implements IVisualComponent {
     protected _offset: Point;
     protected _size: Size;
     protected _children: VisualComponent[] = [];
-    // protected childrenDesc: VisualComponentDesc[] = [];
     protected _visible = true;
 
     public get offset(): Point {
@@ -38,8 +36,8 @@ export abstract class VisualComponent { //implements IMouseHandler {
         this._visible = value;
     }
 
-    constructor(offset?: Point, size?: ISize) {
-        this._offset = offset ? offset : new Point(0, 0);
+    constructor(offset?: IPoint, size?: ISize) {
+        this._offset = offset ? new Point(offset.x, offset.y) : new Point(0, 0);
         this._size = size ? new Size(size.width, size.height) : new Size(0, 0);
     }
 
@@ -51,23 +49,17 @@ export abstract class VisualComponent { //implements IMouseHandler {
         this._children = this._children.filter((value) => value !== child);
     }
 
-    public render(context: VisualContext, renderLocator: IRenderLocator): void {
-
+    public handeMouse(relX: number, relY: number) {
         // Default behavior: just passing message to children
         for (const child of this._children) {
+            child.handeMouse(relX - child.offset.x, relY - child.offset.y);
+        }
+    }
 
-            // convert mouse coords to relative coords
-            const origMousePos = context.mousePosition;
-            if (context.mousePosition) {
-                context.mousePosition = new Point(
-                    context.mousePosition.x - child.offset.x,
-                    context.mousePosition.y - child.offset.y);
-            }
-
+    public render(context: VisualContext, renderLocator: IRenderLocator): void {
+        // Default behavior: just passing message to children
+        for (const child of this._children) {
             child.render(context, renderLocator);
-
-            // restore mousePosition
-            context.mousePosition = origMousePos;
         }
     }
 
@@ -85,6 +77,17 @@ export abstract class VisualComponent { //implements IMouseHandler {
                    directOrder: boolean = true): void {
         this.forEachAggregator(delegate, childrenFirst, directOrder, new Point(0, 0));
     }
+
+    // public getGlobalOffset(): IPoint {
+    //     //if (!this.globalOffset) {
+    //         if (this.parent) {
+    //             this.globalOffset = this._offset.add(this.parent.getGlobalOffset());
+    //         } else {
+    //             this.globalOffset = new Point(this._offset.x, this._offset.y);
+    //         }
+    //     //}
+    //     return this.globalOffset;
+    // }
 
     private forEachAggregator(
         delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void },

@@ -51,10 +51,12 @@ export class ChartController implements lychart.core.IDataService {
 
         // Hook up event handlers
         this.board.objectSelected.on(this.onObjectSelected);
+        this.board.objectTreeChanged.on(this.onObjectTreeChanged);
 
         $('.add-compare', container).click(this.onAddCompare);
-        $('.add-line', container).click(this.onAddLine);
-        $('.add-hline', container).click(this.onAddHLine);
+
+        // figures
+        $('.menu-figures', container).menu({ select: this.onAddFigure });
 
         const $sel = $('#sel-indicators').select2({ theme: 'classic' });
         $sel.on('change', this.onIndicatorsChange);
@@ -108,8 +110,12 @@ export class ChartController implements lychart.core.IDataService {
         this.props.show();
     }
 
-    private onObjectSelected = (arg: lychart.core.ObjectArgument) => {
+    private onObjectSelected = (arg: lychart.core.ObjectEventArgument) => {
         this.onItemSelected(new ItemSelectedArg('', arg.obj));
+    }
+
+    private onObjectTreeChanged = (arg: lychart.core.EventArgument) => {
+        this.tree.update();
     }
 
     private onChartTypeChange = () => {
@@ -196,12 +202,11 @@ export class ChartController implements lychart.core.IDataService {
         }
     }
 
-    private onAddLine = (evt: JQueryEventObject) => {
-        this.board.drawing.start('line');
-    }
-
-    private onAddHLine = (evt: JQueryEventObject) => {
-        this.board.drawing.start('horizon-line');
+    private onAddFigure = (evt: JQueryEventObject, ui: any) => {
+        const figureType = ui.item.attr('data-figure');
+        if (figureType) {
+            this.board.drawing.start(figureType);
+        }
     }
 
     public getCandle(asset: string, date: Date, interval: lychart.core.TimeInterval): Promise<Candlestick> {

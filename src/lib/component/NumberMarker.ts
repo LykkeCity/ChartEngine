@@ -2,10 +2,10 @@
  * NumberMarker class.
  */
 import { NumberAxis } from '../axes/index';
-import { IValueCoordConverter, VisualComponent, VisualContext } from '../core/index';
+import { IValueCoordConverter, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IMarkRender, IRenderLocator } from '../render/index';
-import { ISize, Point } from '../shared/index';
+import { IPoint, ISize, Point } from '../shared/index';
 import { IChartingSettings } from './Interfaces';
 
 export class NumberMarker extends VisualComponent {
@@ -16,7 +16,7 @@ export class NumberMarker extends VisualComponent {
 
     constructor(
         private readonly area: Area,
-        offset: Point, size: ISize, yaxis: IValueCoordConverter<number>, settings: IChartingSettings, getter: (ctx: VisualContext, size: ISize) => number|undefined ) {
+        offset: IPoint, size: ISize, yaxis: IValueCoordConverter<number>, settings: IChartingSettings, getter: (ctx: VisualContext, size: ISize) => number|undefined ) {
         super(offset, size);
         this.yaxis = yaxis;
         this.settings = settings;

@@ -1,7 +1,8 @@
 /**
  * 
  */
-import { Events, IMouse, Mouse, ObjectArgument, VisualComponent } from '../core/index';
+import { Events, IMouse, Mouse, ObjectEventArgument, VisualComponent } from '../core/index';
+import { Point } from '../shared/index';
 import { IChartBoard, IHoverable, isEditable, ISelectable, isHoverable, isSelectable, IStateController } from './Interfaces';
 
 export class HoverState implements IStateController {
@@ -17,11 +18,9 @@ export class HoverState implements IStateController {
 
     private hitComponent?: VisualComponent;
     private selectionMode = false;
-    private ignoreNextMove = false;
 
     public onMouseDown(board: IChartBoard, mouse: IMouse): void {
         this.selectionMode = true;
-        this.ignoreNextMove = true;
         this.hitComponent = this.getHitComponent(board, mouse);
     }
 
@@ -41,18 +40,12 @@ export class HoverState implements IStateController {
             if (isSelectable(this.hitComponent)) {
                 // select component
                 this.hitComponent.setSelected(true);
-                Events.instance.objectSelected.trigger(new ObjectArgument(this.hitComponent));
+                Events.instance.objectSelected.trigger(new ObjectEventArgument(this.hitComponent));
             }
         }
     }
 
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
-
-        // handle chrome behavior: click = down + move + up
-        if (this.ignoreNextMove) {
-            this.ignoreNextMove = false;
-            return;
-        }
 
         if (mouse.isDown && this.hitComponent) {
             if (isHoverable(this.hitComponent)) { this.hitComponent.setHovered(false); }
@@ -83,7 +76,6 @@ export class HoverState implements IStateController {
 
     public activate(board: IChartBoard, mouse: IMouse): void {
         this.selectionMode = false;
-        this.ignoreNextMove = false;
         this.hitComponent = undefined;
         board.setCursor('crosshair');
     }
@@ -105,9 +97,9 @@ export class HoverState implements IStateController {
         board.forEach(
             (component, aggregatedOffset) => {
                 if (isHoverable(component)) {
-                    const [localx, localy] = [mouse.x - aggregatedOffset.x, mouse.y - aggregatedOffset.y];
+                    const p = new Point(mouse.pos.x - aggregatedOffset.x, mouse.pos.y - aggregatedOffset.y);
 
-                    if (component.isHit(localx, localy) && !hitComponent) {
+                    if (component.isHit(p) && !hitComponent) {
                         hitComponent = component;
                         //component.setPopupVisibility(true);
                         //return false; // do not continue
@@ -135,36 +127,28 @@ export class MoveChartState implements IStateController {
         return this.inst;
     }
 
-    private mouse = new Mouse();
+    private last = new Point();
 
     public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
 
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
-        const diffX = mouse.x - this.mouse.x;
+        const diffX = mouse.pos.x - this.last.x;
         board.moveX(diffX);
 
-        [this.mouse.x, this.mouse.y] = [mouse.x, mouse.y];
+        [this.last.x, this.last.y] = [mouse.pos.x, mouse.pos.y];
     }
 
-    public onMouseEnter(board: IChartBoard, mouse: IMouse): void {
-        this.mouse.isEntered = true;
-    }
+    public onMouseEnter(board: IChartBoard, mouse: IMouse): void { }
     public onMouseLeave(board: IChartBoard, mouse: IMouse): void {
-        this.mouse.isEntered = false;
-        this.mouse.isDown = false;
         this.exit(board);
     }
     public onMouseUp(board: IChartBoard, mouse: IMouse): void {
-        this.mouse.isDown = false;
         this.exit(board);
     }
-    public onMouseDown(board: IChartBoard, mouse: IMouse): void {
-        this.mouse.isDown = true;
-    }
+    public onMouseDown(board: IChartBoard, mouse: IMouse): void { }
 
     public activate(board: IChartBoard, mouse: IMouse): void {
-        //this.mouse = { ...mouse2 }; // copy
-        [this.mouse.x, this.mouse.y, this.mouse.isDown, this.mouse.isEntered] = [mouse.x, mouse.y, mouse.isDown, mouse.isEntered];
+        [this.last.x, this.last.y] = [mouse.pos.x, mouse.pos.y];
     }
 
     public deactivate(board: IChartBoard, mouse: IMouse): void {

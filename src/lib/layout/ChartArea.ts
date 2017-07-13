@@ -1,8 +1,7 @@
 /**
  * ChartArea class.
  */
-import { IPoint } from '../core/index';
-import { ISize } from '../shared/index';
+import { IPoint, ISize } from '../shared/index';
 import { Area } from './Area';
 
 export class YArea extends Area {

@@ -2,10 +2,10 @@
  * PriceMarker class.
  */
 import { PriceAxis } from '../axes/index';
-import { VisualComponent, VisualContext } from '../core/index';
+import { IVisualComponent, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IMarkRender, IRenderLocator } from '../render/index';
-import { ISize, Point } from '../shared/index';
+import { IPoint, ISize } from '../shared/index';
 import { IChartingSettings } from './Interfaces';
 
 export class PriceMarker extends VisualComponent {
@@ -13,12 +13,14 @@ export class PriceMarker extends VisualComponent {
     private readonly area: Area;
     private readonly axis: PriceAxis;
     private readonly settings: IChartingSettings;
+    private readonly getter: (ctx: VisualContext, size: ISize) => number|undefined;
 
-    constructor(area: Area, offset: Point, size: ISize, axis: PriceAxis, settings: IChartingSettings) {
+    constructor(area: Area, offset: IPoint, size: ISize, axis: PriceAxis, settings: IChartingSettings, getter: (ctx: VisualContext, size: ISize) => number|undefined) {
         super(offset, size);
         this.area = area;
         this.axis = axis;
         this.settings = settings;
+        this.getter = getter;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
@@ -27,14 +29,11 @@ export class PriceMarker extends VisualComponent {
             return ;
         }
 
-        if (context.mousePosition) {
-            const mouseY = context.mousePosition.y;
-
-            if (mouseY > 0 && mouseY < this.size.height) {
-                const render = <IMarkRender<number>>renderLocator.getMarkRender('number');
-                const num = this.axis.toValue(mouseY);
-                render.render(this.area.frontCanvas, num, { x: 0, y: mouseY }, this.size, this.settings.precision());
-            }
+        const value = this.getter(context, this.size);
+        if (value) {
+            const render = <IMarkRender<number>>renderLocator.getMarkRender('number');
+            const y = this.axis.toX(value);
+            render.render(this.area.frontCanvas, value, { x: 0, y: y }, this.size, this.settings.precision());
         }
     }
 }

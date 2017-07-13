@@ -7,13 +7,34 @@ export interface IRange<T> {
     readonly end: T;
 }
 
-export class Point {
-    public readonly x: number;
-    public readonly y: number;
+export interface IPoint {
+    readonly x: number;
+    readonly y: number;
+}
 
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
+export class Point {
+    public x: number;
+    public y: number;
+
+    constructor(x?: number, y?: number) {
+        this.x = x ? x : 0;
+        this.y = y ? y : 0;
+    }
+
+    /**
+     * Returns new point which is a sum of this and other point. Original point is not changed.
+     * @param p
+     */
+    public add(p: IPoint): Point {
+        return new Point(this.x + p.x, this.y + p.y);
+    }
+
+    /**
+     * Returns new point which is difference b/w this and other point. Original point is not changed.
+     * @param p
+     */
+    public sub(p: IPoint): Point {
+        return new Point(this.x - p.x, this.y - p.y);
     }
 }
 

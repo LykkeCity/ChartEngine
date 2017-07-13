@@ -4,10 +4,10 @@
  * @classdesc Renders points in a form of line chart.
  */
 import { ICanvas } from '../canvas/index';
-import { IAxis, IPoint, ITimeAxis } from '../core/index';
+import { IAxis, ITimeAxis } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Point } from '../model/index';
-import { IRect } from '../shared/index';
+import { IPoint, IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
 import { SettingSet } from "../core/SettingSet";
 

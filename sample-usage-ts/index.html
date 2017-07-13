@@ -3,7 +3,8 @@
 <head>
     <title>Sample typescript app</title>
 	<meta charset="utf-8" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css"/>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <style type="text/css">
         body {
             margin: 0;
@@ -65,7 +66,9 @@
         }
     </style>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+    
 </head>
 <body>
     <table>
@@ -109,11 +112,33 @@
                             <button class="add-compare">Add</button>
                         </fieldset>
 
-                        <fieldset>
-                            <legend>Figures: </legend>
-                            <button class="add-line">Line</button>&nbsp;
-                            <button class="add-hline">H-Line</button>
-                        </fieldset>
+                        <div style="display: inline-block">
+                            <ul class="menu-figures">
+                                <li>
+                                    <div>Figures</div>
+                                    <ul>
+                                        <li data-figure="line"><div>Line</div></li>
+                                        <li data-figure="hline"><div>H-Line</div></li>
+                                        <li data-figure="vline"><div>V-Line</div></li>
+                                        <li data-figure="rect"><div>Rect</div></li>
+                                        <li data-figure="triangle"><div>Triangle</div></li>
+                                        <li data-figure="path"><div>Path</div></li>
+                                        <li data-figure="pitchfork"><div>Pitchfork</div></li>
+                                        <li data-figure="text"><div>Text</div></li>
+                                        <li data-figure="ellipse"><div>Ellipse</div></li>
+                                        <li data-figure="trendchannel"><div>Trend Channel</div></li>
+                                        <li data-figure="curve"><div>Curve</div></li>
+                                        <li data-figure="daterange"><div>Date Range</div></li>
+                                        <li data-figure="fibofan"><div>Fibo Fan</div></li>
+                                        <li data-figure="fibolevel"><div>Fibo Level</div></li>
+                                        <li data-figure="fiboprojection"><div>Fibo Projection</div></li>
+                                        <li data-figure="fibotimeprojection"><div>Fibo Time Projection</div></li>
+                                        <li data-figure="gannfan"><div>Gann Fan</div></li>
+                                        <li data-figure="ohlcproj"><div>OHLC Proj</div></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
 
                         <span>Indicators: </span>
 

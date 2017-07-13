@@ -2,10 +2,10 @@
  * 
  */
 import { ICanvas, LinePattern } from '../canvas/index';
-import { IAxis, IChartPoint, IPoint, ITimeAxis } from '../core/index';
+import { IAxis, IChartPoint, ITimeAxis } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick, IUidValue } from '../model/index';
-import { IRect } from '../shared/index';
+import { IPoint, IRect } from '../shared/index';
 import { IChartRender } from './Interfaces';
 
 export class RenderUtils {

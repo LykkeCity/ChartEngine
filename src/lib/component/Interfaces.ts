@@ -1,9 +1,12 @@
 /**
  * 
  */
-import { ChartPoint, IAxis, ICoordsConverter, IMouse, IPoint, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, VisualComponent } from '../core/index';
+import { ChartPoint, IAxis, ICoordsConverter, IMouse, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, VisualComponent, VisualContext }
+    from '../core/index';
 import { Area, ChartArea } from '../layout/index';
-import { IHashTable, ISize } from '../shared/index';
+import { Uid } from '../model/index';
+import { IChartRender, IRenderLocator, RenderLocator } from '../render/index';
+import { IHashTable, IPoint, IRange, ISize } from '../shared/index';
 import { FigureComponent } from './FigureComponent';
 
 export interface IDrawing {
@@ -20,7 +23,7 @@ export function isSelectable(obj: any): obj is ISelectable {
 }
 
 export interface IHoverable {
-    isHit(mouseX: number, mouseY: number): boolean;
+    isHit(p: IPoint): boolean;
     setHovered(hovered: boolean): void;
 }
 
@@ -41,7 +44,6 @@ export interface IChartBoard {
     offset: IPoint;
     changeState(state: string | IStateController, activationParameters?: IHashTable<any>): void;
     forEach(delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void }, childrenFirst?: boolean, directOrder?: boolean): void;
-    getHitStack(mouseX: number, mouseY: number): IChartStack | undefined;
     moveX(shift: number): void;
     setCursor(style: string): void;
 }
@@ -49,11 +51,26 @@ export interface IChartBoard {
 export interface IChartStack extends ICoordsConverter {
     uid: string;
     offset: IPoint;
-    addFigure(ctor: {(area: ChartArea, offset: IPoint, size: ISize, settings: IChartingSettings, tcoord: ITimeCoordConverter, vcoord: IValueCoordConverter<number>): FigureComponent}) : FigureComponent;
+    charts: IChart[];
+    figures: IFigure[];
+    addFigure(ctor: {(area: ChartArea, offset: IPoint, size: ISize, settings: IChartingSettings, tcoord: ITimeCoordConverter, vcoord: IValueCoordConverter<number>, source?: ISource): FigureComponent}) : FigureComponent;
+}
+
+export interface IChart {
+    uid: string;
+    name: string;
+    precision: number;
+    getValuesRange(range: IRange<Uid>): IRange<number>;
+    render(context: VisualContext, renderLocator: IRenderLocator): void;
+}
+
+export interface IFigure {
+    uid: string;
+    name: string;
 }
 
 export interface IStateController {
-    activate(board: IChartBoard, mouse: IMouse, parameters?: IHashTable<any>): void;
+    activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, parameters?: IHashTable<any>): void;
     deactivate(board: IChartBoard, mouse: IMouse): void;
 
     onMouseWheel(board: IChartBoard, mouse: IMouse): void;
@@ -61,7 +78,7 @@ export interface IStateController {
     onMouseEnter(board: IChartBoard, mouse: IMouse): void;
     onMouseLeave(board: IChartBoard, mouse: IMouse): void;
     onMouseUp(board: IChartBoard, mouse: IMouse): void;
-    onMouseDown(board: IChartBoard, mouse: IMouse): void;
+    onMouseDown(board: IChartBoard, mouse: IMouse, stack?: IChartStack): void;
 }
 
 export function isStateController(obj: any): obj is IStateController {

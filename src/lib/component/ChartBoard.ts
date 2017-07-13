@@ -3,16 +3,16 @@
  * 
  * @classdesc Facade for the chart library.
  */
-import { ChartType, Events, IDataService, IQuicktip, IQuicktipBuilder, IStorage, Mouse, ObjectArgument, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { ChartType, EventArgument, Events, IDataService, ISource, IQuicktip, IQuicktipBuilder, IStorage, Mouse, MouseEventArgument, ObjectEventArgument, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, DataSourceFactory, DataSourceRegister, IDataSource, IndicatorDataSource } from '../data/index';
 import { IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
-import { Candlestick, Point } from '../model/index';
+import { Candlestick, Uid } from '../model/index';
 import { RenderLocator } from '../render/index';
-import { IEvent, IHashTable, IRange, Point as IPoint, throttle } from '../shared/index';
+import { IEvent, IHashTable, IRange, Point, throttle } from '../shared/index';
 import { DateUtils, UidUtils } from '../utils/index';
 import { ChartStack } from './ChartStack';
-import { IChartBoard, IDrawing, isStateController, IStateController } from './Interfaces';
+import { IChartBoard, IChartStack, IDrawing, isStateController, IStateController } from './Interfaces';
 import { StateFabric } from './StateFabric';
 import { HoverState, MoveChartState } from './States';
 import { LoadRangeArgument, TimeAxis } from './TimeAxis';
@@ -29,7 +29,7 @@ class IndicatorDescription {
     }
 }
 
-export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard {
+export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard, ISource {
 
     private readonly area: BoardArea;
     private readonly chartStacks: ChartStack[] = [];
@@ -50,11 +50,15 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     protected timeRange: IRange<Date>;
 
     // Public Events
-    public get objectSelected(): IEvent<ObjectArgument> {
+    public get objectSelected(): IEvent<ObjectEventArgument> {
         return Events.instance.objectSelected;
     }
 
-    // End of "Public Events"
+    public get objectTreeChanged(): IEvent<EventArgument> {
+        return Events.instance.objectTreeChanged;
+    }
+
+    // -- End of "Public Events" --
 
     constructor(
         private readonly container: HTMLElement,
@@ -86,7 +90,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
         // Create main chart area
         //
-        const chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true);
+        const chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true, this);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
 
@@ -104,8 +108,26 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.state = HoverState.instance;
     }
 
-    public get stacks(): ChartStack[] {
+    public get stacks(): IChartStack[] {
         return this.chartStacks.slice();
+    }
+
+    public getObjectById(uid: string): any|undefined {
+        for (const stack of this.chartStacks) {
+            if (stack.uid === uid) {
+                return stack;
+            }
+            for (const chart of stack.charts) {
+                if (chart.uid === uid) {
+                    return chart;
+                }
+            }
+            for (const figure of stack.figures) {
+                if (figure.uid === uid) {
+                    return figure;
+                }
+            }
+        }
     }
 
     public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
@@ -299,50 +321,34 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         renderBase = renderBase === undefined ? true : renderBase;
         renderFront = renderFront === undefined ? true : renderFront;
 
-        if (renderBase) {
-            this.area.clearBase();
-        }
-        if (renderFront) {
-            this.area.clearFront();
-        }
+        if (renderBase) { this.area.clearBase(); }
+        if (renderFront) { this.area.clearFront(); }
 
-        let mouse; // = { x: this.mouse.x, y: this.mouse.y };
-        if (this.mouse.isEntered && this.mouse.x && this.mouse.y) {
-            mouse = new IPoint(
-                this.mouse.x - this.offset.x, // - this.container.offsetLeft,
-                this.mouse.y - this.offset.y); // - this.container.offsetTop);
-        }
+        // Mouse position
+        const relMouse = this.mouse.isEntered ? this.mouse.pos.sub(this.offset) : undefined;
+        //const glMouse = this.mouse.isEntered ? new Point(this.mouse.x - this.offset.x, this.mouse.y - this.offset.y) : undefined;
 
+        // Render stacks
         for (const cStack of this.chartStacks) {
-
-            let relativeMouse: IPoint | undefined;
-            // Convert mouse coords to relative
-            if (mouse) {
-                relativeMouse = new IPoint(mouse.x - cStack.offset.x, mouse.y - cStack.offset.y);
-            }
-
             // Prepare rendering objects: locator and context.
             const context: VisualContext = new VisualContext(
                 renderBase,
-                renderFront,
-                relativeMouse);
+                renderFront
+                //relMouse ? relMouse.sub(cStack.offset) : undefined
+                ); // relative mouse coords
 
             cStack.render(context, RenderLocator.Instance);
         }
 
-        let relativeMouse: IPoint | undefined;
-        // Convert mouse coords to relative
-        if (mouse) {
-            relativeMouse = new IPoint(mouse.x - this.timeAxisComponent.offset.x, mouse.y - this.timeAxisComponent.offset.y);
-        }
-
+        // Render time axis
         const context: VisualContext = new VisualContext(
             renderBase,
-            renderFront,
-            relativeMouse);
-
+            renderFront
+            //relMouse ? relMouse.sub(this.timeAxisComponent.offset) : undefined
+            );
         this.timeAxisComponent.render(context, RenderLocator.Instance);
 
+        // Swap render layers
         this.area.render();
     }
 
@@ -407,6 +413,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     }
 
     private mouse: Mouse = new Mouse();
+    private ignoreNextMove = false;
 
     private onMouseWheel = (event: any) => {
         if (false == !!event) { event = window.event; }
@@ -421,9 +428,19 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     }
 
     private onMouseMove = (event: any) => {
-        [this.mouse.x, this.mouse.y] = [event.pageX, event.pageY]; // [event.pageX - this.offset.x, event.pageY - this.offset.y];
+        // handle chrome behavior: click = down + move + up
+        if (this.ignoreNextMove) {
+            this.ignoreNextMove = false;
+            return;
+        }
+
+        [this.mouse.pos.x, this.mouse.pos.y] = [event.pageX, event.pageY];
 
         this.state.onMouseMove(this, this.mouse);
+
+        super.handeMouse(this.mouse.pos.x - this.offset.x, this.mouse.pos.y - this.offset.y);
+
+        //Events.instance.mouseMove.trigger(new MouseEventArgument(this.mouse));
 
         if (this.mouse.isEntered && this.mouse.isDown) {
             this.renderLayers(true, true);
@@ -444,6 +461,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     }
 
     private onMouseUp = (event: any) => {
+        this.ignoreNextMove = true;
         this.mouse.isDown = false;
         this.state.onMouseUp(this, this.mouse);
         this.renderLayers(false, true);
@@ -451,17 +469,18 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
     private onMouseDown = (event: any) => {
         this.mouse.isDown = true;
-        this.state.onMouseDown(this, this.mouse);
+
+        const hitStack = this.getHitStack();
+        this.state.onMouseDown(this, this.mouse, hitStack);
     }
 
     public moveX(diffX: number) {
         this.timeAxis.move(diffX);
     }
 
-    public getHitStack(localX: number, localY: number): ChartStack | undefined {
-        if (!localX || !localY) {
-            return undefined;
-        }
+    public getHitStack(): ChartStack | undefined {
+        const localX = this.mouse.pos.x - this.offset.x;
+        const localY = this.mouse.pos.y - this.offset.y;
 
         for (const cStack of this.chartStacks) {
             const relativeX = localX - cStack.offset.x;
@@ -504,8 +523,27 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
             throw new Error(`State is not defined for the specified stateId '${ state }'`);
         }
 
+        const hitStack = this.getHitStack();
+
         this.state.deactivate(this, this.mouse);
         this.state = stateInstance;
-        this.state.activate(this, this.mouse, activationParameters);
+        this.state.activate(this, this.mouse, hitStack, activationParameters);
+        this.ignoreNextMove = false;
+    }
+
+    /**
+     * "ISource" implementation. Works with primary data source.
+     */
+
+    public getHHLL(uidFrom: Uid, uidTo: Uid): Candlestick|undefined {
+        if (this.primaryDataSource) {
+            return this.primaryDataSource.getHHLL(uidFrom, uidTo);
+        }
+    }
+
+    public getLastCandle(): Candlestick|undefined {
+        if (this.primaryDataSource) {
+            return this.primaryDataSource.getLastCandle();
+        }
     }
 }

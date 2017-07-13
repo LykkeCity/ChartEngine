@@ -2,8 +2,7 @@
  * TimeMarkRenderer class.
  */
 import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
-import { IPoint } from '../core/index';
-import { ISize } from '../shared/index';
+import { IPoint, ISize } from '../shared/index';
 import { IMarkRender } from './Interfaces';
 
 export class TimeMarkRenderer implements IMarkRender<Date> {

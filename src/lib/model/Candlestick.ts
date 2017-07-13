@@ -44,6 +44,30 @@ export class Uid {
         }
         return false;
     }
+
+    public static min(...uids: Uid[]): Uid {
+        if (uids.length < 1) {
+            throw new Error('Argument is not specified');
+        }
+
+        let min: Uid = uids[0];
+        uids.forEach(value => {
+            min = min ? (min.compare(value) <= 0 ? min : value) : value;
+        });
+        return min;
+    }
+
+    public static max(...uids: Uid[]): Uid {
+        if (uids.length < 1) {
+            throw new Error('Argument is not specified');
+        }
+
+        let max: Uid = uids[0];
+        uids.forEach(value => {
+            max = max ? (max.compare(value) >= 0 ? max : value) : value;
+        });
+        return max;
+    }
 }
 
 export class Candlestick implements ITimeValue, IUidValue {

@@ -2,17 +2,18 @@
  * ChartStack class.
  */
 import { NumberAxis, PriceAxis } from '../axes/index';
-import { ChartPoint, IAxis, IConfigurable, ICoordsConverter, IPoint, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, SettingSet, SettingType, VisualComponent, VisualContext } from '../core/index';
+import { ChartPoint, Events, IAxis, IChartPoint, IConfigurable, ICoordsConverter, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, IVisualComponent, SettingSet, SettingType, VisualComponent, VisualContext }
+    from '../core/index';
 import { IDataSource } from '../data/index';
 import { Area, BoardArea, ChartArea, SizeChangedArgument } from '../layout/index';
 import { Candlestick, Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
-import { IRange, ISize, Point } from '../shared/index';
-import { Chart, IChart } from './Chart';
+import { IPoint, IRange, ISize, Point } from '../shared/index';
+import { Chart } from './Chart';
 import { Crosshair } from './Crosshair';
 import { FigureComponent } from './FigureComponent';
 import { Grid } from './Grid';
-import { IChartingSettings, IChartStack } from './Interfaces';
+import { IChart, IChartingSettings, IChartStack, IFigure } from './Interfaces';
 import { NumberAxisComponent } from './NumberAxisComponent';
 import { PriceAxisComponent } from './PriceAxisComponent';
 import { QuicktipBuilder } from './Quicktip';
@@ -28,24 +29,27 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     private readonly _charts: IChart[] = [];
     private readonly crosshair: Crosshair;
     private readonly grid: Grid;
-    private readonly figures: FigureComponent[] = [];
+    private readonly _figures: FigureComponent[] = [];
     private readonly yAxisComponent: VisualComponent;
     private _precision: number = 0;
+    private source?: ISource;
 
     constructor(
         uid: string,
         boardArea: BoardArea,
         timeAxis: ITimeAxis,
-        yIsPrice: boolean) {
+        yIsPrice: boolean,
+        source?: ISource) {
         super();
 
         this._uid = uid;
         this.boardArea = boardArea;
         this.tAxis = timeAxis;
+        this.source = source;
         this.area = boardArea.addChart();
         this.area.sizeChanged.on(this.onresize);
 
-        this._offset = this.area.offset;
+        this._offset = new Point(this.area.offset.x, this.area.offset.y);
         this._size = this.area.size;
 
         this.qtBuilder = new QuicktipBuilder(this.area.qtipContainer);
@@ -105,6 +109,10 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         return this._charts.slice();
     }
 
+    public get figures(): IFigure[] {
+        return this._figures.slice();
+    }
+
     public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>): void {
         const qtip = this.qtBuilder.addQuicktip(uid);
 
@@ -135,10 +143,12 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this.updateChartingSettings();
     }
 
-    public addFigure(ctor: {(area: ChartArea, offset: IPoint, size: ISize, settings: IChartingSettings, tcoord: ITimeCoordConverter, vcoord: IValueCoordConverter<number>): FigureComponent}) : FigureComponent {
-        const figure = ctor(this.area, { x: 0, y: 0 }, this.size, this, this.tAxis, this.yAxis);
-        this.figures.push(figure);
-        this.addChild(figure);
+    public addFigure(ctor: {
+            (area: ChartArea, offset: IPoint, size: ISize, settings: IChartingSettings, tcoord: ITimeCoordConverter, vcoord: IValueCoordConverter<number>, source?: ISource): FigureComponent}) : FigureComponent {
+        const figure = ctor(this.area, { x: 0, y: 0 }, this.size, this, this.tAxis, this.yAxis, this.source);
+        this._figures.push(figure);
+        this.addChild(figure); // to the end
+        Events.instance.objectTreeChanged.trigger();
         return figure;
     }
 
@@ -171,6 +181,21 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
 
     public yToValue(y: number): number | undefined {
         return this.yAxis.toValue(y);
+    }
+
+    public toXY(point: IChartPoint): IPoint|undefined {
+        if (point.uid && point.v !== undefined) {
+            const x = this.toX(point.uid);
+            const y = this.toY(point.v);
+            return x !== undefined ? { x: x, y: y } : undefined;
+        }
+    }
+
+    public xyToValue(point: IPoint): IChartPoint {
+        return {
+            uid: this.xToValue(point.x),
+            v: this.yToValue(point.y)
+        };
     }
 
     private _fixedRange: IRange<number> | undefined;
@@ -212,7 +237,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     }
 
     protected onresize = (arg: SizeChangedArgument) => {
-        this._offset = this.area.offset;
+        [this._offset.x, this._offset.y] = [this.area.offset.x, this.area.offset.y];
 
         const w = this.area.size.width;
         const h = this.area.size.height;
