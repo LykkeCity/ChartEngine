@@ -58,14 +58,9 @@ export class DrawUtils {
         });
 
         // Test point "y" value 
-        for (let i = 0; i < testedY.length; i += 1) {
-            const yt = testedY[i];
-            if (y >= yt - precision && y <= yt + precision) {
-                return true;
-            }
-        }
-
-        return false;
+        return testedY.some(yt => {
+            return (y >= yt - precision && y <= yt + precision);
+        });
     }
 
     /**

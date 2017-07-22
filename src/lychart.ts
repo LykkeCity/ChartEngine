@@ -5,6 +5,8 @@ import {
     Chart,
     ChartBoard,
     FigureComponent,
+    FigureFactory,
+    FigureType,
     HoverState,
     IStateController,
     MoveChartState,
@@ -51,11 +53,31 @@ register('fibotimeprojection', drawing.DrawFiboTimeProjectionState.instance);
 register('gannfan', drawing.DrawGannFanState.instance);
 register('ohlcproj', drawing.DrawOhlcProjState.instance);
 
+// Register drawing figures
+FigureFactory.instance.register(FigureType.curve, drawing.CurveFigureComponent);
+FigureFactory.instance.register(FigureType.line, drawing.LineFigureComponent);
+FigureFactory.instance.register(FigureType.hline, drawing.HorizontalLineFigureComponent);
+FigureFactory.instance.register(FigureType.vline, drawing.VerticalLineFigureComponent);
+FigureFactory.instance.register(FigureType.rect, drawing.RectFigureComponent);
+FigureFactory.instance.register(FigureType.triangle, drawing.TriangleFigureComponent);
+FigureFactory.instance.register(FigureType.path, drawing.PathFigureComponent);
+FigureFactory.instance.register(FigureType.pitchfork, drawing.PitchforkFigureComponent);
+FigureFactory.instance.register(FigureType.text, drawing.TextFigureComponent);
+FigureFactory.instance.register(FigureType.ellipse, drawing.EllipseFigureComponent);
+FigureFactory.instance.register(FigureType.trendchannel, drawing.TrendChannelFigureComponent);
+FigureFactory.instance.register(FigureType.daterange, drawing.DateRangeFigureComponent);
+FigureFactory.instance.register(FigureType.fibofan, drawing.FiboFanFigureComponent);
+FigureFactory.instance.register(FigureType.fibolevel, drawing.FiboLevelFigureComponent);
+FigureFactory.instance.register(FigureType.fiboprojection, drawing.FiboProjectionFigureComponent);
+FigureFactory.instance.register(FigureType.fibotimeprojection, drawing.FiboTimeProjectionFigureComponent);
+FigureFactory.instance.register(FigureType.gannfan, drawing.GannFanFigureComponent);
+FigureFactory.instance.register(FigureType.ohlcproj, drawing.OhlcProjFigureComponent);
+
 const states = {
     register: register
 };
 
-// Registor built-in indicators
+// Register built-in indicators
 indicator.register('alligator', indicator.AlligatorIndicator);
 indicator.register('bollinger', indicator.BollingerIndicator);
 indicator.register('SSTOC', indicator.SlowStochasticOscillator);

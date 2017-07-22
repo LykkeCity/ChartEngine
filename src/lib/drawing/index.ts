@@ -1,24 +1,25 @@
 /**
  * 
  */
-import { DrawCurveState } from './DrawCurveState';
-import { DrawDateRangeState } from './DrawDateRangeState';
-import { DrawEllipseState } from './DrawEllipseState';
-import { DrawFiboFanState } from './DrawFiboFanState';
-import { DrawFiboLevelState } from './DrawFiboLevelState';
-import { DrawFiboProjectionState } from './DrawFiboProjectionState';
-import { DrawFiboTimeProjectionState } from './DrawFiboTimeProjectionState';
-import { DrawGannFanState } from './DrawGannFanState';
-import { DrawHorizontalLineState } from './DrawHorizontalLineState';
-import { DrawLineState } from './DrawLineState';
-import { DrawOhlcProjState } from './DrawOhlcProjState';
-import { DrawPathState } from './DrawPathState';
-import { DrawPitchforkState } from './DrawPitchforkState';
-import { DrawRectState } from './DrawRectState';
-import { DrawTextState } from './DrawTextState';
-import { DrawTrendChannelState } from './DrawTrendChannelState';
-import { DrawTriangleState } from './DrawTriangleState';
-import { DrawVerticalLineState } from './DrawVerticalLineState';
+import { CurveFigureComponent, DrawCurveState } from './DrawCurveState';
+import { DateRangeFigureComponent, DrawDateRangeState } from './DrawDateRangeState';
+import { DrawEllipseState, EllipseFigureComponent } from './DrawEllipseState';
+import { DrawFiboFanState, FiboFanFigureComponent } from './DrawFiboFanState';
+import { DrawFiboLevelState, FiboLevelFigureComponent } from './DrawFiboLevelState';
+import { DrawFiboProjectionState, FiboProjectionFigureComponent } from './DrawFiboProjectionState';
+import { DrawFiboTimeProjectionState, FiboTimeProjectionFigureComponent } from './DrawFiboTimeProjectionState';
+import { DrawGannFanState, GannFanFigureComponent } from './DrawGannFanState';
+import { DrawHorizontalLineState, HorizontalLineFigureComponent } from './DrawHorizontalLineState';
+import { DrawLineState, LineFigureComponent } from './DrawLineState';
+import { DrawOhlcProjState, OhlcProjFigureComponent } from './DrawOhlcProjState';
+import { DrawPathState, PathFigureComponent } from './DrawPathState';
+import { DrawPitchforkState, PitchforkFigureComponent } from './DrawPitchforkState';
+import { DrawRectState, RectFigureComponent } from './DrawRectState';
+import { DrawTextState, TextFigureComponent } from './DrawTextState';
+import { DrawTrendChannelState, TrendChannelFigureComponent } from './DrawTrendChannelState';
+import { DrawTriangleState, TriangleFigureComponent } from './DrawTriangleState';
+import { DrawVerticalLineState, VerticalLineFigureComponent } from './DrawVerticalLineState';
+
 import { PointFigureComponent } from './PointFigureComponent';
 
 export {
@@ -40,5 +41,24 @@ export {
     DrawTrendChannelState,
     DrawTriangleState,
     DrawVerticalLineState,
-    PointFigureComponent
+    PointFigureComponent,
+    // figures
+    CurveFigureComponent,
+    DateRangeFigureComponent,
+    EllipseFigureComponent,
+    FiboFanFigureComponent,
+    FiboLevelFigureComponent,
+    FiboProjectionFigureComponent,
+    FiboTimeProjectionFigureComponent,
+    GannFanFigureComponent,
+    HorizontalLineFigureComponent,
+    LineFigureComponent,
+    OhlcProjFigureComponent,
+    PathFigureComponent,
+    PitchforkFigureComponent,
+    RectFigureComponent,
+    TextFigureComponent,
+    TrendChannelFigureComponent,
+    TriangleFigureComponent,
+    VerticalLineFigureComponent
 };

@@ -1,11 +1,12 @@
 /**
- * 
+ * PointFigureComponent class
  */
 import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberMarker, TimeMarker }
     from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, VisualContext }
+import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, StoreContainer, VisualContext }
     from '../core/index';
 import { ChartArea } from '../layout/index';
+import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
 import { Event, IEvent, IHashTable, IPoint, ISize, Point } from '../shared/index';
 
@@ -25,34 +26,33 @@ export class PointChangedArgument {
 }
 
 export class PointFigureComponent extends FigureComponent implements IHoverable, IEditable, ISelectable {
-    private p = new ChartPoint();
-    private px = new Point();
     private timeMarker: TimeMarker;
     private valueMarker: NumberMarker;
-    private _pixelMode = false;
+    private store: PointStore;
 
     public get point(): IChartPoint {
-        return this.p;
+        return this.store.point;
     }
 
     public set point(value: IChartPoint) {
-        this.p.uid = value.uid;
-        this.p.v = value.v;
+        this.store.point.uid = value.uid;
+        this.store.point.v = value.v;
+        this.store.setChanged();
         this.changedEvent.trigger();
     }
 
     public get pixel(): IPoint {
-        return this.px;
+        return this.store.pixel;
     }
 
     public set pixel(value: IPoint) {
-        this.px.x = value.x;
-        this.px.y = value.y;
+        this.store.pixel.x = value.x;
+        this.store.pixel.y = value.y;
         this.changedEvent.trigger();
     }
 
     public get pixelMode(): boolean {
-        return this._pixelMode;
+        return this.store.pixelMode;
     }
 
     protected changedEvent = new PointChangedEvent();
@@ -67,11 +67,14 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
         private yaxis: IValueCoordConverter<number>,
+        private container?: StoreContainer,
         pixelMode = false
         ) {
-        super('Point', offset, size);
+        super('Point', offset, size, container || new StoreContainer());
 
-        this._pixelMode = pixelMode;
+        this.store = new PointStore(container || new StoreContainer());
+
+        this.store.pixelMode = pixelMode;
 
         this.valueMarker = new NumberMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValue);
         this.addChild(this.valueMarker);
@@ -81,11 +84,11 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
     }
 
     private getUid = (ctx: VisualContext, size: ISize) => {
-        return this.pixelMode ? this.taxis.toValue(this.px.x) : this.p.uid;
+        return this.pixelMode ? this.taxis.toValue(this.pixel.x) : this.point.uid;
     }
 
     private getValue = (ctx: VisualContext, size: ISize) => {
-        return this.pixelMode ? this.yaxis.toValue(this.px.y) : this.p.v;
+        return this.pixelMode ? this.yaxis.toValue(this.pixel.y) : this.point.v;
     }
 
     public isHit(p: IPoint): boolean {
@@ -95,11 +98,11 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
         }
 
         if (this.pixelMode) {
-            const diff = Math.sqrt((this.px.x - p.x) * (this.px.x - p.x) + (this.px.y - p.y) * (this.px.y - p.y));
+            const diff = Math.sqrt((this.pixel.x - p.x) * (this.pixel.x - p.x) + (this.pixel.y - p.y) * (this.pixel.y - p.y));
             return diff < 5;
-        } else if (this.p.uid && this.p.v) {
-            const px = this.taxis.toX(this.p.uid);
-            const py = this.yaxis.toX(this.p.v);
+        } else if (this.point.uid && this.point.v) {
+            const px = this.taxis.toX(this.point.uid);
+            const py = this.yaxis.toX(this.point.v);
 
             if (px) {
                 const diff = Math.sqrt((px - p.x) * (px - p.x) + (py - p.y) * (py - p.y));
@@ -117,11 +120,11 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
 
     public getXY(): IPoint|undefined {
         if (this.pixelMode) {
-            return this.px;
+            return this.pixel;
         }
-        if (this.p.uid && this.p.v) {
-            const x = this.taxis.toX(this.p.uid);
-            const y = this.yaxis.toX(this.p.v);
+        if (this.point.uid && this.point.v) {
+            const x = this.taxis.toX(this.point.uid);
+            const y = this.yaxis.toX(this.point.v);
             if (x !== undefined) {
                 return { x: x, y: y };
             }
@@ -130,19 +133,17 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
 
     public shift(dx: number, dy: number): boolean {
         if (this.pixelMode) {
-            this.px.x += dx;
-            this.px.y += dy;
-        } else if (this.p.uid && this.p.v) {
-            const origPoint = new ChartPoint(this.p.uid, this.p.v);
-            const px = this.taxis.toX(this.p.uid);
-            const py = this.yaxis.toX(this.p.v);
+            this.pixel = { x: this.pixel.x + dx, y: this.pixel.y + dy };
+        } else if (this.point.uid && this.point.v) {
+            const origPoint = new ChartPoint(this.point.uid, this.point.v);
+            const px = this.taxis.toX(this.point.uid);
+            const py = this.yaxis.toX(this.point.v);
 
             if (px) {
-                this.p.uid = this.taxis.toValue(px + dx);
-                this.p.v = this.yaxis.toValue(py + dy);
+                this.point = { uid: this.taxis.toValue(px + dx), v: this.yaxis.toValue(py + dy) };
             }
 
-            return !this.p.equals(origPoint);
+            return !this.store.point.equals(origPoint);
         }
         return false;
     }
@@ -156,8 +157,8 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
 
         let coord: IPoint|undefined;
         if (this.pixelMode) {
-            coord = this.px;
-        } else if (this.p.uid && this.p.v) {
+            coord = this.pixel;
+        } else if (this.point.uid && this.point.v) {
             coord = this.getXY();
         }
 
@@ -230,17 +231,7 @@ class EditPointState implements IStateController {
     public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
-        // Determine which ChartStack was hit
-        //this.chartStack = board.getHitStack(mouse.x - board.offset.x, mouse.y - board.offset.y);
         this.chartStack = stack;
-        // if (stack) {
-        //     // this.currentCoords = this.chartStack.mouseToCoords(
-        //     //     mouse.x - board.offset.x - this.chartStack.offset.x,
-        //     //     mouse.y - board.offset.y - this.chartStack.offset.y);
-        // } else {
-        //     throw new Error('Can not find hit chart stack.');
-        // }
-
         if (activationParameters && activationParameters['component']) {
             this.point = <PointFigureComponent>activationParameters['component'];
         } else {
@@ -254,5 +245,49 @@ class EditPointState implements IStateController {
         this.point = undefined;
         this.chartStack = undefined;
         board.changeState('hover');
+    }
+}
+
+class PointStore {
+
+    public get point(): ChartPoint {
+        return this.container.getProperty('point');
+    }
+
+    public set point(value: ChartPoint) {
+        this.container.setProperty('point', value);
+    }
+
+    public get pixel(): Point {
+        return this.container.getProperty('pixel');
+    }
+
+    public set pixel(value: Point) {
+        this.container.setProperty('pixel', value);
+    }
+
+    public get pixelMode(): boolean {
+        return this.container.getProperty('pixelmode');
+    }
+
+    public set pixelMode(value: boolean) {
+        this.container.setProperty('pixelmode', value);
+    }
+
+    constructor(
+        private container: StoreContainer
+    ) {
+        // ensure values are initialized
+        const dto = container.getObjectProperty('point');
+        const uid = dto.getObjectProperty('uid');
+        const modelUid = new Uid(uid.getProperty('t'), uid.getProperty('n'));
+        const model = dto ? new ChartPoint(modelUid, dto.getProperty('v')) : new ChartPoint();
+        container.setProperty('point', model);
+
+        container.setProperty('pixel', new Point());
+    }
+
+    public setChanged() {
+        this.container.setChanged();
     }
 }

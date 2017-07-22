@@ -1,8 +1,8 @@
 /**
  * Classes for drawing pitchfork.
  */
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
@@ -11,7 +11,7 @@ import { DrawUtils } from '../utils/index';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class PitchforkFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
+export class PitchforkFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
     private settings = new PitchforkSettings();
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
@@ -49,9 +49,10 @@ class PitchforkFigureComponent extends FigureComponent implements IHoverable, IE
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Pitchfork', offset, size);
+        super('Pitchfork', offset, size, container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -59,9 +60,9 @@ class PitchforkFigureComponent extends FigureComponent implements IHoverable, IE
         this.valueRegion = new NumberRegionMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValueRange);
         this.addChild(this.valueRegion);
 
-        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pc = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
+        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('a'));
+        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('b'));
+        this.pc = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('c'));
 
         this.addChild(this.pa);
         this.addChild(this.pb);
@@ -253,9 +254,7 @@ export class DrawPitchforkState extends FigureStateBase {
         const coordY = this.stack.yToValue(mouse.pos.y - this.board.offset.y - this.stack.offset.y);
 
         if (this.count === 0) {
-            this.figure = <PitchforkFigureComponent>this.stack.addFigure((area, offset, size, settings, tcoord, vcoord) => {
-                return new PitchforkFigureComponent(area, offset, size, settings, tcoord, vcoord);
-            });
+            this.figure = <PitchforkFigureComponent>this.stack.addFigure(FigureType.pitchfork);
 
             this.figure.pointA = { uid: coordX, v: coordY };
             this.figure.pointB = { uid: coordX, v: coordY };

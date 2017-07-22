@@ -25,7 +25,7 @@ import { Grid,
 import { ChartPoint, Mouse } from './Model';
 
 import { ISetting, SettingSet, SettingType } from './SettingSet';
-import { Storage } from './Storage';
+import { StorageManager, StoreArray, StoreContainer } from './StorageManager';
 import { VisualComponent } from './VisualComponent';
 import { VisualContext } from './VisualContext';
 
@@ -60,7 +60,9 @@ export {
     ObjectEventArgument,
     SettingSet,
     SettingType,
-    Storage,
+    StorageManager,
+    StoreArray,
+    StoreContainer,
     VisualComponent,
     VisualContext,
     TimeBar,

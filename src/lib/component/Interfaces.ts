@@ -53,7 +53,7 @@ export interface IChartStack extends ICoordsConverter {
     offset: IPoint;
     charts: IChart[];
     figures: IFigure[];
-    addFigure(ctor: {(area: ChartArea, offset: IPoint, size: ISize, settings: IChartingSettings, tcoord: ITimeCoordConverter, vcoord: IValueCoordConverter<number>, source?: ISource): FigureComponent}) : FigureComponent;
+    addFigure(figureType: string) : FigureComponent;
 }
 
 export interface IChart {

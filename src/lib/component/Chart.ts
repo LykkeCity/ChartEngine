@@ -148,12 +148,4 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
             this.dataSource.setSettings(dsSettings);
         }
     }
-
-    // public dispose() {
-    //     Events.instance.mouseMove.off(this.onMouseMove);
-    // }
-
-    // protected onMouseMove = (evt: MouseEventArgument) => {
-
-    // }
 }

@@ -2,8 +2,8 @@
  * Classes for drawing text.
  */
 import { CanvasTextAlign } from '../canvas/index';
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, IPoint, IRect, ISize, Point } from '../shared/index';
@@ -11,7 +11,7 @@ import { DrawUtils } from '../utils/index';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class TextFigureComponent extends FigureComponent implements IHoverable, IEditable {
+export class TextFigureComponent extends FigureComponent implements IHoverable, IEditable {
     private settings = new TextSettings();
     private p: PointFigureComponent;
     private rect: IRect|undefined;
@@ -30,9 +30,10 @@ class TextFigureComponent extends FigureComponent implements IHoverable, IEditab
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Text', offset, size);
+        super('Text', offset, size, container);
 
         this.p = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
         this.p.visible = false;
@@ -119,9 +120,7 @@ export class DrawTextState extends FigureStateBase {
             return;
         }
 
-        this.figure = <TextFigureComponent>this.stack.addFigure((area, offset, size, settings, coords, taxis) => {
-            return new TextFigureComponent(area, offset, size, settings, coords, taxis);
-        });
+        this.figure = <TextFigureComponent>this.stack.addFigure(FigureType.text);
 
         const coordX = this.stack.xToValue(mouse.pos.x - this.board.offset.x - this.stack.offset.x);
         const coordY = this.stack.yToValue(mouse.pos.y - this.board.offset.y - this.stack.offset.y);

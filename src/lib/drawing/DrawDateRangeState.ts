@@ -1,8 +1,8 @@
 /**
  * Classes for drawing date ranges.
  */
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, IPoint, ISize, Point } from '../shared/index';
@@ -10,7 +10,7 @@ import { DrawUtils } from '../utils/index';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class DateRangeFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
+export class DateRangeFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
     private settings = new DateRangeSettings();
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
@@ -39,9 +39,10 @@ class DateRangeFigureComponent extends FigureComponent implements IHoverable, IE
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Date Range', offset, size);
+        super('Date Range', offset, size, container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -49,8 +50,8 @@ class DateRangeFigureComponent extends FigureComponent implements IHoverable, IE
         this.valueRegion = new NumberRegionMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValueRange);
         this.addChild(this.valueRegion);
 
-        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
+        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('a'));
+        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('b'));
 
         this.addChild(this.pa);
         this.addChild(this.pb);
@@ -210,9 +211,7 @@ export class DrawDateRangeState extends FigureStateBase {
         }
 
         if (this.count === 0) {
-            this.figure = <DateRangeFigureComponent>this.stack.addFigure((area, offset, size, settings, tcoord, vcoord) => {
-                return new DateRangeFigureComponent(area, offset, size, settings, tcoord, vcoord);
-            });
+            this.figure = <DateRangeFigureComponent>this.stack.addFigure(FigureType.daterange);
 
             const coordX = this.stack.xToValue(mouse.pos.x - this.board.offset.x - this.stack.offset.x);
             const coordY = this.stack.yToValue(mouse.pos.y - this.board.offset.y - this.stack.offset.y);

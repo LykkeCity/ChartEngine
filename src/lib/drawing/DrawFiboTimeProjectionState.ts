@@ -1,8 +1,8 @@
 /**
  * Classes for drawing fibonacci time projection.
  */
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, Constants, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
+import { ChartPoint, Constants, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
@@ -20,7 +20,7 @@ class Line {
     public percentage: number;
 }
 
-class FiboTimeProjectionFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
+export class FiboTimeProjectionFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
     private settings = new FiboTimeProjectionSettings();
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
@@ -50,9 +50,10 @@ class FiboTimeProjectionFigureComponent extends FigureComponent implements IHove
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Fibo Time Projection', offset, size);
+        super('Fibo Time Projection', offset, size, container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -60,8 +61,8 @@ class FiboTimeProjectionFigureComponent extends FigureComponent implements IHove
         this.valueRegion = new NumberRegionMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValueRange);
         this.addChild(this.valueRegion);
 
-        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
+        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('a'));
+        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('b'));
 
         this.addChild(this.pa);
         this.addChild(this.pb);
@@ -252,9 +253,7 @@ export class DrawFiboTimeProjectionState extends FigureStateBase {
         }
 
         if (this.count === 0) {
-            this.figure = <FiboTimeProjectionFigureComponent>this.stack.addFigure((area, offset, size, settings, tcoord, vcoord) => {
-                return new FiboTimeProjectionFigureComponent(area, offset, size, settings, tcoord, vcoord);
-            });
+            this.figure = <FiboTimeProjectionFigureComponent>this.stack.addFigure(FigureType.fibotimeprojection);
 
             const coordX = this.stack.xToValue(mouse.pos.x - this.board.offset.x - this.stack.offset.x);
             const coordY = this.stack.yToValue(mouse.pos.y - this.board.offset.y - this.stack.offset.y);

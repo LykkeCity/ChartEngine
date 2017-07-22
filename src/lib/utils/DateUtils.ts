@@ -25,16 +25,6 @@ export class DateUtils {
         return `${year}-${month}-${day}`;
     }
 
-    public static toIso(date: Date): string {
-        const year = date.getUTCFullYear();
-        const month = ('00' + (date.getUTCMonth() + 1)).slice(-2);
-        const day = ('00' + date.getUTCDate()).slice(-2);
-        const hour = ('00' + date.getUTCHours()).slice(-2);
-        const min = ('00' + date.getUTCMinutes()).slice(-2);
-        const sec = ('00' + date.getUTCSeconds()).slice(-2);
-        return `${year}-${month}-${day} ${hour}:${min}:${sec}`;
-    }
-
     public static parseIsoDate(text: string): Date {
         if (text) {
             return new Date(text);

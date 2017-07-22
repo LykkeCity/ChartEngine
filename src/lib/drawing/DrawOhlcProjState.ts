@@ -2,8 +2,8 @@
  * Classes for drawing OHLC projection.
  */
 import { CanvasWrapper } from '../canvas/index';
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Candlestick, Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
@@ -12,7 +12,7 @@ import { DrawUtils } from '../utils/index';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class OhlcProjFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
+export class OhlcProjFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
     private settings = new OhlcProjSettings();
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
@@ -52,9 +52,10 @@ class OhlcProjFigureComponent extends FigureComponent implements IHoverable, IEd
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
         private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer,
         private source?: ISource
         ) {
-        super('OHLC Projection', offset, size);
+        super('OHLC Projection', offset, size, container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -62,13 +63,16 @@ class OhlcProjFigureComponent extends FigureComponent implements IHoverable, IEd
         this.valueRegion = new NumberRegionMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValueRange);
         this.addChild(this.valueRegion);
 
-        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pc = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
+        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('a'));
+        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('b'));
+        this.pc = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('c'));
 
         this.addChild(this.pa);
         this.addChild(this.pb);
         this.addChild(this.pc);
+
+        // update values after loading figures
+        this.updateHHLL();
 
         this.subscribe();
     }
@@ -150,10 +154,10 @@ class OhlcProjFigureComponent extends FigureComponent implements IHoverable, IEd
             let minx = Math.min(a.x, b.x);
             let maxx = Math.max(a.x, b.x, c ? c.x : -Infinity);
             if (this.hhll) {
-                if (this.hhll.o) { this.hline(canvas, frame.x, this.yaxis.toX(this.hhll.o), frame.w); }
-                if (this.hhll.c) { this.hline(canvas, frame.x, this.yaxis.toX(this.hhll.c), frame.w); }
-                if (this.hhll.h) { this.hline(canvas, frame.x, this.yaxis.toX(this.hhll.h), frame.w); }
-                if (this.hhll.l) { this.hline(canvas, frame.x, this.yaxis.toX(this.hhll.l), frame.w); }
+                if (this.hhll.o) { this.hline(canvas, minx, this.yaxis.toX(this.hhll.o), maxx - minx); }
+                if (this.hhll.c) { this.hline(canvas, minx, this.yaxis.toX(this.hhll.c), maxx - minx); }
+                if (this.hhll.h) { this.hline(canvas, minx, this.yaxis.toX(this.hhll.h), maxx - minx); }
+                if (this.hhll.l) { this.hline(canvas, minx, this.yaxis.toX(this.hhll.l), maxx - minx); }
             }
 
             canvas.stroke();
@@ -298,9 +302,7 @@ export class DrawOhlcProjState extends FigureStateBase {
         const coordY = this.stack.yToValue(mouse.pos.y - this.board.offset.y - this.stack.offset.y);
 
         if (this.count === 0) {
-            this.figure = <OhlcProjFigureComponent>this.stack.addFigure((area, offset, size, settings, tcoord, vcoord, source) => {
-                return new OhlcProjFigureComponent(area, offset, size, settings, tcoord, vcoord, source);
-            });
+            this.figure = <OhlcProjFigureComponent>this.stack.addFigure(FigureType.ohlcproj);
 
             this.figure.pointA = { uid: coordX, v: coordY };
             this.figure.pointB = { uid: coordX, v: coordY };

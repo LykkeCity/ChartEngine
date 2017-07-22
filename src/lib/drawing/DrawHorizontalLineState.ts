@@ -2,8 +2,8 @@
  * Classes for drawing horizontal lines.
  */
 
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, IPoint, ISize, Point } from '../shared/index';
@@ -11,7 +11,7 @@ import { DrawUtils } from '../utils/index';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class HorizontalLineFigureComponent extends FigureComponent implements IHoverable, IEditable {
+export class HorizontalLineFigureComponent extends FigureComponent implements IHoverable, IEditable {
     private p: PointFigureComponent;
 
     public get point(): IChartPoint {
@@ -28,11 +28,12 @@ class HorizontalLineFigureComponent extends FigureComponent implements IHoverabl
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Horizontal Line', offset, size);
+        super('Horizontal Line', offset, size, container);
 
-        this.p = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
+        this.p = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('p'));
 
         this.addChild(this.p);
     }
@@ -121,9 +122,7 @@ export class DrawHorizontalLineState extends FigureStateBase {
         }
 
         if (this.count === 0) {
-            this.figure = <HorizontalLineFigureComponent>this.stack.addFigure((area, offset, size, settings, coords, taxis) => {
-                return new HorizontalLineFigureComponent(area, offset, size, settings, coords, taxis);
-            });
+            this.figure = <HorizontalLineFigureComponent>this.stack.addFigure(FigureType.hline);
 
             const coordX = this.stack.xToValue(mouse.pos.x - this.board.offset.x - this.stack.offset.x);
             const coordY = this.stack.yToValue(mouse.pos.y - this.board.offset.y - this.stack.offset.y);

@@ -3,7 +3,7 @@
  * 
  * @classdesc Facade for the chart library.
  */
-import { ChartType, EventArgument, Events, IDataService, ISource, IQuicktip, IQuicktipBuilder, IStorage, Mouse, MouseEventArgument, ObjectEventArgument, Storage, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { ChartType, EventArgument, Events, IDataService, ISource, IQuicktip, IQuicktipBuilder, IStorage, Mouse, MouseEventArgument, ObjectEventArgument, StorageManager, StoreContainer, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, DataSourceFactory, DataSourceRegister, IDataSource, IndicatorDataSource } from '../data/index';
 import { IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
@@ -36,7 +36,8 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private readonly timeAxis: TimeAxis;
     private readonly timeAxisComponent: TimeAxisComponent;
 
-    private originalName: string;
+    private originalUid: string = '';
+    private originalName: string = '';
     private originalDataSource: IDataSource<Candlestick>;
     private primaryDataSource: IDataSource<Candlestick>;
     private readonly dataSources: IHashTable<IDataSource<Candlestick>> = { };
@@ -45,7 +46,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private readonly dataSourceRegister = new DataSourceRegister();
 
     private state: IStateController;
-    private storage: Storage;
+    private storageMgr: StorageManager;
     private dataService?: IDataService;
     protected timeRange: IRange<Date>;
 
@@ -73,7 +74,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         super({ x: offsetLeft, y: offsetTop}, { width: Math.max(w, 100), height: Math.max(h, 50)});
 
         const N = 5;
-        this.storage = new Storage(storage);
+        this.storageMgr = new StorageManager(storage);
         this.dataService = dataService;
         this.area = new BoardArea(container, this._size);
 
@@ -88,9 +89,9 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.timeAxisComponent = new TimeAxisComponent(this.area, this.timeAxis);
         this.addChild(this.timeAxisComponent);
 
-        // Create main chart area
-        //
-        const chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true, this);
+        // Create main chart area.
+        // Create empty store container as the asset pair is not set yet.
+        const chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true, new StoreContainer(), this);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
 
@@ -165,9 +166,10 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         // this.render();
     }
 
-    public setDataSource(name: string, chartType: string, dataSource: IDataSource<Candlestick>, keepFigures: boolean) {
+    public setDataSource(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {
 
         this.originalDataSource = dataSource;
+        this.originalUid = uid;
         this.originalName = name;
 
         const ctx = this.createContext(this.dataService);
@@ -175,10 +177,8 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
         this.timeAxis.setDataSource(dataSource);
 
-        // remove figures
-        if (!keepFigures) {
-            this.chartStacks.forEach(cs => cs.removeFigures());
-        }
+        const stackStorage = this.getStackStorage(uid, 0);
+        this.chartStacks[0].setStore(stackStorage);
 
         // replace primary data source
         this.deleteChart('primary-data-source');
@@ -200,7 +200,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
     public setChartType(chartType: string) {
         if (this.originalDataSource) {
-            this.setDataSource(this.originalName, chartType, this.originalDataSource, true); // keep figures
+            this.setDataSource(this.originalUid, this.originalName, chartType, this.originalDataSource); // keep figures
             // this.removeChart('primary-data-source');
             // this.addChart<Candlestick>('primary-data-source', chartType, this.primaryDataSource);
         }
@@ -272,7 +272,8 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
             chartStack = this.chartStacks[index];
         } else {
             index = this.chartStacks.length;
-            chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true);
+            const stackStorage = this.getStackStorage(this.originalUid, index);
+            chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true, stackStorage);
             this.chartStacks.push(chartStack);
             this.addChild(chartStack);
         }
@@ -309,6 +310,14 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         //this.indicators[uid] = undefined;
     }
 
+    private getStackStorage(assetId: string, stackIndex: number): StoreContainer {
+        const assets = this.storageMgr.root().getObjectProperty('assets');
+        const asset = assets.getObjectProperty(assetId);
+        const stacks = asset.getArrayProperty('stacks');
+        const arrayStacks = stacks.asArray();
+        return arrayStacks.length > 0 ? arrayStacks[0] : stacks.addItem();
+    }
+
     private addInterval = (date: Date, times: number) => {
         return DateUtils.addInterval(date, this.timeAxis.interval, times);
     }
@@ -326,7 +335,6 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
         // Mouse position
         const relMouse = this.mouse.isEntered ? this.mouse.pos.sub(this.offset) : undefined;
-        //const glMouse = this.mouse.isEntered ? new Point(this.mouse.x - this.offset.x, this.mouse.y - this.offset.y) : undefined;
 
         // Render stacks
         for (const cStack of this.chartStacks) {
@@ -334,8 +342,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
             const context: VisualContext = new VisualContext(
                 renderBase,
                 renderFront
-                //relMouse ? relMouse.sub(cStack.offset) : undefined
-                ); // relative mouse coords
+                );
 
             cStack.render(context, RenderLocator.Instance);
         }
@@ -344,7 +351,6 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         const context: VisualContext = new VisualContext(
             renderBase,
             renderFront
-            //relMouse ? relMouse.sub(this.timeAxisComponent.offset) : undefined
             );
         this.timeAxisComponent.render(context, RenderLocator.Instance);
 

@@ -2,7 +2,7 @@
  * ChartStack class.
  */
 import { NumberAxis, PriceAxis } from '../axes/index';
-import { ChartPoint, Events, IAxis, IChartPoint, IConfigurable, ICoordsConverter, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, IVisualComponent, SettingSet, SettingType, VisualComponent, VisualContext }
+import { ChartPoint, Events, IAxis, IChartPoint, IConfigurable, ICoordsConverter, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, IVisualComponent, SettingSet, SettingType, StoreContainer, VisualComponent, VisualContext }
     from '../core/index';
 import { IDataSource } from '../data/index';
 import { Area, BoardArea, ChartArea, SizeChangedArgument } from '../layout/index';
@@ -12,6 +12,7 @@ import { IPoint, IRange, ISize, Point } from '../shared/index';
 import { Chart } from './Chart';
 import { Crosshair } from './Crosshair';
 import { FigureComponent } from './FigureComponent';
+import { FigureFactory } from './FigureFactory';
 import { Grid } from './Grid';
 import { IChart, IChartingSettings, IChartStack, IFigure } from './Interfaces';
 import { NumberAxisComponent } from './NumberAxisComponent';
@@ -33,18 +34,21 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     private readonly yAxisComponent: VisualComponent;
     private _precision: number = 0;
     private source?: ISource;
+    private store: StoreContainer;
 
     constructor(
         uid: string,
         boardArea: BoardArea,
         timeAxis: ITimeAxis,
         yIsPrice: boolean,
+        store: StoreContainer,
         source?: ISource) {
         super();
 
         this._uid = uid;
         this.boardArea = boardArea;
         this.tAxis = timeAxis;
+        this.store = store;
         this.source = source;
         this.area = boardArea.addChart();
         this.area.sizeChanged.on(this.onresize);
@@ -143,11 +147,16 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this.updateChartingSettings();
     }
 
-    public addFigure(ctor: {
-            (area: ChartArea, offset: IPoint, size: ISize, settings: IChartingSettings, tcoord: ITimeCoordConverter, vcoord: IValueCoordConverter<number>, source?: ISource): FigureComponent}) : FigureComponent {
-        const figure = ctor(this.area, { x: 0, y: 0 }, this.size, this, this.tAxis, this.yAxis, this.source);
-        this._figures.push(figure);
-        this.addChild(figure); // to the end
+    public addFigure(figureType: string): FigureComponent {
+
+        const figures = this.store.getArrayProperty('figures');
+        const figureDesc = figures.addItem();
+        figureDesc.setProperty('type', figureType);
+        //figureDesc.setProperty('uid', uid);
+        const figureContainer = figureDesc.getObjectProperty('figure');
+
+        const figure = this.createFigure(figureType, figureContainer);
+
         Events.instance.objectTreeChanged.trigger();
         return figure;
     }
@@ -156,6 +165,36 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this._children = this._children.filter((value, index, array) => {
              return !(value instanceof FigureComponent);
         });
+    }
+
+    public setStore(store: StoreContainer) {
+        this.store = store;
+
+        this.reloadFigures();
+    }
+
+    private createFigure(figureType: string, container: StoreContainer): FigureComponent {
+        const figure = FigureFactory.instance
+            .instantiate(figureType, this.area, { x: 0, y: 0 }, this.size, this, this.tAxis, this.yAxis, container, this.source);
+
+        this._figures.push(figure);
+        this.addChild(figure); // to the end
+
+        return figure;
+    }
+
+    private reloadFigures() {
+        this.removeFigures();
+
+        const figures = this.store.getArrayProperty('figures');
+        for (const figureDesc of figures.asArray()) {
+            // add figure
+            const figureType = figureDesc.getProperty('type');
+            const figureContainer = figureDesc.getObjectProperty('figure');
+            //const uid = figureDesc.getProperty('uid');
+
+            this.createFigure(figureType, figureContainer);
+        }
     }
 
     public precision(): number {

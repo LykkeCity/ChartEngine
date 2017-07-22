@@ -2,8 +2,8 @@
  * Classes for drawing trend channels.
  */
 
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
@@ -12,18 +12,14 @@ import { DrawUtils } from '../utils/index';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class TrendChannelFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
+export class TrendChannelFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
     private settings = new TrendChannelSettings();
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
     private pc: PointFigureComponent;
     private timeRegion: TimeRegionMarker;
     private valueRegion: NumberRegionMarker;
-
-    private _spread: number = 0;
-    // // additional points
-    // private pd?: IPoint;
-    // private pe?: IPoint;
+    private store: ChannelStore;
 
     public get pointA(): IChartPoint {
         return this.pa.point;
@@ -41,16 +37,12 @@ class TrendChannelFigureComponent extends FigureComponent implements IHoverable,
         this.pb.point = value;
     }
 
-    // public get pointC(): IChartPoint {
-    //     return this.pc.point;
-    // }
-
     public get spread(): number {
-        return this._spread;
+        return this.store.spread;
     }
 
     public set spread(value: number) {
-        this._spread = value;
+        this.store.spread = value;
         this.updatePoints();
     }
 
@@ -60,9 +52,10 @@ class TrendChannelFigureComponent extends FigureComponent implements IHoverable,
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Trend channel', offset, size);
+        super('Trend channel', offset, size, container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -70,12 +63,16 @@ class TrendChannelFigureComponent extends FigureComponent implements IHoverable,
         this.valueRegion = new NumberRegionMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValueRange);
         this.addChild(this.valueRegion);
 
-        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pc = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, true);
+        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('a'));
+        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('b'));
+        this.pc = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, undefined, true);
         this.addChild(this.pa);
         this.addChild(this.pb);
         this.addChild(this.pc);
+
+        this.store = new ChannelStore(container);
+        // recompute point after loading figure
+        this.updatePoints();
 
         this.subscribe();
     }
@@ -86,8 +83,9 @@ class TrendChannelFigureComponent extends FigureComponent implements IHoverable,
 
         let hit = false;
         if (a && b) {
+            const spread = this.store.spread;
             hit = DrawUtils.IS_POINT_ON_LINE(p, a, b, 5)
-                  || DrawUtils.IS_POINT_ON_LINE(p, { x: a.x , y: a.y + this._spread }, { x: b.x , y: b.y + this._spread }, 5);
+                  || DrawUtils.IS_POINT_ON_LINE(p, { x: a.x , y: a.y + spread }, { x: b.x , y: b.y + spread }, 5);
         }
         return hit;
     }
@@ -128,10 +126,11 @@ class TrendChannelFigureComponent extends FigureComponent implements IHoverable,
             canvas.lineTo(b.x, b.y);
             canvas.stroke();
 
-            if (this._spread) { // if not 0 or undefined
+            const spread = this.store.spread;
+            if (spread) { // if not 0 or undefined
                 canvas.beginPath();
-                canvas.moveTo(a.x, a.y + this._spread);
-                canvas.lineTo(b.x, b.y + this._spread);
+                canvas.moveTo(a.x, a.y + spread);
+                canvas.lineTo(b.x, b.y + spread);
                 canvas.stroke();
             }
         }
@@ -217,23 +216,18 @@ class TrendChannelFigureComponent extends FigureComponent implements IHoverable,
 
     private onP3changed = () => {
         const updSpread = this.computeSpread(this.pc.pixel);
-        this._spread = updSpread || this._spread;
-        //this.updatePoints();
+        this.store.spread = updSpread || this.store.spread;
     }
 
     private updatePoints() {
         this.subscribe(false); // prevent change events while recomputing
-
-        // // Update p3, p4
-        // const y1 = this.r2;
-        // const y2 = -this.r2;
 
         const a = this.pa.getXY();
         const b = this.pb.getXY();
 
         if (a && b) {
             const mid = DrawUtils.MID(a, b);
-            this.pc.pixel = { x: mid.x, y: mid.y + this._spread };
+            this.pc.pixel = { x: mid.x, y: mid.y + this.store.spread };
         }
         this.subscribe();
     }
@@ -282,9 +276,7 @@ export class DrawTrendChannelState extends FigureStateBase {
         const coordY = this.stack.yToValue(relY);
 
         if (this.count === 0) {
-            this.figure = <TrendChannelFigureComponent>this.stack.addFigure((area, offset, size, settings, tcoord, vcoord) => {
-                return new TrendChannelFigureComponent(area, offset, size, settings, tcoord, vcoord);
-            });
+            this.figure = <TrendChannelFigureComponent>this.stack.addFigure(FigureType.trendchannel);
 
             this.figure.pointA = { uid: coordX, v: coordY };
             this.pa = { x: relX, y: relY };
@@ -293,13 +285,6 @@ export class DrawTrendChannelState extends FigureStateBase {
                 this.figure.pointB = { uid: coordX, v: coordY };
             }
             this.pb = { x: relX, y: relY };
-        // } else if (this.count === 2 && this.pa && this.pb) {
-        //     const dist = DrawUtils.DIST_TO_LINE({ x: relX, y: relY }, this.pa, this.pb);
-        //     if (this.figure) {
-        //         this.figure.radiusB = dist;
-        //         // this.figure.pointB.uid = coordX;
-        //         // this.figure.pointB.v = coordY;
-        //     }
         } else if (this.count === 3) {
             this.exit();
         }
@@ -394,5 +379,21 @@ class EditTrendChannelState implements IStateController {
         this.figure = undefined;
         this.chartStack = undefined;
         board.changeState('hover');
+    }
+}
+
+class ChannelStore {
+
+    public get spread(): number {
+        return this.container.getProperty('spread') || 0;
+    }
+
+    public set spread(value: number) {
+        this.container.setProperty('spread', value);
+    }
+
+    constructor(
+        private container: StoreContainer
+    ) {
     }
 }

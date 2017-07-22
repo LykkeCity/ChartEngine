@@ -1,7 +1,7 @@
 /**
  * Figures
  */
-import { IVisualComponent, VisualComponent } from '../core/index';
+import { IVisualComponent, StoreContainer, VisualComponent } from '../core/index';
 import { IPoint, ISize, Point } from '../shared/index';
 import { UidUtils } from '../utils/index';
 import { IFigure, IStateController } from './Interfaces';
@@ -13,7 +13,7 @@ export abstract class FigureComponent extends VisualComponent implements IFigure
     protected readonly _uid: string;
     protected readonly _name: string;
 
-    public constructor(name: string, offset: IPoint, size: ISize) {
+    public constructor(name: string, offset: IPoint, size: ISize, container: StoreContainer) {
         super(offset, size);
         this._uid = UidUtils.NEWUID();
         this._name = name;

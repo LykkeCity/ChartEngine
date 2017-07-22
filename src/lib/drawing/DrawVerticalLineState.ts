@@ -1,9 +1,10 @@
 /**
  * Classes for drawing vertical lines.
  */
-
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, IStateController }
+    from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, StoreContainer, VisualContext }
+    from '../core/index';
 import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, IPoint, ISize, Point } from '../shared/index';
@@ -11,7 +12,7 @@ import { DrawUtils } from '../utils/index';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class VerticalLineFigureComponent extends FigureComponent implements IHoverable, IEditable {
+export class VerticalLineFigureComponent extends FigureComponent implements IHoverable, IEditable {
     private p: PointFigureComponent;
 
     public get point(): IChartPoint {
@@ -28,11 +29,12 @@ class VerticalLineFigureComponent extends FigureComponent implements IHoverable,
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Vertical Line', offset, size);
+        super('Vertical Line', offset, size, container);
 
-        this.p = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
+        this.p = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('p'));
 
         this.addChild(this.p);
     }
@@ -118,9 +120,7 @@ export class DrawVerticalLineState extends FigureStateBase {
         }
 
         if (this.count === 0) {
-            this.figure = <VerticalLineFigureComponent>this.stack.addFigure((area, offset, size, settings, coords, taxis) => {
-                return new VerticalLineFigureComponent(area, offset, size, settings, coords, taxis);
-            });
+            this.figure = <VerticalLineFigureComponent>this.stack.addFigure(FigureType.vline);
 
             const coordX = this.stack.xToValue(mouse.pos.x - this.board.offset.x - this.stack.offset.x);
             const coordY = this.stack.yToValue(mouse.pos.y - this.board.offset.y - this.stack.offset.y);

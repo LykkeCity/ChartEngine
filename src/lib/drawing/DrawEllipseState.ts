@@ -2,8 +2,8 @@
  * Classes for drawing ellipses.
  */
 
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
@@ -12,17 +12,18 @@ import { DrawUtils } from '../utils/index';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class EllipseFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
+export class EllipseFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
     private settings = new EllipseSettings();
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
     private pc: PointFigureComponent;
     private pd: PointFigureComponent;
     private r1: number = 0;
-    private r2: number = 0;
+    //private r2: number = 0;
     private angle: number = 0;
     private timeRegion: TimeRegionMarker;
     private valueRegion: NumberRegionMarker;
+    private store: EllipseStore;
 
     public get pointA(): IChartPoint {
         return this.pa.point;
@@ -40,20 +41,12 @@ class EllipseFigureComponent extends FigureComponent implements IHoverable, IEdi
         this.pb.point = value;
     }
 
-    // public get pointC(): IChartPoint {
-    //     return this.pc.point;
-    // }
-
-    // public get pointD(): IChartPoint {
-    //     return this.pd.point;
-    // }
-
     public get radiusB(): number {
-        return this.r2;
+        return this.store.radiusB;
     }
 
     public set radiusB(value: number) {
-        this.r2 = value;
+        this.store.radiusB = value;
         this.updatePoints();
     }
 
@@ -63,9 +56,10 @@ class EllipseFigureComponent extends FigureComponent implements IHoverable, IEdi
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Ellipse', offset, size);
+        super('Ellipse', offset, size, container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -73,14 +67,18 @@ class EllipseFigureComponent extends FigureComponent implements IHoverable, IEdi
         this.valueRegion = new NumberRegionMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValueRange);
         this.addChild(this.valueRegion);
 
-        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pc = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, true);
-        this.pd = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, true);
+        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('a'));
+        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('b'));
+        this.pc = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, undefined, true);
+        this.pd = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, undefined, true);
         this.addChild(this.pa);
         this.addChild(this.pb);
         this.addChild(this.pc);
         this.addChild(this.pd);
+
+        this.store = new EllipseStore(container);
+        // recompute points after loading figure
+        this.updatePoints();
 
         this.subscribe();
     }
@@ -94,6 +92,7 @@ class EllipseFigureComponent extends FigureComponent implements IHoverable, IEdi
             const angle = DrawUtils.ANGLE(a, b);
             const mid = DrawUtils.MID(a, b);
             const r1 = DrawUtils.DIST(a, b) / 2;
+            const r2 = this.store.radiusB;
 
             // transfer to (0,0)
             point = { x: p.x - mid.x, y: p.y - mid.y };
@@ -102,8 +101,8 @@ class EllipseFigureComponent extends FigureComponent implements IHoverable, IEdi
             point = { x: point.x * Math.cos(angle) + point.y * Math.sin(angle),
                       y: -point.x * Math.sin(angle) + point.y * Math.cos(angle) };
 
-            const res = (r1 !== 0 && this.r2 !== 0)
-                ? (point.x * point.x) / (r1 * r1) + (point.y * point.y) / (this.r2 * this.r2)
+            const res = (r1 !== 0 && r2 !== 0)
+                ? (point.x * point.x) / (r1 * r1) + (point.y * point.y) / (r2 * r2)
                 : 0;
 
             return res > 0.7 && res < 1.3;
@@ -136,10 +135,11 @@ class EllipseFigureComponent extends FigureComponent implements IHoverable, IEdi
 
         const a = this.pa.getXY();
         const b = this.pb.getXY();
+        const r2 = this.store.radiusB;
 
         const canvas = this.area.frontCanvas;
 
-        if (a && b && this.r2) {
+        if (a && b && r2) {
             // update computed points' coordinates
             this.updatePoints();
 
@@ -150,7 +150,7 @@ class EllipseFigureComponent extends FigureComponent implements IHoverable, IEdi
             canvas.beginPath();
             canvas.setStrokeStyle(this.settings.color);
             canvas.lineWidth = this.settings.width;
-            canvas.ellipse(mid.x, mid.y, dist / 2, this.r2, angle, 0, 2 * Math.PI);
+            canvas.ellipse(mid.x, mid.y, dist / 2, r2, angle, 0, 2 * Math.PI);
             canvas.stroke();
         }
 
@@ -236,13 +236,13 @@ class EllipseFigureComponent extends FigureComponent implements IHoverable, IEdi
 
     private onP3changed = () => {
         const updRadius = this.computeRadius(this.pc.pixel);
-        this.r2 = updRadius || this.r2;
+        this.store.radiusB = updRadius || this.store.radiusB;
         this.updatePoints();
     }
 
     private onP4changed = () => {
         const updRadius = this.computeRadius(this.pd.pixel);
-        this.r2 = updRadius || this.r2;
+        this.store.radiusB = updRadius || this.store.radiusB;
         this.updatePoints();
     }
 
@@ -250,8 +250,9 @@ class EllipseFigureComponent extends FigureComponent implements IHoverable, IEdi
         this.subscribe(false); // prevent change events while recomputing
 
         // Update p3, p4
-        const y1 = this.r2;
-        const y2 = -this.r2;
+        const r2 = this.store.radiusB;
+        const y1 = r2;
+        const y2 = -r2;
 
         const a = this.pa.getXY();
         const b = this.pb.getXY();
@@ -320,9 +321,7 @@ export class DrawEllipseState extends FigureStateBase {
         const coordY = this.stack.yToValue(relY);
 
         if (this.count === 0) {
-            this.figure = <EllipseFigureComponent>this.stack.addFigure((area, offset, size, settings, tcoord, vcoord) => {
-                return new EllipseFigureComponent(area, offset, size, settings, tcoord, vcoord);
-            });
+            this.figure = <EllipseFigureComponent>this.stack.addFigure(FigureType.ellipse);
 
             this.figure.pointA = { uid: coordX, v: coordY };
             this.pa = { x: relX, y: relY };
@@ -432,5 +431,21 @@ class EditEllipseState implements IStateController {
         this.figure = undefined;
         this.chartStack = undefined;
         board.changeState('hover');
+    }
+}
+
+class EllipseStore {
+
+    public get radiusB(): number {
+        return this.container.getProperty('point') || 0;
+    }
+
+    public set radiusB(value: number) {
+        this.container.setProperty('point', value);
+    }
+
+    constructor(
+        private container: StoreContainer
+    ) {
     }
 }

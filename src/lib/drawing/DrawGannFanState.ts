@@ -1,8 +1,8 @@
 /**
  * Classes for drawing Gann fan.
  */
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, Constants, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
+import { ChartPoint, Constants, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, IPoint, ISize, Point } from '../shared/index';
@@ -17,7 +17,7 @@ class Line {
     ) {}
 }
 
-class GannFanFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
+export class GannFanFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
     private settings = new GannFanSettings();
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
@@ -58,9 +58,10 @@ class GannFanFigureComponent extends FigureComponent implements IHoverable, IEdi
         size: ISize,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Gann Fan', offset, size);
+        super('Gann Fan', offset, size, container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -68,8 +69,8 @@ class GannFanFigureComponent extends FigureComponent implements IHoverable, IEdi
         this.valueRegion = new NumberRegionMarker(this.area.getYArea(), this.offset, this.size, yaxis, settings, this.getValueRange);
         this.addChild(this.valueRegion);
 
-        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
-        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
+        this.pa = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('a'));
+        this.pb = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('b'));
 
         this.addChild(this.pa);
         this.addChild(this.pb);
@@ -212,9 +213,7 @@ export class DrawGannFanState extends FigureStateBase {
         }
 
         if (this.count === 0) {
-            this.figure = <GannFanFigureComponent>this.stack.addFigure((area, offset, size, settings, tcoord, vcoord) => {
-                return new GannFanFigureComponent(area, offset, size, settings, tcoord, vcoord);
-            });
+            this.figure = <GannFanFigureComponent>this.stack.addFigure(FigureType.gannfan);
 
             const coordX = this.stack.xToValue(mouse.pos.x - this.board.offset.x - this.stack.offset.x);
             const coordY = this.stack.yToValue(mouse.pos.y - this.board.offset.y - this.stack.offset.y);

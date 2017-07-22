@@ -299,9 +299,10 @@ export class ChartController implements lychart.core.IDataService {
         this.dataSource = this.createDataSource(assetPairId, timeInterval);
 
         this.board.setTimeInterval(timeInterval);
-        this.board.setDataSource(assetPairId,
+        this.board.setDataSource(assetPairId, // uid
+                                 assetPairId, // name
                                  (timeInterval === lychart.core.TimeInterval.sec) ? lychart.core.ChartType.line : lychart.core.ChartType.candle,
-                                 this.dataSource, false);
+                                 this.dataSource);
     }
 
     private createDataSource(assetPairId: string, timeInterval: lychart.core.TimeInterval) {

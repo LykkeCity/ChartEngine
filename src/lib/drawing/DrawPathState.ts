@@ -1,8 +1,8 @@
 /**
  * Classes for drawing path.
  */
-import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, VisualContext } from '../core/index';
+import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
+import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreArray, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
@@ -11,12 +11,13 @@ import { DrawUtils } from '../utils/index';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-class PathFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
+export class PathFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
     private settings = new PathSettings();
     private p: PointFigureComponent[] = [];
     private timeRegion: TimeRegionMarker;
     private valueRegion: NumberRegionMarker;
     private _closed = false;
+    private pointsStore: StoreArray;
 
     constructor(
         private area: ChartArea,
@@ -24,15 +25,23 @@ class PathFigureComponent extends FigureComponent implements IHoverable, IEditab
         size: ISize,
         private chartSettings: IChartingSettings,
         private taxis: ITimeCoordConverter,
-        private yaxis: IValueCoordConverter<number>
+        private yaxis: IValueCoordConverter<number>,
+        container: StoreContainer
         ) {
-        super('Path', offset, size);
+        super('Path', offset, size, container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, chartSettings, this.getTimeRange);
         this.addChild(this.timeRegion);
 
         this.valueRegion = new NumberRegionMarker(this.area.getYArea(), this.offset, this.size, yaxis, chartSettings, this.getValueRange);
         this.addChild(this.valueRegion);
+
+        // restore points
+        this.pointsStore = container.getArrayProperty('points');
+        for (const pStore of this.pointsStore.asArray()) {
+            this.insertPoint(pStore);
+            this.closed = true; // for loaded figure set close
+        }
     }
 
     public get closed(): boolean {
@@ -44,10 +53,16 @@ class PathFigureComponent extends FigureComponent implements IHoverable, IEditab
     }
 
     public addPoint(uid: Uid, v: number): void {
-        const pf = new PointFigureComponent(this.area, this.offset, this.size, this.chartSettings, this.taxis, this.yaxis);
+        const pointContainer = this.pointsStore.addItem();
+        const pf = this.insertPoint(pointContainer);
         pf.point = { uid: uid, v: v };
+    }
+
+    private insertPoint(container: StoreContainer): PointFigureComponent {
+        const pf = new PointFigureComponent(this.area, this.offset, this.size, this.chartSettings, this.taxis, this.yaxis, container);
         this.p.push(pf);
         this.addChild(pf);
+        return pf;
     }
 
     public getPoint(index: number): IChartPoint {
@@ -68,8 +83,10 @@ class PathFigureComponent extends FigureComponent implements IHoverable, IEditab
 
     public removePoint(index: number): void {
         if (index >= 0 && index < this.p.length) {
-             const removed = this.p.splice(index, 1);
-             this.removeChild(removed[0]);
+            // remove from store and from ponts array
+            this.pointsStore.removeItem(index);
+            const removed = this.p.splice(index, 1);
+            this.removeChild(removed[0]);
         }
     }
 
@@ -264,9 +281,7 @@ export class DrawPathState extends FigureStateBase {
         }
 
         if (this.count === 0) {
-            this.figure = <PathFigureComponent>this.stack.addFigure((area, offset, size, settings, tcoord, vcoord) => {
-                return new PathFigureComponent(area, offset, size, settings, tcoord, vcoord);
-            });
+            this.figure = <PathFigureComponent>this.stack.addFigure(FigureType.path);
 
             this.figure.addPoint(coordX, coordY);
             this.firstXY = new Point(relX, relY);

@@ -5,6 +5,7 @@ import { Chart } from './Chart';
 import { ChartBoard } from './ChartBoard';
 import { ChartStack } from './ChartStack';
 import { FigureComponent } from './FigureComponent';
+import { FigureFactory, FigureType } from './FigureFactory';
 import { IChart, IChartBoard, IChartingSettings, IChartStack, IEditable, IFigure, IHoverable, ISelectable, IStateController }
     from './Interfaces';
 import { isEditable, isHoverable, isSelectable, isStateController } from './Interfaces';
@@ -24,6 +25,8 @@ export {
     ChartStack,
     IFigure,
     FigureComponent,
+    FigureFactory,
+    FigureType,
     HoverState,
     IChart,
     IChartBoard,
