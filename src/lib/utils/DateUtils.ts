@@ -1,12 +1,12 @@
 /**
- * 
+ * Utility operations for dates.
  */
 import { TimeInterval } from '../core/index';
 import { TimeSpan } from './TimeSpan';
 
 export class DateUtils {
     public static utcNow(): Date {
-        return new Date(); // = Date.now()
+        return new Date();
     }
 
     public static getUtcDate(year: number, month: number,
@@ -18,14 +18,14 @@ export class DateUtils {
         return ('00000000000000' + date.getTime()).slice(-14);
     }
 
-    public static toIsoDate(date: Date): string {
+    public static formatDateISO(date: Date): string {
         const year = date.getUTCFullYear();
         const month = ('00' + (date.getUTCMonth() + 1)).slice(-2);
         const day = ('00' + date.getUTCDate()).slice(-2);
         return `${year}-${month}-${day}`;
     }
 
-    public static parseIsoDate(text: string): Date {
+    public static parseISODate(text: string): Date {
         if (text) {
             return new Date(text);
         } else {
@@ -59,8 +59,12 @@ export class DateUtils {
             case TimeInterval.month:
                 const dateMin = date1 < date2 ? date1 : date2;
                 const dateMax = date1 < date2 ? date2 : date1;
-                return dateMax.getMonth() - dateMin.getMonth()
+                const months = dateMax.getMonth() - dateMin.getMonth()
                     + (12 * (dateMax.getFullYear() - dateMin.getFullYear()));
+
+                // Check that adding diff will not exceed greater date
+                const computed = DateUtils.addInterval(dateMin, interval, months);
+                return (computed <= dateMax) ? months : Math.max(months - 1, 0);
             default:
                 throw new Error(`Unexpected interval ${ interval }`);
         }
@@ -114,6 +118,11 @@ export class DateUtils {
         return newDate;
     }
 
+    /**
+     * Truncates specified date to the specified interval. Date is expected to be UTC.
+     * @param date 
+     * @param interval 
+     */
     public static truncateToInterval(date: Date, interval: TimeInterval): Date {
         switch (interval) {
             case TimeInterval.sec: return DateUtils.truncateToTimeSpan(date, TimeSpan.FROM_SECONDS(1));
@@ -128,13 +137,13 @@ export class DateUtils {
             case TimeInterval.day: return DateUtils.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(1));
             case TimeInterval.day3: return DateUtils.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(3));
             case TimeInterval.week:
-                const firstDay = date.getDate() - date.getDay();
-                // TODO: Constructor of Date is not UTC.
-                return new Date(date.getFullYear(), date.getMonth(), firstDay, 0, - ((new Date()).getTimezoneOffset()));
+                const day = date.getDay();
+                const truncated = DateUtils.getUtcDate(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+                truncated.setDate(truncated.getDate() - (day !== 0 ? day - 1 : 6));
+                return truncated;
             case TimeInterval.day10: return DateUtils.truncateToTimeSpan(date, TimeSpan.FROM_DAYS(10));
             case TimeInterval.month:
-                // TODO: Constructor of Date is not UTC.
-                return new Date(date.getFullYear(), date.getMonth(), 1, 0, - ((new Date()).getTimezoneOffset()));
+                return DateUtils.getUtcDate(date.getUTCFullYear(), date.getUTCMonth(), 1);
             default:
                 throw new Error(`Unexpected interval ${ interval }`);
         }
@@ -157,30 +166,7 @@ export class DateUtils {
     }
 
     public static isRound(date: Date, interval: TimeInterval): boolean {
-        switch (interval) {
-            case TimeInterval.sec: return DateUtils.isTruncated(date, TimeSpan.FROM_SECONDS(1));
-            case TimeInterval.min: return DateUtils.isTruncated(date, TimeSpan.FROM_MINUTES(1));
-            case TimeInterval.min5: return DateUtils.isTruncated(date, TimeSpan.FROM_MINUTES(5));
-            case TimeInterval.min15: return DateUtils.isTruncated(date, TimeSpan.FROM_MINUTES(15));
-            case TimeInterval.min30: return DateUtils.isTruncated(date, TimeSpan.FROM_MINUTES(30));
-            case TimeInterval.hour: return DateUtils.isTruncated(date, TimeSpan.FROM_HOURS(1));
-            case TimeInterval.hour4: return DateUtils.isTruncated(date, TimeSpan.FROM_HOURS(4));
-            case TimeInterval.hour6: return DateUtils.isTruncated(date, TimeSpan.FROM_HOURS(6));
-            case TimeInterval.hour12: return DateUtils.isTruncated(date, TimeSpan.FROM_HOURS(12));
-            case TimeInterval.day: return DateUtils.isTruncated(date, TimeSpan.FROM_DAYS(1));
-            case TimeInterval.day3: return DateUtils.isTruncated(date, TimeSpan.FROM_DAYS(3));
-            case TimeInterval.week:
-                const firstDay = date.getDate() - date.getDay();
-                // TODO: Constructor of Date is not UTC.
-                const roundDateWeek = new Date(date.getFullYear(), date.getMonth(), firstDay, 0, - ((new Date()).getTimezoneOffset()));
-                return roundDateWeek.getTime() === date.getTime();
-            case TimeInterval.day10: return DateUtils.isTruncated(date, TimeSpan.FROM_DAYS(10));
-            case TimeInterval.month:
-                // TODO: Constructor of Date is not UTC.
-                const roundDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, - ((new Date()).getTimezoneOffset()));
-                return roundDate.getTime() === date.getTime();
-            default:
-                throw new Error(`Unexpected interval ${ interval }`);
-        }
+        const truncated = DateUtils.truncateToInterval(date, interval);
+        return date.getTime() === truncated.getTime();
     }
 }

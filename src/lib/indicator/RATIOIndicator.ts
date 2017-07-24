@@ -136,7 +136,7 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
         group.setSetting('basedate', new SettingSet({
             name: 'basedate',
             displayName: 'Base date',
-            value: this.extsettings.basedate ? DateUtils.toIsoDate(this.extsettings.basedate) : '',
+            value: this.extsettings.basedate ? DateUtils.formatDateISO(this.extsettings.basedate) : '',
             settingType: SettingType.date
         }));
 
@@ -176,7 +176,7 @@ export class RATIOIndicator extends IndicatorDataSource<CandlestickExt> {
         this.extsettings.uid = (uid && uid.value) ? uid.value : this.extsettings.uid;
 
         const d = value.getSetting('datasource.basedate');
-        this.extsettings.basedate = (d && d.value) ? DateUtils.parseIsoDate(d.value) : undefined;
+        this.extsettings.basedate = (d && d.value) ? DateUtils.parseISODate(d.value) : undefined;
 
         const valueType = value.getSetting('datasource.valueType');
         this.extsettings.valueType = (valueType && valueType.value) ? parseInt(valueType.value, 10) : this.extsettings.valueType;

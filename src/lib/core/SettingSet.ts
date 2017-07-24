@@ -88,7 +88,7 @@ export class SettingSet {
                 case SettingType.select:
                     return <T>parseInt(setting.value, 10);
                 case SettingType.date:
-                    return <T>DateUtils.parseIsoDate(setting.value);
+                    return <T>DateUtils.parseISODate(setting.value);
                 default: throw new Error(`Unexpected setting type ${setting.settingType}`);
             }
         }

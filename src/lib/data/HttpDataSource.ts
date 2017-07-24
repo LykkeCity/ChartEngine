@@ -134,9 +134,6 @@ export class HttpDataSource extends DataSource {
         }
 
         // Make request
-
-        console.debug(`reading data, interval=${ TimeInterval[this.config.timeInterval] }`);
-
         const promises = this.requestManager.makeRequest(range, this.config.timeInterval);
 
         const self = this;

@@ -176,7 +176,7 @@ export class TrendChannelFigureComponent extends FigureComponent implements IHov
 
         if (a && b) {
             const y = DrawUtils.LINEAR(a, b, p.x);
-            return p.y - y;
+            return y !== undefined ? p.y - y : 0;
         }
     }
 
@@ -310,7 +310,7 @@ export class DrawTrendChannelState extends FigureStateBase {
         } else if (this.count === 3 && this.pa && this.pb) {
             const y = DrawUtils.LINEAR(this.pa, this.pb, relX);
             if (this.figure) {
-                this.figure.spread = relY - y;
+                this.figure.spread = y !== undefined ? relY - y : 0;
             }
         }
     }

@@ -152,14 +152,12 @@ export class DrawUtils {
      * @param pb 
      * @param x 
      */
-    public static LINEAR(pa: IPoint, pb: IPoint, x: number): number {
+    public static LINEAR(pa: IPoint, pb: IPoint, x: number): number|undefined {
         const distx = pb.x - pa.x;
 
-        if (Math.abs(distx) > MINDIST) {
-            return ((pb.x * pa.y - pa.x * pb.y) - (pa.y - pb.y) * x) / distx;
-        } else {
-            return x; // for vertical line
-        }
+        return (Math.abs(distx) > MINDIST)
+            ? ((pb.x * pa.y - pa.x * pb.y) - (pa.y - pb.y) * x) / distx
+            : undefined; // for vertical line
     }
 
     public static EXTEND(pa: IPoint, pb: IPoint, frame: IRect): IPoint {
