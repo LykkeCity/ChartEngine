@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/jasmine": "^2.5.41",
     "@types/jquery": "^2.0.39",
+    "@types/knockout": "^3.4.43",
     "browserify-shim": "^3.8.12",
     "del": "^2.2.2",
     "gulp": "^3.9.1",

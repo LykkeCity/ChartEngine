@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Demo application</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <!-- <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.css">
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 0.9em;  
+        }
+
+        table {
+            border-spacing: 0px;
+            border-collapse: collapse;
+        }
+
+        table td {  
+            padding: 0px;
+        }
+
+        #footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .ui-controlgroup, fieldset.ui-controlgroup {
+            margin: 0;
+        }
+
+        #page-splash
+        {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+
+            color: #5588ff;
+
+            background-color: #ffffff;
+            /* opacity: 0.2; */
+            pointer-events: auto;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transition: opacity 0.1s linear;
+            -moz-transition: opacity 0.1s linear;
+            -o-transition: opacity 0.1s linear;
+            transition: opacity 0.1s linear;
+        }
+        #page-splash-message {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 100px;
+            height: 100px;
+            margin-top: -50px;
+            margin-left: -50px;
+
+            line-height: 100px;
+            text-align: center;
+            vertical-align: middle;
+
+            z-index: 1000;
+
+            white-space: nowrap;
+
+            /* text-align: center; */
+            /* margin: 0px 0 0 -75px; */
+            /* margin: 0 auto; */
+
+            /* font-size: 400%; */
+            font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+            font-weight: normal;
+            /* -webkit-text-shadow: 2px 2px rgba(0, 0, 0, 0.15);
+            text-shadow: 2px 2px rgba(0, 0, 0, 0.15); */
+            /* text-transform: uppercase; */
+            text-decoration: none;
+            font-family: monospace;
+            color: #5588ff;
+            padding: 0;
+        }
+
+        /*
+         * List view
+        */
+
+        .ui-listview-inset > li > a.ui-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        /*
+        * loader styles
+        */
+
+        .loader,
+        .loader:after {
+            border-radius: 50%;
+            width: 10em;
+            height: 10em;
+        }
+        .loader {
+            margin: auto;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+
+            /* position: relative;
+            margin: 60px auto; */
+
+            font-size: 10px;
+            text-indent: -9999em;
+            border-top: 1.1em solid rgba(85,136,255, 0.2);
+            border-right: 1.1em solid rgba(85,136,255, 0.2);
+            border-bottom: 1.1em solid rgba(85,136,255, 0.2);
+            border-left: 1.1em solid #5588ff;
+            -webkit-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-animation: load8 1.1s infinite linear;
+            animation: load8 1.1s infinite linear;
+        }
+        @-webkit-keyframes load8 {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes load8 {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body data-bind="winsize: onresize, domready: onready">
+
+    <!-- Loading screen -->
+
+    <div id="page-splash">
+        <div class="loader">Loading...</div>
+        <div id="page-splash-message">
+            Loading...
+        </div>    
+    </div>
+
+    <!-- Frame containing charts -->
+
+    <div id="frame" style="border: 1px solid red; padding: 0px" >
+        <table>
+            <tr>
+                <td>
+                    <chart-component params="index: 0, loaded: onComponentLoaded" ></chart-component>
+                </td>
+                <td>
+                    <chart-component params="index: 1, loaded: onComponentLoaded"></chart-component>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <chart-component params="index: 2, loaded: onComponentLoaded"></chart-component>
+                </td>
+                <td>
+                    <chart-component params="index: 3, loaded: onComponentLoaded"></chart-component>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Footer -->
+
+    <div id="footer">
+        <button class="ui-btn ui-btn-inline ui-mini" data-bind="click: setMode.bind($data, 1)">1</button>
+        <button class="ui-btn ui-btn-inline ui-mini" data-bind="click: setMode.bind($data, 4)">4</button>        
+    </div>
+
+    <!-- Popup menu for selecting figures -->
+
+    <div data-role="popup" id="popupMenu">
+        <ul data-role="listview" data-inset="true" style="min-width:210px;">
+            <li><a href="#" data-figure="line">Line</a></li>
+            <li><a href="#" data-figure="hline">H-Line</a></li>
+            <li><a href="#" data-figure="vline">V-Line</a></li>
+            <li><a href="#" data-figure="rect">Rect</a></li>
+            <li><a href="#" data-figure="triangle">Triangle</a></li>
+            <li><a href="#" data-figure="path">Path</a></li>
+            <li><a href="#" data-figure="pitchfork">Pitchfork</a></li>
+            <li><a href="#" data-figure="text">Text</a></li>
+            <li><a href="#" data-figure="ellipse">Ellipse</a></li>
+            <li><a href="#" data-figure="trendchannel">Trend Channel</a></li>
+            <li><a href="#" data-figure="curve">Curve</a></li>
+            <li><a href="#" data-figure="daterange">Date Range</a></li>
+            <li><a href="#" data-figure="fibofan">Fibo Fan</a></li>
+            <li><a href="#" data-figure="fibolevel">Fibo Level</a></li>
+            <li><a href="#" data-figure="fiboprojection">Fibo Projection</a></li>
+            <li><a href="#" data-figure="fibotimeprojection">Fibo Time Projection</a></li>
+            <li><a href="#" data-figure="gannfan">Gann Fan</a></li>
+            <li><a href="#" data-figure="ohlcproj">OHLC Proj</a></li>
+        </ul>
+    </div>
+
+    <!-- Chart template -->
+
+    <template id="chart-component-template">
+        <div class="chart-component" data-bind="visible: visible, style: { width: width() + 'px', height: height() + 'px' }" style="border: 1px solid blue">
+            <div class="chart-toolbar">
+                <table>
+                    <tr>
+                        <td>
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                                <select name="select-h-7a" id="select-h-7a" data-bind="options: assets, optionsText: 'name', optionsValue: 'id', value: selectedAsset">
+                                </select>
+                            </fieldset>
+                        </td>
+                        <td>
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                                <select name="select-h-7b" id="select-h-7b" data-bind="value: selectedInterval">
+                                    <option value="sec">Sec</option>
+                                    <option value="min">1 min</option>
+                                    <option value="hour" selected="selected">1 hour</option>
+                                    <option value="day">Day</option>
+                                    <option value="month">Month</option>
+                                </select>
+                            </fieldset>
+                        </td>
+                        <td>
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                                <select name="select-h-6c" id="select-h-6c">
+                                <option value="candle" selected="selected">Candles</option>
+                                <option value="heikinashi">Heikin-Ashi</option>
+                                <option value="hollow">Hollow</option>
+                                <option value="line">Line</option>
+                                <option value="mountain">Mountain</option>
+                                <option value="ohlc">OHLC</option>
+                                <option value="rangebar">Range Bars</option>
+                                <option value="renko">Renko</option>
+                                <option value="linebreak">Line Break</option>
+                                </select>
+                            </fieldset>
+                        </td>
+                        <td>
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                                <select name="select-h-6d" id="select-h-6d" data-bind="options: assets, optionsText: 'name'">
+                                </select>
+                            </fieldset>
+                        </td>
+                        <td>
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                                <button class="ui-btn ui-btn-icon-notext ui-icon-plus ui-btn-inline ui-mini">Add</button>
+                            </fieldset>
+                        </td>
+                        <td>
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                                <select name="select-custom-19" id="select-custom-19" multiple="multiple" data-native-menu="false">
+                                    <option>Indicators</option>
+                                    <!-- AVERAGES -->
+                                    <option value="DEMA_0">DEMA</option>
+                                    <option value="EMA_0">EMA</option>
+                                    <option value="SMA_0">SMA</option>
+                                    <option value="SMMA_0">SMMA</option>
+                                    <option value="TEMA_0">TEMA</option>
+                                    <option value="TMA_0">TMA</option>
+                                    <option value="WMA_0">WMA</option>
+
+                                    <!-- MISC -->
+                                    <option value="ADX_1">ADX</option>
+                                    <option value="ARO_1">ARO</option>
+                                    <option value="ATR">ATR</option>
+                                    <option value="bollinger_0">BB</option>
+                                    <option value="DMI_1">DMI</option>
+                                    <option value="HHLL_0">HHLL</option>
+                                    <option value="RB_0">RB</option>
+                                    <option value="STDEV_1">STDEV</option>
+                                    <option value="TP_0">TP</option>
+                                    <option value="MD_1">MD</option>
+                                    <option value="ST_0">ST</option>
+                                    <option value="IKH_0">IKH</option>
+                                    <option value="PSAR_0">PSAR</option>
+                                    <option value="PP_0">PP</option>
+                                    <option value="VOLA_1">VOLA</option>
+                                    <option value="COR_1">COR</option>
+                                    <option value="RATIO_1">RATIOCATOR</option>
+
+                                    <!-- OSCILLATORS -->
+                                    <option value="AOS_1">AOS</option>
+                                    <option value="DIX_1">DIX</option>
+                                    <option value="DSSBR_1">DSSBR</option>
+                                    <option value="OBOS_1">OBOS</option>
+                                    <option value="PCR_1">PCR</option>
+                                    <option value="MOM_1">MOM</option>
+                                    <option value="ROC_1">ROC</option>
+                                    <option value="RSI_1">RSI</option>
+                                    <option value="FSTOC_1">FSTOC</option>
+                                    <option value="SSTOC_1">SSTOC</option>
+
+                                    <!-- TREND FOLLOWING -->
+                                    <option value="CCI_1">CCI</option>
+                                    <option value="MACD_1">MACD</option>
+                                    <option value="RSL_1">RSL</option>
+                                </select>
+                            </fieldset>
+                        </td>
+                        <td>
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                                <a href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-carat-d ui-btn-icon-right ui-btn-a">Figures</a>
+                            </fieldset>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="display: block; position: relative;">
+                <div class="panel-chart" style="position: absolute; left: 0px; top: 0px; height: 100%;" data-bind="style: { right: panelWidth() + 'px' }">
+                    <div class="chart-container" style="background-color: yellow"></div>
+                </div>
+                <div class="panel-container" style="position: absolute; right: 0px; top: 0px; height: 100%;">
+                    <div class="collapsed-panel" data-bind="visible: !panelVisible()" style="background-color: lightgray">
+                        <div style="margin-top:0">
+                            <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-carat-l"
+                                data-bind="click: cmdShowPanel.bind($data, true)">
+                                Open
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tree-panel" data-bind="visible: panelVisible" style="width: 100px; background-color: green">
+                        <div>
+                            <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-carat-r"
+                                data-bind="click: cmdShowPanel.bind($data, false)">
+                                Close
+                            </button>
+                        </div>
+                        PANEL1
+                        asdfasdfsdf
+                        sdfasdfasdf
+                        asdfasdfasdf
+                        asdfsdf
+                    </div>
+                </div>
+            </div> 
+
+        </div>
+        <!-- ko text: afterLoad() -->
+        <!-- /ko -->
+
+        <!-- <span data-bind="template: { afterRender: componentLoaded() }"></span>-->
+    </template>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <!-- <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
+    <script type="text/javascript" src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script> -->
+    <script type="text/javascript" src="http://knockoutjs.com/downloads/knockout-3.4.2.debug.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
+    <script type="text/javascript">
+        var settings = (function() {
+            return {
+                assetsUrl: 'http://corei5:8000/mock/assetpairs/dictionary',
+                candlesUrl: 'http://corei5:8000/mock/candles/history/'
+            };
+        })();
+    </script>
+    <script type="text/javascript" src="./dist/demo.bundle.js"></script>
+</body>
+</html>

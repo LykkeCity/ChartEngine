@@ -65,9 +65,9 @@ export class DrawUtils {
 
     /**
      * Solves quadratic equation.
-     * @param a 
-     * @param b 
-     * @param c 
+     * @param a
+     * @param b
+     * @param c
      */
     public static SOLVE_QUAD(a: number, b: number, c: number): number[] {
         if (a === 0) {

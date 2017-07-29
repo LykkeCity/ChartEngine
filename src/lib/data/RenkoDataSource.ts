@@ -100,7 +100,6 @@ export class RenkoDataSource extends ComputedDataSource<RenkoCandle> {
         // }
         let last = computedArray.length > 0 ? computedArray[computedArray.length - 1] : undefined;
 
-
         // TODO: replace with "isEmpty" function:
         if (!source.o || !source.c || !source.h || !source.l) {
             return;

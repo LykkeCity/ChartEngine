@@ -6,5 +6,5 @@
 npm install
 gulp build
 ws -d ./sample-webserver
-./sample-usage-ts/index.html
+http://localhost:8000/demo/index.html
 ```
