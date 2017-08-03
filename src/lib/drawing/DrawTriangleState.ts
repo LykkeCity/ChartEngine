@@ -194,7 +194,6 @@ export class DrawTriangleState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: TriangleFigureComponent;
     private count = 0;
 

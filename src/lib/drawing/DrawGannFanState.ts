@@ -196,7 +196,6 @@ export class DrawGannFanState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: GannFanFigureComponent;
     private count = 0;
 

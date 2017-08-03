@@ -282,7 +282,6 @@ export class DrawOhlcProjState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: OhlcProjFigureComponent;
     private count = 0;
 

@@ -236,7 +236,6 @@ export class DrawFiboTimeProjectionState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: FiboTimeProjectionFigureComponent;
     private count = 0;
 

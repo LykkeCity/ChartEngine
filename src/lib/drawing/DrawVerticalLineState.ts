@@ -103,7 +103,6 @@ export class DrawVerticalLineState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: VerticalLineFigureComponent;
     private count = 0;
 

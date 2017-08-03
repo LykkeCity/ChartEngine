@@ -252,7 +252,6 @@ export class DrawTrendChannelState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: TrendChannelFigureComponent;
     private pa?: IPoint;
     private pb?: IPoint;

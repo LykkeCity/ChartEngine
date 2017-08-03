@@ -105,7 +105,6 @@ export class DrawHorizontalLineState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: HorizontalLineFigureComponent;
     private count = 0;
 

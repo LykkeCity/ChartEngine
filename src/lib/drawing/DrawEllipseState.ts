@@ -297,7 +297,6 @@ export class DrawEllipseState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: EllipseFigureComponent;
     private pa?: IPoint;
     private pb?: IPoint;
@@ -305,7 +304,6 @@ export class DrawEllipseState extends FigureStateBase {
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, parameters?: IHashTable<any>): void {
         this.board = board;
-        this.stack = stack;
         this.count = 0;
         super.activate(board, mouse, stack, parameters);
     }

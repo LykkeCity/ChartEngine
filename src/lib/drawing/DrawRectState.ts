@@ -172,7 +172,6 @@ export class DrawRectState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: RectFigureComponent;
     private count = 0;
 

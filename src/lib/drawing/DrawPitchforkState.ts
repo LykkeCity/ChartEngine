@@ -234,7 +234,6 @@ export class DrawPitchforkState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: PitchforkFigureComponent;
     private count = 0;
 

@@ -4,8 +4,7 @@
     <title>Demo application</title>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <!-- <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
-    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.css">
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.css">
     <style type="text/css">
         body {
             margin: 0;
@@ -32,6 +31,64 @@
         .ui-controlgroup, fieldset.ui-controlgroup {
             margin: 0;
         }
+
+        .app-control {
+            background-color: #f6f6f6;
+            border: 1px solid #ddd
+        }
+
+        .chart-toolbar {
+            background-color: #f6f6f6;
+        }
+
+        .chart-component {
+            border-bottom: 1px solid lightgrey;
+            border-right: 1px solid lightgrey;            
+        }
+
+        /*
+         * Settings / properties
+         */
+
+        .props-panel {
+            margin-left: 5px;
+        }
+
+        .props-panel .title {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .props-panel .subtitle {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 12px
+        }
+
+        div.props-form {
+
+        }
+
+        div.props-form .field-contain {
+
+        }
+
+        .field-contain input[type="text"] {
+            width: 50px
+        }
+
+        .field-contain .field-title {
+            font-size: 14px
+        }
+
+        .field-input {
+
+        }
+
+
+        /*
+         * Page splash
+         */
 
         #page-splash
         {
@@ -92,9 +149,23 @@
          * List view
         */
 
+        .right-panel .ui-collapsible {
+            margin: auto;
+        }
+
         .ui-listview-inset > li > a.ui-btn {
             padding: 5px 10px;
             font-size: 12px;
+        }
+
+        .ui-collapsible-content > .ui-listview:not(.ui-listview-inset) > li > a.ui-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: lighter;
+
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;            
         }
 
         /*
@@ -162,12 +233,13 @@
 
     <!-- Frame containing charts -->
 
-    <div id="frame" style="border: 1px solid red; padding: 0px" >
+    <div id="frame" style="padding: 0px" >
         <table>
             <tr>
                 <td>
                     <chart-component params="index: 0, loaded: onComponentLoaded" ></chart-component>
                 </td>
+                <td style="width: 6px"></td>
                 <td>
                     <chart-component params="index: 1, loaded: onComponentLoaded"></chart-component>
                 </td>
@@ -176,6 +248,7 @@
                 <td>
                     <chart-component params="index: 2, loaded: onComponentLoaded"></chart-component>
                 </td>
+                <td style="width: 6px"></td>
                 <td>
                     <chart-component params="index: 3, loaded: onComponentLoaded"></chart-component>
                 </td>
@@ -193,32 +266,15 @@
     <!-- Popup menu for selecting figures -->
 
     <div data-role="popup" id="popupMenu">
-        <ul data-role="listview" data-inset="true" style="min-width:210px;">
-            <li><a href="#" data-figure="line">Line</a></li>
-            <li><a href="#" data-figure="hline">H-Line</a></li>
-            <li><a href="#" data-figure="vline">V-Line</a></li>
-            <li><a href="#" data-figure="rect">Rect</a></li>
-            <li><a href="#" data-figure="triangle">Triangle</a></li>
-            <li><a href="#" data-figure="path">Path</a></li>
-            <li><a href="#" data-figure="pitchfork">Pitchfork</a></li>
-            <li><a href="#" data-figure="text">Text</a></li>
-            <li><a href="#" data-figure="ellipse">Ellipse</a></li>
-            <li><a href="#" data-figure="trendchannel">Trend Channel</a></li>
-            <li><a href="#" data-figure="curve">Curve</a></li>
-            <li><a href="#" data-figure="daterange">Date Range</a></li>
-            <li><a href="#" data-figure="fibofan">Fibo Fan</a></li>
-            <li><a href="#" data-figure="fibolevel">Fibo Level</a></li>
-            <li><a href="#" data-figure="fiboprojection">Fibo Projection</a></li>
-            <li><a href="#" data-figure="fibotimeprojection">Fibo Time Projection</a></li>
-            <li><a href="#" data-figure="gannfan">Gann Fan</a></li>
-            <li><a href="#" data-figure="ohlcproj">OHLC Proj</a></li>
+        <ul data-role="listview" data-inset="true" style="min-width:210px;" data-bind="foreach: figures">
+            <li><a href="#" data-figure="line" data-bind="attr: { 'data-figure': name }, text: text, click: $parent.cmdAddFigure.bind($parent, name)"></a></li>
         </ul>
     </div>
 
     <!-- Chart template -->
 
     <template id="chart-component-template">
-        <div class="chart-component" data-bind="visible: visible, style: { width: width() + 'px', height: height() + 'px' }" style="border: 1px solid blue">
+        <div class="chart-component" data-bind="visible: visible, style: { width: width() + 'px', height: height() + 'px' }">
             <div class="chart-toolbar">
                 <table>
                     <tr>
@@ -241,7 +297,7 @@
                         </td>
                         <td>
                             <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
-                                <select name="select-h-6c" id="select-h-6c">
+                                <select name="select-h-6c" id="select-h-6c" data-bind="value: selectedChartType">
                                 <option value="candle" selected="selected">Candles</option>
                                 <option value="heikinashi">Heikin-Ashi</option>
                                 <option value="hollow">Hollow</option>
@@ -256,18 +312,18 @@
                         </td>
                         <td>
                             <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
-                                <select name="select-h-6d" id="select-h-6d" data-bind="options: assets, optionsText: 'name'">
+                                <select name="select-h-6d" id="select-h-6d" data-bind="options: assets, optionsText: 'name', optionsValue: 'id', value: selectedCompareAsset">
                                 </select>
                             </fieldset>
                         </td>
                         <td>
                             <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
-                                <button class="ui-btn ui-btn-icon-notext ui-icon-plus ui-btn-inline ui-mini">Add</button>
+                                <button class="ui-btn ui-btn-icon-notext ui-icon-plus ui-btn-inline ui-mini" data-bind="click: cmdCompare">Add</button>
                             </fieldset>
                         </td>
                         <td>
                             <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
-                                <select name="select-custom-19" id="select-custom-19" multiple="multiple" data-native-menu="false">
+                                <select name="select-custom-19" id="select-custom-19" multiple="multiple" data-native-menu="false" data-bind="selectedOptions: selectedIndicators">
                                     <option>Indicators</option>
                                     <!-- AVERAGES -->
                                     <option value="DEMA_0">DEMA</option>
@@ -318,7 +374,7 @@
                         </td>
                         <td>
                             <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
-                                <a href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-carat-d ui-btn-icon-right ui-btn-a">Figures</a>
+                                <a data-bind="click: $parent.cmdSetCurrentChart($data)" href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-carat-d ui-btn-icon-right ui-btn-a">Figures</a>
                             </fieldset>
                         </td>
                     </tr>
@@ -327,10 +383,10 @@
 
             <div style="display: block; position: relative;">
                 <div class="panel-chart" style="position: absolute; left: 0px; top: 0px; height: 100%;" data-bind="style: { right: panelWidth() + 'px' }">
-                    <div class="chart-container" style="background-color: yellow"></div>
+                    <div class="chart-container"></div>
                 </div>
-                <div class="panel-container" style="position: absolute; right: 0px; top: 0px; height: 100%;">
-                    <div class="collapsed-panel" data-bind="visible: !panelVisible()" style="background-color: lightgray">
+                <div class="panel-container" style="position: absolute; right: 0px; top: 0px;" data-bind="style: { width: panelWidth() + 'px', height: panelHeight() + 'px' }">
+                    <div class="collapsed-panel ui-corner-all app-control" data-bind="visible: !panelVisible()" style="height: 100%">
                         <div style="margin-top:0">
                             <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-carat-l"
                                 data-bind="click: cmdShowPanel.bind($data, true)">
@@ -339,40 +395,78 @@
                         </div>
                     </div>
 
-                    <div class="tree-panel" data-bind="visible: panelVisible" style="width: 100px; background-color: green">
-                        <div>
-                            <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-carat-r"
-                                data-bind="click: cmdShowPanel.bind($data, false)">
-                                Close
-                            </button>
-                        </div>
-                        PANEL1
-                        asdfasdfsdf
-                        sdfasdfasdf
-                        asdfasdfasdf
-                        asdfsdf
-                    </div>
-                </div>
-            </div> 
+                    <div class="right-panel ui-corner-all app-control" data-bind="visible: panelVisible" style="width: 100%; height: 100%">
+                        <table style="width: 100%; height: 100%">
+                            <tr>
+                                <td>
+                                    <div style="height:100%; overflow: auto">
+                                        <div class="tree-panel" data-bind="with: treeVM, visible: !editPropertiesMode()">
 
+                                            <!-- ko foreach: stacks, updateListviewOnChange: stacks -->
+                                            <div class="collapsible-component" data-inset="false" data-mini="true" data-collapsed-icon="" and data-expanded-icon="">
+                                                <h3 data-bind="text: $data.name"></h3>
+                                                <ul class="list-component" data-inset="false" data-mini="true">
+                                                    <!-- ko foreach: charts, updateListviewOnChange: charts -->
+                                                        <li>
+                                                            <a href="#" data-bind="click: $parents[1].cmdSelectChart.bind($parents[1], $data)"><span data-bind="text: $data.name"></span></a>
+                                                        </li>
+                                                    <!-- /ko -->
+                                                    <!-- ko foreach: figures, updateListviewOnChange: figures -->
+                                                        <li>
+                                                            <a href="#" data-bind="click: $parents[1].cmdSelectFigure.bind($parents[1], $data)"><span data-bind="text: $data.name"></span></a>
+                                                        </li>
+                                                    <!-- /ko -->
+                                                </ul>
+                                            </div>
+                                            <!-- /ko -->
+                                        </div><!-- treeVM -->
+
+                                        <div class="props-panel" data-bind="with: propsVM, visible: editPropertiesMode" "style: height: 154px">
+                                            <h4 class="title" data-bind="text: title"></h4>
+                                            <div class="properties">
+
+                                            </div>
+                                            <div>
+                                                <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-check"
+                                                    data-bind="click: cmdApply">
+                                                    Apply
+                                                </button>
+                                                <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-delete"
+                                                    data-bind="click: cmdCancel">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div><!-- propsVM -->
+                                    </div>
+                                </td>
+                                <td style="width: 44px; vertical-align: top">
+                                    <div>
+                                        <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-carat-r"
+                                            data-bind="click: cmdShowPanel.bind($data, false)">
+                                            Close
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div><!-- right-panel -->
+                </div><!-- panel-container -->
+            </div>
         </div>
         <!-- ko text: afterLoad() -->
         <!-- /ko -->
-
         <!-- <span data-bind="template: { afterRender: componentLoaded() }"></span>-->
     </template>
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-    <!-- <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
-    <script type="text/javascript" src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
-    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script> -->
-    <script type="text/javascript" src="http://knockoutjs.com/downloads/knockout-3.4.2.debug.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script> 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
     <script type="text/javascript">
         var settings = (function() {
             return {
-                assetsUrl: 'http://corei5:8000/mock/assetpairs/dictionary',
-                candlesUrl: 'http://corei5:8000/mock/candles/history/'
+                assetsUrl: 'http://localhost:8000/mock/assetpairs/dictionary',
+                candlesUrl: 'http://localhost:8000/mock/candles/history/'
             };
         })();
     </script>

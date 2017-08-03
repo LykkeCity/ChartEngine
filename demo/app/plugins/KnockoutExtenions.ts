@@ -20,5 +20,15 @@ export class KnockoutExtenions {
                 });
             }
         };
+
+        ko.virtualElements.allowedBindings.updateListviewOnChange = true;
+        ko.bindingHandlers.updateListviewOnChange = {
+            update: (element, valueAccessor) => {
+                ko.utils.unwrapObservable(valueAccessor());  //grab dependency
+
+                $('.list-component').listview({ refresh: true, mini: true, icon: '' });
+                $('.collapsible-component').collapsible({ refresh: true, mini: true });
+            }
+        };
     }
 }

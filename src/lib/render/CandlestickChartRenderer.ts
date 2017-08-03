@@ -240,7 +240,7 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
 }
 
 class CandleRenderSettings {
-    public colorUp = '#008910';
-    public colorDown = '#D80300';
+    public colorUp =  '#59E459';
+    public colorDown = '#F03A3D';
     public colorBorder = '#333333';
 }

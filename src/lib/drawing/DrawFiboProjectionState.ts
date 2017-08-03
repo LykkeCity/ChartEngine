@@ -217,13 +217,11 @@ export class DrawFiboProjectionState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: FiboProjectionFigureComponent;
     private count = 0;
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, parameters?: IHashTable<any>): void {
         this.board = board;
-        this.stack = stack;
         this.count = 0;
         super.activate(board, mouse, stack, parameters);
     }

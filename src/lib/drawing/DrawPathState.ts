@@ -253,7 +253,6 @@ export class DrawPathState extends FigureStateBase {
     }
 
     private board?: IChartBoard;
-    private stack?: IChartStack;
     private figure?: PathFigureComponent;
     private firstXY?: Point;
     private lastXY?: Point;
