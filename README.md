@@ -1,6 +1,6 @@
 ## Chart Engine
 
-Stock charting library built with [Typescript]https:(//www.typescriptlang.org/) using HTML5 Canvas element for drawing.
+Stock charting library built with [Typescript](https://www.typescriptlang.org/) using HTML5 Canvas element for drawing.
 
 ### Features
 
