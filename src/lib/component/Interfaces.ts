@@ -1,7 +1,7 @@
 /**
  * 
  */
-import { ChartPoint, IAxis, ICoordsConverter, IMouse, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, VisualComponent, VisualContext }
+import { ChartPoint, IAxis, ICoordsConverter, IMouse, ISource, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, VisualComponent, VisualContext }
     from '../core/index';
 import { Area, ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
@@ -16,6 +16,7 @@ export interface IDrawing {
 
 export interface ISelectable {
     setSelected(selected: boolean): void;
+    getSelected(): boolean;
 }
 
 export function isSelectable(obj: any): obj is ISelectable {
@@ -79,6 +80,11 @@ export interface IStateController {
     onMouseLeave(board: IChartBoard, mouse: IMouse): void;
     onMouseUp(board: IChartBoard, mouse: IMouse): void;
     onMouseDown(board: IChartBoard, mouse: IMouse, stack?: IChartStack): void;
+
+    onTouchPan(board: IChartBoard, touch: ITouch): void;
+    onTouchPress(board: IChartBoard, touch: ITouch): void;
+    onTouchSwipe(board: IChartBoard, touch: ITouch): void;
+    onTouchTap(board: IChartBoard, touch: ITouch, stack?: IChartStack): void;
 }
 
 export function isStateController(obj: any): obj is IStateController {

@@ -1,8 +1,8 @@
 /**
  * 
  */
-import { Events, IMouse, Mouse, ObjectEventArgument, VisualComponent } from '../core/index';
-import { Point } from '../shared/index';
+import { Events, IMouse, ITouch, Mouse, ObjectEventArgument, VisualComponent } from '../core/index';
+import { IPoint, Point } from '../shared/index';
 import { IChartBoard, IHoverable, isEditable, ISelectable, isHoverable, isSelectable, IStateController } from './Interfaces';
 
 export class HoverState implements IStateController {
@@ -21,28 +21,16 @@ export class HoverState implements IStateController {
 
     public onMouseDown(board: IChartBoard, mouse: IMouse): void {
         this.selectionMode = true;
-        this.hitComponent = this.getHitComponent(board, mouse);
+        this.hitComponent = this.getHitComponent(board, mouse.pos);
     }
 
     public onMouseUp(board: IChartBoard, mouse: IMouse): void {
         if (this.selectionMode) {
-            // clear current selection
-            board.forEach(component => {
-                if (isSelectable(component)) {
-                    component.setSelected(false);
-                }
-                return true; // continue
-            });
+            this.clearSelection(board);
         }
 
         // If mouse was moved do not select
-        if (this.hitComponent) {
-            if (isSelectable(this.hitComponent)) {
-                // select component
-                this.hitComponent.setSelected(true);
-                Events.instance.objectSelected.trigger(new ObjectEventArgument(this.hitComponent));
-            }
-        }
+        this.selectAndTriggerEvent(this.hitComponent);
     }
 
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
@@ -55,10 +43,10 @@ export class HoverState implements IStateController {
                 const editState = this.hitComponent.getEditState();
                 board.changeState(editState, { component: this.hitComponent });
             }
-        } else if (mouse.isDown && !this.hitComponent) {
+        } else if (mouse.isDown && !this.hitComponent) { // Using pan event instead
             board.changeState('movechart');
         } else if (!mouse.isDown) {
-            const hitComponent = this.getHitComponent(board, mouse);
+            const hitComponent = this.getHitComponent(board, mouse.pos);
             if (hitComponent) {
                 hitComponent.setHovered(true);
                 board.setCursor('pointer');
@@ -73,6 +61,40 @@ export class HoverState implements IStateController {
     public onMouseEnter(board: IChartBoard, mouse: IMouse): void { }
     public onMouseLeave(board: IChartBoard, mouse: IMouse): void { }
     public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
+
+    public onTouchPan(board: IChartBoard, touch: ITouch): void {
+
+        // if selected component
+        //      edit figure
+        // if nothing selected
+        //      movechart
+
+        const [selectedComponent, offset] = this.getSelectedComponent(board);
+        if (selectedComponent && offset && isHoverable(selectedComponent) && isEditable(selectedComponent)) {
+            const p = new Point(touch.center.x - offset.x, touch.center.y - offset.y);
+            if (selectedComponent.isHit(p)) {
+                const editState = selectedComponent.getEditState();
+                board.changeState(editState, { component: selectedComponent });
+            }
+        } else {
+            board.changeState('movechart');
+        }
+    }
+
+    public onTouchTap(board: IChartBoard, touch: ITouch): void {
+        // 1. clear selection
+        this.clearSelection(board);
+
+        // 2. get hit component
+        this.hitComponent = this.getHitComponent(board, touch.center);
+
+        // if hit
+        //      select hit
+        this.selectAndTriggerEvent(this.hitComponent);
+    }
+
+    public onTouchPress(board: IChartBoard, touch: ITouch): void { }
+    public onTouchSwipe(board: IChartBoard, touch: ITouch): void { }
 
     public activate(board: IChartBoard, mouse: IMouse): void {
         this.selectionMode = false;
@@ -89,7 +111,17 @@ export class HoverState implements IStateController {
         });
     }
 
-    private getHitComponent(board: IChartBoard, mouse: IMouse): VisualComponent & IHoverable | undefined {
+    private clearSelection(board: IChartBoard) {
+        // clear current selection
+        board.forEach(component => {
+            if (isSelectable(component)) {
+                component.setSelected(false);
+            }
+            return true; // continue
+        });
+    }
+
+    private getHitComponent(board: IChartBoard, hitpoint: IPoint): VisualComponent & IHoverable | undefined {
 
         let hitComponent: VisualComponent & IHoverable | undefined;
 
@@ -97,7 +129,7 @@ export class HoverState implements IStateController {
         board.forEach(
             (component, aggregatedOffset) => {
                 if (isHoverable(component)) {
-                    const p = new Point(mouse.pos.x - aggregatedOffset.x, mouse.pos.y - aggregatedOffset.y);
+                    const p = new Point(hitpoint.x - aggregatedOffset.x, hitpoint.y - aggregatedOffset.y);
 
                     if (component.isHit(p) && !hitComponent) {
                         hitComponent = component;
@@ -114,6 +146,36 @@ export class HoverState implements IStateController {
 
         return hitComponent;
     }
+
+    private getSelectedComponent(board: IChartBoard): [VisualComponent & ISelectable | undefined, IPoint|undefined] {
+
+        let selectedComponent: VisualComponent & ISelectable | undefined;
+        let offset: IPoint | undefined;
+
+        // traverse all components and find selected component.
+        board.forEach((component, aggregatedOffset) => {
+            if (isSelectable(component)) {
+                if (component.getSelected()) {
+                    selectedComponent = component;
+                    offset = aggregatedOffset;
+                    return false; // stop iterating
+                }
+            }
+            return true; // continue
+        });
+
+        return [selectedComponent, offset];
+    }
+
+    private selectAndTriggerEvent(hitComponent?: VisualComponent) {
+        if (hitComponent) {
+            if (isSelectable(hitComponent)) {
+                // select component
+                hitComponent.setSelected(true);
+                Events.instance.objectSelected.trigger(new ObjectEventArgument(hitComponent));
+            }
+        }
+    }
 }
 
 export class MoveChartState implements IStateController {
@@ -127,17 +189,10 @@ export class MoveChartState implements IStateController {
         return this.inst;
     }
 
-    private last = new Point();
+    private lastMouse = new Point();
+    private lastTouch?: Point;
 
     public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
-
-    public onMouseMove(board: IChartBoard, mouse: IMouse): void {
-        const diffX = mouse.pos.x - this.last.x;
-        board.moveX(diffX);
-
-        [this.last.x, this.last.y] = [mouse.pos.x, mouse.pos.y];
-    }
-
     public onMouseEnter(board: IChartBoard, mouse: IMouse): void { }
     public onMouseLeave(board: IChartBoard, mouse: IMouse): void {
         this.exit(board);
@@ -147,13 +202,38 @@ export class MoveChartState implements IStateController {
     }
     public onMouseDown(board: IChartBoard, mouse: IMouse): void { }
 
-    public activate(board: IChartBoard, mouse: IMouse): void {
-        [this.last.x, this.last.y] = [mouse.pos.x, mouse.pos.y];
+    public onMouseMove(board: IChartBoard, mouse: IMouse): void {
+        const diffX = mouse.pos.x - this.lastMouse.x;
+        board.moveX(diffX);
+
+        [this.lastMouse.x, this.lastMouse.y] = [mouse.pos.x, mouse.pos.y];
     }
 
-    public deactivate(board: IChartBoard, mouse: IMouse): void {
-        // TODO: stop mouse handling
+    public onTouchPan(board: IChartBoard, touch: ITouch): void {
+
+        if (this.lastTouch) {
+            const diffX = touch.center.x - this.lastTouch.x;
+            board.moveX(diffX);
+            [this.lastTouch.x, this.lastTouch.y] = [touch.center.x, touch.center.y];
+        } else {
+            this.lastTouch = new Point(touch.center.x, touch.center.y);
+        }
+
+        if (touch.isFinal) {
+            this.exit(board);
+        }
     }
+
+    public onTouchPress(board: IChartBoard, touch: ITouch): void { }
+    public onTouchSwipe(board: IChartBoard, touch: ITouch): void { }
+    public onTouchTap(board: IChartBoard, touch: ITouch): void { }
+
+    public activate(board: IChartBoard, mouse: IMouse): void {
+        [this.lastMouse.x, this.lastMouse.y] = [mouse.pos.x, mouse.pos.y];
+        this.lastTouch = undefined;
+    }
+
+    public deactivate(board: IChartBoard, mouse: IMouse): void { }
 
     private exit(board: IChartBoard): void {
         board.changeState('hover');

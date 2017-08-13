@@ -2,8 +2,8 @@
  * FigureStateBase class.
  */
 import { IChartBoard, IChartStack, IStateController } from '../component/index';
-import { IMouse } from '../core/index';
-import { IHashTable } from '../shared/index';
+import { IMouse, ITouch } from '../core/index';
+import { IHashTable, IPoint } from '../shared/index';
 
 export abstract class FigureStateBase implements IStateController {
     constructor() { }
@@ -20,20 +20,19 @@ export abstract class FigureStateBase implements IStateController {
         }
 
         if (!this.stack) {
-            //this.setChartStack(stack);
             this.stack = stack;
         }
 
         if (this.state === 0) {
             // add first point and fix it
-            this.addPoint(mouse);
-            this.fixPoint(mouse);
+            this.addPoint(mouse.pos);
+            this.fixPoint(mouse.pos);
             this.state = 1;
         } else if (this.state === 1) {
             // ignore
         } else if (this.state === 2) {
             // fix last point = finish line
-            this.fixPoint(mouse);
+            this.fixPoint(mouse.pos);
             this.state = 1;
         }
     }
@@ -43,13 +42,13 @@ export abstract class FigureStateBase implements IStateController {
             // hovering
         } else if (this.state === 1) {
             // fix last point
-            this.fixPoint(mouse);
+            this.fixPoint(mouse.pos);
             // add new point = start drawing line
-            this.addPoint(mouse);
+            this.addPoint(mouse.pos);
             this.state = 2;
         } else if (this.state === 2) {
             // change last point
-            this.setLastPoint(mouse);
+            this.setLastPoint(mouse.pos);
         }
     }
 
@@ -59,11 +58,11 @@ export abstract class FigureStateBase implements IStateController {
         } else if (this.state === 1) {
             // point is selected
             // fix last point
-            this.fixPoint(mouse);
+            this.fixPoint(mouse.pos);
         } else if (this.state === 2) {
             // line is drawn. Add new point and go
             // fix last point
-            this.fixPoint(mouse);
+            this.fixPoint(mouse.pos);
             // add new point = start drawing line
 
             this.state = 1; // start another line
@@ -74,13 +73,35 @@ export abstract class FigureStateBase implements IStateController {
     public onMouseEnter(board: IChartBoard, mouse: IMouse): void { }
     public onMouseLeave(board: IChartBoard, mouse: IMouse): void { }
 
+    public onTouchPan(board: IChartBoard, touch: ITouch): void { }
+
+    public onTouchTap(board: IChartBoard, touch: ITouch, stack?: IChartStack): void {
+        if (!stack) {
+            throw new Error('Stack is not specified');
+        }
+
+        if (!this.stack) {
+            this.stack = stack;
+        }
+
+        if (this.state === 1 || this.state === 2) {
+            this.fixPoint(touch.center);
+        }
+
+        this.addPoint(touch.center);
+        this.fixPoint(touch.center);
+    }
+
+    public onTouchPress(board: IChartBoard, touch: ITouch): void { }
+    public onTouchSwipe(board: IChartBoard, touch: ITouch): void { }
+
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, parameters?: IHashTable<any>): void {
         this.state = 0;
         this.stack = undefined;
     }
     public deactivate(): void { }
 
-    protected abstract addPoint(mouse: IMouse): void;
-    protected fixPoint(mouse: IMouse): void {};
-    protected abstract setLastPoint(mouse: IMouse): void;
+    protected abstract addPoint(point: IPoint): void;
+    protected fixPoint(point: IPoint): void {};
+    protected abstract setLastPoint(point: IPoint): void;
 }

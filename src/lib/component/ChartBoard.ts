@@ -3,14 +3,14 @@
  * 
  * @classdesc Facade for the chart library.
  */
-import { ChartType, EventArgument, Events, IDataService, ISource, IQuicktip, IQuicktipBuilder, IStorage, Mouse, MouseEventArgument, ObjectEventArgument, StorageManager, StoreContainer, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { ChartType, EventArgument, Events, IDataService,  ISource, IQuicktip, IQuicktipBuilder, IStorage, ITouch, Mouse, MouseEventArgument, ObjectEventArgument, StorageManager, StoreContainer, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, DataSourceFactory, DataSourceRegister, IDataSource, IndicatorDataSource } from '../data/index';
 import { IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
 import { Candlestick, Uid } from '../model/index';
 import { RenderLocator } from '../render/index';
-import { IEvent, IHashTable, IRange, Point, throttle } from '../shared/index';
-import { DateUtils, UidUtils } from '../utils/index';
+import { IEvent, IHashTable, IPoint, IRange, Point, throttle } from '../shared/index';
+import { DateUtils, IGhostClickSuppressor, TouchUtils, UidUtils } from '../utils/index';
 import { ChartStack } from './ChartStack';
 import { IChartBoard, IChartStack, IDrawing, isStateController, IStateController } from './Interfaces';
 import { StateFabric } from './StateFabric';
@@ -18,6 +18,7 @@ import { HoverState, MoveChartState } from './States';
 import { LoadRangeArgument, TimeAxis } from './TimeAxis';
 import { TimeAxisComponent } from './TimeAxisComponent';
 
+import * as hjs from 'hammerjs';
 import * as $ from 'jquery';
 
 class IndicatorDescription {
@@ -48,7 +49,11 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private state: IStateController;
     private storageMgr: StorageManager;
     private dataService?: IDataService;
-    protected timeRange: IRange<Date>;
+    private timeRange: IRange<Date>;
+    private hammer: HammerManager;
+    private isDestroyed = false;
+    private ghostClickSuppressor: IGhostClickSuppressor;
+    private touchMode = false;
 
     // Public Events
     public get objectSelected(): IEvent<ObjectEventArgument> {
@@ -95,8 +100,21 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
 
+        // tune touch events
+        this.ghostClickSuppressor = TouchUtils.PREVENT_GHOST_CLICK(this.container);
+
         // Hook up event handlers
         //
+        this.hammer = new Hammer(container, {});
+
+        this.hammer.get('pinch').set({ enable: true });
+
+        this.hammer.on('pinch', this.onTouchPinch);
+        this.hammer.on('pan', this.onTouchPan);
+        this.hammer.on('tap', this.onTouchTap);
+        this.hammer.on('press', this.onTouchPress);
+        this.hammer.on('swipe', this.onTouchSwipe);
+
         this.container.addEventListener('DOMMouseScroll', this.onMouseWheel, false);
         this.container.addEventListener('mousewheel', this.onMouseWheel, false);
         this.container.addEventListener('mouseup', this.onMouseUp, false);
@@ -104,6 +122,9 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.container.addEventListener('mouseenter', this.onMouseEnter, false);
         this.container.addEventListener('mouseleave', this.onMouseLeave, false);
         $(this.container).mousemove(throttle(this.onMouseMove, 10));
+        $(this.container).on('touchstart', this.onTouchStart);
+        $(this.container).on('touchend', this.onTouchEnd);
+        $(this.container).on('touchcancel', this.onTouchCancel);
 
         // Go to default state
         this.state = HoverState.instance;
@@ -475,8 +496,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
     private onMouseDown = (event: any) => {
         this.mouse.isDown = true;
-
-        const hitStack = this.getHitStack();
+        const hitStack = this.getHitStack(this.mouse.pos);
         this.state.onMouseDown(this, this.mouse, hitStack);
     }
 
@@ -484,9 +504,62 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.timeAxis.move(diffX);
     }
 
-    public getHitStack(): ChartStack | undefined {
-        const localX = this.mouse.pos.x - this.offset.x;
-        const localY = this.mouse.pos.y - this.offset.y;
+    private onTouchPinch = (ev: any) => {
+        if (!this.touchMode) {
+            return;
+        }
+        const direction = ev.deltaX;
+        if (direction) {
+            this.timeAxis.scale(direction);
+            this.render();
+        }
+    }
+
+    private onTouchPan = (ev: any) => {
+        if (!this.touchMode) {
+            return;
+        }
+        this.state.onTouchPan(this, <ITouch>ev);
+        this.renderLayers(true, true);
+    }
+
+    private onTouchPress = (ev: any) => {
+        if (!this.touchMode) {
+            return;
+        }
+    }
+
+    private onTouchTap = (ev: any) => {
+        if (!this.touchMode) {
+            return;
+        }
+        const hitStack = this.getHitStack(ev.center);
+        this.state.onTouchTap(this, <ITouch>ev, hitStack);
+        this.renderLayers(false, true);
+    }
+
+    private onTouchSwipe = (ev: any) => {
+        if (!this.touchMode) {
+            return;
+        }
+    }
+
+    private onTouchStart = (ev: any) => {
+        this.touchMode = true;
+    }
+
+    private onTouchEnd = (ev: any) => {
+        this.touchMode = false;
+        ev.preventDefault();
+    }
+
+    private onTouchCancel = (ev: any) => {
+        this.touchMode = false;
+    }
+
+    private getHitStack(hit: IPoint): ChartStack | undefined {
+        const localX = hit.x - this.offset.x;
+        const localY = hit.y - this.offset.y;
 
         for (const cStack of this.chartStacks) {
             const relativeX = localX - cStack.offset.x;
@@ -529,7 +602,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
             throw new Error(`State is not defined for the specified stateId '${ state }'`);
         }
 
-        const hitStack = this.getHitStack();
+        const hitStack = this.getHitStack(this.mouse.pos);
 
         this.state.deactivate(this, this.mouse);
         this.state = stateInstance;
@@ -551,5 +624,15 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         if (this.primaryDataSource) {
             return this.primaryDataSource.getLastCandle();
         }
+    }
+
+    public destroy(): void {
+        if (this.hammer) {
+            this.hammer.destroy();
+        }
+        if (this.ghostClickSuppressor) {
+            this.ghostClickSuppressor.destroy();
+        }
+        this.isDestroyed = true;
     }
 }

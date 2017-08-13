@@ -90,6 +90,15 @@ export interface IMouse {
     isEntered: boolean;
 }
 
+export interface ITouch {
+    isFirst: boolean;
+    isFinal: boolean;
+    distance: number;
+    deltaX: number;
+    deltaY: number;
+    center: IPoint;
+}
+
 export interface IDataService {
     getCandle: (asset: string, date: Date, interval: TimeInterval) => Promise<Candlestick>;
 }

@@ -2,12 +2,13 @@
  * Classes for drawing path.
  */
 import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreArray, StoreContainer, VisualContext } from '../core/index';
+import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreArray, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, IPoint, IRange, ISize, Point } from '../shared/index';
 import { DrawUtils } from '../utils/index';
+import { FigureEditStateBase } from './FigureEditStateBase';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
@@ -265,13 +266,13 @@ export class DrawPathState extends FigureStateBase {
         super.activate(board, mouse, stack, parameters);
     }
 
-    protected addPoint(mouse: IMouse): void {
+    protected addPoint(point: IPoint): void {
         if (!this.board || !this.stack) {
             return;
         }
 
-        const relX = mouse.pos.x - this.board.offset.x - this.stack.offset.x;
-        const relY = mouse.pos.y - this.board.offset.y - this.stack.offset.y;
+        const relX = point.x - this.board.offset.x - this.stack.offset.x;
+        const relY = point.y - this.board.offset.y - this.stack.offset.y;
         const coordX = this.stack.xToValue(relX);
         const coordY = this.stack.yToValue(relY);
 
@@ -294,7 +295,7 @@ export class DrawPathState extends FigureStateBase {
         this.count += 1;
     }
 
-    protected fixPoint(mouse: IMouse): void {
+    protected fixPoint(point: IPoint): void {
         if (this.firstXY && this.lastXY && DrawUtils.IS_POINT_OVER(this.firstXY, this.lastXY, 10)) {
             // remove last point
             if (this.figure) {
@@ -306,13 +307,13 @@ export class DrawPathState extends FigureStateBase {
         }
     }
 
-    protected setLastPoint(mouse: IMouse): void {
+    protected setLastPoint(point: IPoint): void {
         if (!this.board || !this.stack || !this.figure) {
             return;
         }
 
-        const relX = mouse.pos.x - this.board.offset.x - this.stack.offset.x;
-        const relY = mouse.pos.y - this.board.offset.y - this.stack.offset.y;
+        const relX = point.x - this.board.offset.x - this.stack.offset.x;
+        const relY = point.y - this.board.offset.y - this.stack.offset.y;
         const coordX = this.stack.xToValue(relX);
         const coordY = this.stack.yToValue(relY);
 
@@ -334,9 +335,11 @@ export class DrawPathState extends FigureStateBase {
     }
 }
 
-class EditPathState implements IStateController {
+class EditPathState extends FigureEditStateBase {
     private static inst?: EditPathState;
-    private constructor() { }
+    private constructor() {
+        super();
+    }
 
     public static get instance() {
         if (!this.inst) {
@@ -345,49 +348,24 @@ class EditPathState implements IStateController {
         return this.inst;
     }
 
-    private last = new Point();
-    private chartStack?: IChartStack;
-    private line?: PathFigureComponent;
-
-    public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
-
-    public onMouseMove(board: IChartBoard, mouse: IMouse): void {
-        if (this.line && this.chartStack) {
-            // Change mouse x/y only if line was shifted. Ignoring "empty" movement.
-            const shifted = this.line.shift(mouse.pos.x - this.last.x, mouse.pos.y - this.last.y);
-            if (shifted) {
-                [this.last.x, this.last.y] = [mouse.pos.x, mouse.pos.y];
-            }
-        } else {
-            [this.last.x, this.last.y] = [mouse.pos.x, mouse.pos.y];
-            console.debug('Edit state: line or chartStack is not found.');
-        }
-    }
-
-    public onMouseEnter(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseLeave(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseUp(board: IChartBoard, mouse: IMouse): void {
-        this.exit(board, mouse);
-    }
-    public onMouseDown(board: IChartBoard, mouse: IMouse): void { }
+    private figure?: PathFigureComponent;
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
-        [this.last.x, this.last.y] = [mouse.pos.x, mouse.pos.y];
-
-        this.chartStack = stack;
+        super.activate(board, mouse, stack, activationParameters);
 
         if (activationParameters && activationParameters['component']) {
-            this.line = <PathFigureComponent>activationParameters['component'];
+            this.figure = <PathFigureComponent>activationParameters['component'];
         } else {
             throw new Error('Editable component is not specified for edit.');
         }
     }
 
-    public deactivate(board: IChartBoard, mouse: IMouse): void { }
+    protected shift(dx: number, dy: number): boolean {
+        return this.figure ? this.figure.shift(dx, dy) : false;
+    }
 
-    private exit(board: IChartBoard, mouse: IMouse): void {
-        this.line = undefined;
-        this.chartStack = undefined;
-        board.changeState('hover');
+    protected exit(board: IChartBoard): void {
+        this.figure = undefined;
+        super.exit(board);
     }
 }

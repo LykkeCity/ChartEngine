@@ -38,6 +38,10 @@ export abstract class FigureComponent extends VisualComponent implements IFigure
         }
     }
 
+    public getSelected(): boolean {
+        return this.isSelected;
+    }
+
     public setSelected(selected: boolean): void {
         this.isSelected = selected;
         for (const vc of this._children) {

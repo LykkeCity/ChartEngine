@@ -3,11 +3,12 @@
  */
 
 import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, StoreContainer, VisualContext } from '../core/index';
+import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, IPoint, ISize, Point } from '../shared/index';
 import { DrawUtils } from '../utils/index';
+import { FigureEditStateBase } from './FigureEditStateBase';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
@@ -36,6 +37,10 @@ export class HorizontalLineFigureComponent extends FigureComponent implements IH
         this.p = new PointFigureComponent(area, offset, size, settings, taxis, yaxis, container.getObjectProperty('p'));
 
         this.addChild(this.p);
+    }
+
+    public shift(dx: number, dy: number): boolean {
+        return this.p.shift(dx, dy);
     }
 
     public isHit(p: IPoint): boolean {
@@ -115,7 +120,7 @@ export class DrawHorizontalLineState extends FigureStateBase {
         super.activate(board, mouse, stack, parameters);
     }
 
-    protected addPoint(mouse: IMouse): void {
+    protected addPoint(point: IPoint): void {
         if (!this.board || !this.stack) {
             return;
         }
@@ -123,8 +128,8 @@ export class DrawHorizontalLineState extends FigureStateBase {
         if (this.count === 0) {
             this.figure = <HorizontalLineFigureComponent>this.stack.addFigure(FigureType.hline);
 
-            const coordX = this.stack.xToValue(mouse.pos.x - this.board.offset.x - this.stack.offset.x);
-            const coordY = this.stack.yToValue(mouse.pos.y - this.board.offset.y - this.stack.offset.y);
+            const coordX = this.stack.xToValue(point.x - this.board.offset.x - this.stack.offset.x);
+            const coordY = this.stack.yToValue(point.y - this.board.offset.y - this.stack.offset.y);
 
             this.figure.point = { uid: coordX, v: coordY };
 
@@ -134,7 +139,7 @@ export class DrawHorizontalLineState extends FigureStateBase {
         this.count += 1;
     }
 
-    protected setLastPoint(mouse: IMouse): void { }
+    protected setLastPoint(point: IPoint): void { }
 
     private exit(): void {
         this.figure = undefined;
@@ -145,9 +150,11 @@ export class DrawHorizontalLineState extends FigureStateBase {
     }
 }
 
-class EditHorizontalLineState implements IStateController {
+class EditHorizontalLineState extends FigureEditStateBase {
     private static inst?: EditHorizontalLineState;
-    private constructor() { }
+    private constructor() {
+        super();
+    }
 
     public static get instance() {
         if (!this.inst) {
@@ -156,41 +163,24 @@ class EditHorizontalLineState implements IStateController {
         return this.inst;
     }
 
-    private chartStack?: IChartStack;
-    private line?: HorizontalLineFigureComponent;
-
-    public onMouseMove(board: IChartBoard, mouse: IMouse): void {
-        if (this.line && this.chartStack) {
-            const coordY = this.chartStack.yToValue(mouse.pos.y - board.offset.y - this.chartStack.offset.y);
-            this.line.point = { uid: this.line.point.uid, v: coordY };
-        } else {
-            console.debug('Edit state: line or chartStack is not found.');
-        }
-    }
-
-    public onMouseEnter(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseLeave(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseUp(board: IChartBoard, mouse: IMouse): void {
-        this.exit(board, mouse);
-    }
-    public onMouseDown(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
+    private figure?: HorizontalLineFigureComponent;
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
-        this.chartStack = stack;
+        super.activate(board, mouse, stack, activationParameters);
 
         if (activationParameters && activationParameters['component']) {
-            this.line = <HorizontalLineFigureComponent>activationParameters['component'];
+            this.figure = <HorizontalLineFigureComponent>activationParameters['component'];
         } else {
             throw new Error('Editable component is not specified for edit.');
         }
     }
 
-    public deactivate(board: IChartBoard, mouse: IMouse): void { }
+    protected shift(dx: number, dy: number): boolean {
+        return this.figure ? this.figure.shift(dx, dy) : false;
+    }
 
-    private exit(board: IChartBoard, mouse: IMouse): void {
-        this.line = undefined;
-        this.chartStack = undefined;
-        board.changeState('hover');
+    protected exit(board: IChartBoard): void {
+        this.figure = undefined;
+        super.exit(board);
     }
 }

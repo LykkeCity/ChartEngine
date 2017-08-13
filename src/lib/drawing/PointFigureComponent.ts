@@ -3,12 +3,13 @@
  */
 import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberMarker, TimeMarker }
     from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, Mouse, StoreContainer, VisualContext }
+import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, StoreContainer, VisualContext }
     from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
 import { Event, IEvent, IHashTable, IPoint, ISize, Point } from '../shared/index';
+import { FigureEditStateBase } from './FigureEditStateBase';
 
 export class PointChangedEvent extends Event<void> {
 }
@@ -192,9 +193,11 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
     }
 }
 
-class EditPointState implements IStateController {
+class EditPointState extends FigureEditStateBase {
     private static inst?: EditPointState;
-    private constructor() {}
+    private constructor() {
+        super();
+    }
 
     public static get instance() {
         if (!this.inst) {
@@ -203,48 +206,25 @@ class EditPointState implements IStateController {
         return this.inst;
     }
 
-    private chartStack?: IChartStack;
-    private point?: PointFigureComponent;
-
-    public onMouseMove(board: IChartBoard, mouse: IMouse): void {
-        if (this.point && this.chartStack) {
-            const relX = mouse.pos.x - board.offset.x - this.chartStack.offset.x;
-            const relY = mouse.pos.y - board.offset.y - this.chartStack.offset.y;
-            if (this.point.pixelMode) {
-                this.point.pixel = { x: relX, y: relY };
-            } else {
-                const coordX = this.chartStack.xToValue(relX);
-                const coordY = this.chartStack.yToValue(relY);
-                this.point.point = { uid: coordX, v: coordY };
-            }
-        } else {
-            console.debug('Edit state: line or chartStack is not found.');
-        }
-    }
-
-    public onMouseEnter(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseLeave(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseUp(board: IChartBoard, mouse: IMouse): void {
-        this.exit(board, mouse);
-    }
-    public onMouseDown(board: IChartBoard, mouse: IMouse): void { }
-    public onMouseWheel(board: IChartBoard, mouse: IMouse): void { }
+    private figure?: PointFigureComponent;
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
-        this.chartStack = stack;
+        super.activate(board, mouse, stack, activationParameters);
+
         if (activationParameters && activationParameters['component']) {
-            this.point = <PointFigureComponent>activationParameters['component'];
+            this.figure = <PointFigureComponent>activationParameters['component'];
         } else {
             throw new Error('Editable component is not specified for edit.');
         }
     }
 
-    public deactivate(board: IChartBoard, mouse: IMouse): void { }
+    protected shift(dx: number, dy: number): boolean {
+        return this.figure ? this.figure.shift(dx, dy) : false;
+    }
 
-    private exit(board: IChartBoard, mouse: IMouse): void {
-        this.point = undefined;
-        this.chartStack = undefined;
-        board.changeState('hover');
+    protected exit(board: IChartBoard): void {
+        this.figure = undefined;
+        super.exit(board);
     }
 }
 
