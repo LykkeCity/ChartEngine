@@ -42,9 +42,6 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         //this.qtip.addTextBlock('title', 'CHART ' + uid);
 
         this.renderer = <IChartRender<Candlestick>>RenderLocator.Instance.getChartRender(Candlestick, this.chartType);
-
-        // // Subscribe to events
-        // Events.instance.mouseMove.on(this.onMouseMove);
     }
 
     public get uid(): string {

@@ -54,7 +54,7 @@ export class PriceAxisComponent extends VisualComponent {
         super.render(context, renderLocator);
     }
 
-    private getMarkPos(ctx: VisualContext, size: ISize): number|undefined {
+    private getMarkPos = (ctx: VisualContext, size: ISize): number|undefined => {
         if (this.mouse) {
             return (this.mouse.y > 0 && this.mouse.y < this.size.height) ? this.axis.toValue(this.mouse.y) : undefined;
         }

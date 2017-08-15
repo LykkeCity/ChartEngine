@@ -4,20 +4,29 @@
 import { Events, IAxis, IMouse, ITimeAxis, IVisualComponent, MouseEventArgument, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
-import { IPoint, ISize } from '../shared/index';
+import { IPoint, ISize, Point } from '../shared/index';
 
 export class Crosshair extends VisualComponent {
 
     private readonly axis: ITimeAxis;
-    private mouse?: IMouse;
+    private mouse?: Point;
 
     constructor(
         private readonly area: Area,
         offset: IPoint, size: ISize, axis: ITimeAxis) {
         super(offset, size);
         this.axis = axis;
+    }
 
-        Events.instance.mouseMove.on(this.onMouseMove);
+    public handeMouse(relX: number, relY: number) {
+        if (this.mouse) {
+            this.mouse.x = relX;
+            this.mouse.y = relY;
+        } else {
+            this.mouse = new Point(relX, relY);
+        }
+
+        super.handeMouse(relX, relY);
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
@@ -28,8 +37,8 @@ export class Crosshair extends VisualComponent {
 
         if (this.mouse) {
             // ... calculate mouse position related to this element
-            const mouseX = this.mouse.pos.x;
-            const mouseY = this.mouse.pos.y;
+            const mouseX = this.mouse.x;
+            const mouseY = this.mouse.y;
 
             const uid = this.axis.toValue(mouseX);
             if (uid !== undefined) {
@@ -38,9 +47,5 @@ export class Crosshair extends VisualComponent {
                 render.render(this.area.frontCanvas, { x: newX, y: mouseY }, this.size);
             }
         }
-    }
-
-    private onMouseMove = (evt: MouseEventArgument) => {
-        this.mouse = evt.mouse;
     }
 }

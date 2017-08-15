@@ -59,7 +59,7 @@ export class TimeAxisComponent extends VisualComponent {
         super.render(context, renderLocator);
     }
 
-    private getMarkPos(ctx: VisualContext, size: ISize): Uid|undefined {
+    private getMarkPos = (ctx: VisualContext, size: ISize): Uid|undefined => {
         if (this.mouse) {
             return (this.mouse.x > 0 && this.mouse.x < size.width) ? this.tAxis.toValue(this.mouse.x) : undefined;
         }
