@@ -2,14 +2,18 @@
  * Main module
  */
 import { KnockoutComponents } from './KnockoutComponents';
-import { KnockoutExtenions } from './plugins/KnockoutExtenions';
+import { jQueryExtensions } from './plugins/jQueryExtensions';
+import { KnockoutExtensions } from './plugins/KnockoutExtensions';
 import { AppViewModel } from './vm/AppViewModel';
 
 const appModel = new AppViewModel();
 
+// init jquery extensions
+jQueryExtensions();
+
 // init knockout extensions and components
 //
-const ext = new KnockoutExtenions();
+const ext = new KnockoutExtensions();
 const components = new KnockoutComponents(appModel);
 
 // bind view model

@@ -15,7 +15,14 @@ export abstract class FigureComponent extends VisualComponent implements IFigure
 
     public constructor(name: string, offset: IPoint, size: ISize, container: StoreContainer) {
         super(offset, size);
-        this._uid = UidUtils.NEWUID();
+        const uid = container ? container.getProperty('uid') : undefined;
+
+        if (uid) {
+            this._uid = uid;
+        } else {
+            this._uid = UidUtils.NEWUID();
+            container.setProperty('uid', this._uid);
+        }
         this._name = name;
     }
 

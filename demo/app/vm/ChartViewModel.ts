@@ -10,6 +10,7 @@ import DateUtils = lychart.utils.DateUtils;
 import { Asset } from '../model/Asset';
 import { DataService } from '../services/DataService';
 import { Storage } from '../services/Storage';
+import { PopupViewModel } from './PopupViewModel';
 import { PropsViewModel } from './PropsViewModel';
 import { ItemSelectedArg, TreeViewModel } from './TreeViewModel';
 
@@ -28,6 +29,7 @@ export class ChartViewModel {
 
     public treeVM: TreeViewModel;
     public propsVM: PropsViewModel;
+    public popupVM: PopupViewModel;
     public editPropertiesMode = ko.observable(false);
 
     public visible = ko.observable(false);
@@ -43,6 +45,8 @@ export class ChartViewModel {
     public panelVisible = ko.observable(false);
     public panelWidth = ko.observable(44);
     public panelHeight = ko.observable(0);
+
+    public chartUid = ko.observable(Math.random());
 
     constructor(params: any, node: HTMLElement, assets: Asset[], dataService: DataService) {
         this.assets(assets);
@@ -62,20 +66,23 @@ export class ChartViewModel {
         const offset = this.$chartContainer.offset();
         this.board = new ChartBoard(
             this.$chartContainer[0], offset.left, offset.top, 200, 200, lychart.core.TimeInterval.min, new Storage(), this.dataService);
-        this.board.objectSelected.on(this.board_onObjectSelected);
-        this.board.objectTreeChanged.on(this.board_onObjectTreeChanged);
+        this.board.selectionChanged.on(this.board_selectionChanged);
+        this.board.treeChanged.on(this.board_treeChanged);
         console.log('cvm: chart board created.');
 
         // Init tree vm
         //
         this.treeVM = new TreeViewModel(this.board);
-        this.treeVM.itemSelected.on(this.tree_onItemSelected);
+        this.treeVM.itemSelected.on(this.tree_itemSelected);
 
         // Init props vm
         //
         this.propsVM = new PropsViewModel($('.properties', this.node)[0], this.board);
-        this.propsVM.propsClosingEvent.on(this.props_onClosing);
-        this.propsVM.propsAppliedEvent.on(this.props_onApplied);
+        this.propsVM.propsClosingEvent.on(this.props_closing);
+        this.propsVM.propsAppliedEvent.on(this.props_applied);
+
+        // Init popup vm
+        this.popupVM = new PopupViewModel($('.popupmenu', this.node)[0], this.board);
     }
 
     public afterLoad() {
@@ -91,7 +98,6 @@ export class ChartViewModel {
     }
 
     public cmdCompare() {
-
         const asset = this.selectedCompareAsset();
         const ds = this.dataService.createDataSource(asset, str2interval(this.selectedInterval()));
         this.board.addChart(lychart.utils.UidUtils.NEWUID(), asset, lychart.core.ChartType.candle, ds);
@@ -172,24 +178,30 @@ export class ChartViewModel {
         this.board.render();
     }
 
-    private tree_onItemSelected = (arg: ItemSelectedArg) => {
-        this.propsVM.rebuild(arg.object);
-        this.editPropertiesMode(true);
+    private tree_itemSelected = (arg: ItemSelectedArg) => {
+        if (arg.object) {
+            this.propsVM.rebuild(arg.object);
+            this.editPropertiesMode(true);
+        }
     }
 
-    private props_onClosing = () => {
+    private props_closing = () => {
         this.editPropertiesMode(false);
     }
 
-    private props_onApplied = () => {
+    private props_applied = () => {
         this.board.render();
     }
 
-    private board_onObjectSelected = (arg: lychart.core.ObjectEventArgument) => {
-        this.tree_onItemSelected(new ItemSelectedArg('', arg.obj));
+    private board_selectionChanged = (arg: lychart.core.ObjectEventArgument) => {
+        //this.popupVisible(arg.obj ? true : false);
+        this.popupVM.visible(arg.obj ? true : false);
+
+        this.popupVM.rebuild(arg.obj);
+        this.tree_itemSelected(new ItemSelectedArg('', arg.obj));
     }
 
-    private board_onObjectTreeChanged = (arg: lychart.core.EventArgument) => {
+    private board_treeChanged = (arg: lychart.core.EventArgument) => {
         this.treeVM.update();
     }
 

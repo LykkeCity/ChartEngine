@@ -138,6 +138,23 @@ export class StoreArray {
         return container;
     }
 
+    public remove(predicate: (sc: StoreContainer) => boolean) {
+        const removeIndexes: number[] = [];
+        this.containers = this.containers.filter((sc: StoreContainer, i: number) => {
+            const result = predicate(sc);
+            if (result) {
+                removeIndexes.push(i);
+            }
+            return !result;
+        });
+
+        for (const i of removeIndexes) {
+            this.array.splice(i, 1);
+        }
+
+        this.root.setChanged();
+    }
+
     public removeItem(index: number) {
         this.array.splice(index, 1);
         this.containers.splice(index, 1);

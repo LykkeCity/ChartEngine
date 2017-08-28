@@ -87,8 +87,7 @@ export class AppViewModel {
         }
     }
 
-    public onComponentLoaded = (chartComponent: ChartViewModel) => {
-    }
+    public onComponentLoaded = (chartComponent: ChartViewModel) => { }
 
     public onready = () => {
         this.updateChildComponents();

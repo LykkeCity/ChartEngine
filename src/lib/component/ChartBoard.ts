@@ -56,12 +56,12 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private touchMode = false;
 
     // Public Events
-    public get objectSelected(): IEvent<ObjectEventArgument> {
-        return Events.instance.objectSelected;
+    public get selectionChanged(): IEvent<ObjectEventArgument> {
+        return Events.instance.selectionChanged;
     }
 
-    public get objectTreeChanged(): IEvent<EventArgument> {
-        return Events.instance.objectTreeChanged;
+    public get treeChanged(): IEvent<EventArgument> {
+        return Events.instance.treeChanged;
     }
 
     // -- End of "Public Events" --
@@ -150,6 +150,16 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
                 }
             }
         }
+    }
+
+    public removeObject(uid: string): boolean {
+        const removed = this.chartStacks.some(stack => {
+            return stack.removeFigure(uid);
+        });
+        if (removed) {
+            this.renderLayers(false, true);
+        }
+        return removed;
     }
 
     public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {

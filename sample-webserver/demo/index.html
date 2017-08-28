@@ -66,13 +66,9 @@
             font-size: 12px
         }
 
-        div.props-form {
+        div.props-form { }
 
-        }
-
-        div.props-form .field-contain {
-
-        }
+        div.props-form .field-contain { }
 
         .field-contain input[type="text"] {
             width: 50px
@@ -82,10 +78,27 @@
             font-size: 14px
         }
 
-        .field-input {
+        .field-input { }
 
+        /*
+         * Page splash
+         */
+
+        .dragpoint {
+            float: left;
+            clear: none;
+            cursor: pointer;
+            padding: 5px 0 0 5px;
         }
 
+        .dragpoint:before {
+            content: '\2807';
+            font-size: 20px;
+        }
+
+        .ui-popup-screen {
+            display: none;
+        }
 
         /*
          * Page splash
@@ -276,17 +289,21 @@
 
     <template id="chart-component-template">
         <div class="chart-component" data-bind="visible: visible, style: { width: width() + 'px', height: height() + 'px' }">
+
+            <span data-bind="text: chartUid"></span>
+            <span data-bind="text: popupVM.vmUid"></span>
+
             <div class="chart-toolbar">
                 <table>
                     <tr>
                         <td>
-                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
                                 <select name="select-h-7a" id="select-h-7a" data-bind="options: assets, optionsText: 'name', optionsValue: 'id', value: selectedAsset">
                                 </select>
                             </fieldset>
                         </td>
                         <td>
-                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
                                 <select name="select-h-7b" id="select-h-7b" data-bind="value: selectedInterval">
                                     <option value="sec">Sec</option>
                                     <option value="min">1 min</option>
@@ -297,7 +314,7 @@
                             </fieldset>
                         </td>
                         <td>
-                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
                                 <select name="select-h-6c" id="select-h-6c" data-bind="value: selectedChartType">
                                 <option value="candle" selected="selected">Candles</option>
                                 <option value="heikinashi">Heikin-Ashi</option>
@@ -312,18 +329,18 @@
                             </fieldset>
                         </td>
                         <td>
-                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
                                 <select name="select-h-6d" id="select-h-6d" data-bind="options: assets, optionsText: 'name', optionsValue: 'id', value: selectedCompareAsset">
                                 </select>
                             </fieldset>
                         </td>
                         <td>
-                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
                                 <button class="ui-btn ui-btn-icon-notext ui-icon-plus ui-btn-inline ui-mini" data-bind="click: cmdCompare">Add</button>
                             </fieldset>
                         </td>
                         <td>
-                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
                                 <select name="select-custom-19" id="select-custom-19" multiple="multiple" data-native-menu="false" data-bind="selectedOptions: selectedIndicators">
                                     <option>Indicators</option>
                                     <!-- AVERAGES -->
@@ -374,29 +391,29 @@
                             </fieldset>
                         </td>
                         <td>
-                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
-                                <a data-bind="click: $parent.cmdSetCurrentChart($data)" href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-carat-d ui-btn-icon-right ui-btn-a">Figures</a>
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
+                                <a data-bind="click: $parent.cmdSetCurrentChart($data)" href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-shadow ui-btn-inline ui-icon-carat-d ui-btn-icon-right ui-btn-a">Figures</a>
                             </fieldset>
                         </td>
                     </tr>
                 </table>
-            </div>
+            </div> <!-- chart-toolbar -->
 
             <div style="display: block; position: relative;">
                 <div class="panel-chart" style="position: absolute; left: 0px; top: 0px; height: 100%;" data-bind="style: { right: panelWidth() + 'px' }">
                     <div class="chart-container"></div>
                 </div>
                 <div class="panel-container" style="position: absolute; right: 0px; top: 0px;" data-bind="style: { width: panelWidth() + 'px', height: panelHeight() + 'px' }">
-                    <div class="collapsed-panel ui-corner-all app-control" data-bind="visible: !panelVisible()" style="height: 100%">
+                    <div class="collapsed-panel app-control" data-bind="visible: !panelVisible()" style="height: 100%">
                         <div style="margin-top:0">
-                            <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-carat-l"
+                            <button class="ui-btn ui-btn-inline ui-mini ui-btn-icon-notext ui-icon-carat-l ui-corner-all"
                                 data-bind="click: cmdShowPanel.bind($data, true)">
                                 Open
                             </button>
                         </div>
                     </div>
 
-                    <div class="right-panel ui-corner-all app-control" data-bind="visible: panelVisible" style="width: 100%; height: 100%">
+                    <div class="right-panel app-control" data-bind="visible: panelVisible" style="width: 100%; height: 100%">
                         <table style="width: 100%; height: 100%">
                             <tr>
                                 <td>
@@ -428,11 +445,11 @@
 
                                             </div>
                                             <div>
-                                                <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-check"
+                                                <button class="ui-btn ui-btn-inline ui-mini ui-btn-icon-notext ui-icon-check ui-corner-all"
                                                     data-bind="click: cmdApply">
                                                     Apply
                                                 </button>
-                                                <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-delete"
+                                                <button class="ui-btn ui-btn-inline ui-mini ui-btn-icon-notext ui-icon-delete ui-corner-all"
                                                     data-bind="click: cmdCancel">
                                                     Cancel
                                                 </button>
@@ -442,7 +459,7 @@
                                 </td>
                                 <td style="width: 44px; vertical-align: top">
                                     <div>
-                                        <button class="ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-notext ui-icon-carat-r"
+                                        <button class="ui-btn ui-btn-inline ui-mini ui-btn-icon-notext ui-icon-carat-r ui-corner-all"
                                             data-bind="click: cmdShowPanel.bind($data, false)">
                                             Close
                                         </button>
@@ -453,13 +470,29 @@
                     </div><!-- right-panel -->
                 </div><!-- panel-container -->
             </div>
-        </div>
+
+            <!-- ko with: popupVM -->
+            <div data-role="popup" data-dismissible="false" class="popupmenu" data-bind="popupVisible: visible">
+                <div data-role="controlgroup" data-type="horizontal" data-mini="true">
+
+                    <span data-bind="text: $parent.chartUid"></span>
+
+                    <div href="#" class="dragpoint"></div>
+                    <!-- <a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-icon-left ui-icon-plus ui-btn-b">Add</a> -->
+                    <a href="#" data-bind="click: cmdRemove" class="ui-shadow ui-btn ui-corner-all ui-btn-icon-notext ui-icon-delete">Delete</a>
+                    <!-- <a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-icon-left ui-icon-grid ui-btn-b" onclick="javascript: alert('more cmd')" >More</a> -->
+                </div>
+            </div>
+            <!-- /ko -->
+
+        </div><!-- chart-component -->
         <!-- ko text: afterLoad() -->
         <!-- /ko -->
         <!-- <span data-bind="template: { afterRender: componentLoaded() }"></span>-->
     </template>
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
     <script type="text/javascript" src="http://hammerjs.github.io/dist/hammer.min.js"></script>

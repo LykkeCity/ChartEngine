@@ -50,8 +50,8 @@ export class ChartController implements lychart.core.IDataService {
         $('.assetpair', this.container).val(selectedAsset); // select default value
 
         // Hook up event handlers
-        this.board.objectSelected.on(this.onObjectSelected);
-        this.board.objectTreeChanged.on(this.onObjectTreeChanged);
+        this.board.selectionChanged.on(this.onObjectSelected);
+        this.board.treeChanged.on(this.onObjectTreeChanged);
 
         $('.add-compare', container).click(this.onAddCompare);
 

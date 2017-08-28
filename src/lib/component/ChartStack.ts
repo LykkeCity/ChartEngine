@@ -30,7 +30,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     private readonly _charts: IChart[] = [];
     private readonly crosshair: Crosshair;
     private readonly grid: Grid;
-    private readonly _figures: FigureComponent[] = [];
+    private _figures: FigureComponent[] = [];
     private readonly yAxisComponent: VisualComponent;
     private _precision: number = 0;
     private source?: ISource;
@@ -151,20 +151,53 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
 
         const figures = this.store.getArrayProperty('figures');
         const figureDesc = figures.addItem();
-        figureDesc.setProperty('type', figureType);
-        //figureDesc.setProperty('uid', uid);
         const figureContainer = figureDesc.getObjectProperty('figure');
 
         const figure = this.createFigure(figureType, figureContainer);
 
-        Events.instance.objectTreeChanged.trigger();
+        //figureDesc.setProperty('uid', figure.uid);
+        figureDesc.setProperty('type', figureType);
+
+        Events.instance.treeChanged.trigger();
         return figure;
+    }
+
+    public removeFigure(uid: string): boolean {
+        // Remove from storage
+        //
+        const figures = this.store.getArrayProperty('figures');
+        figures.remove(sc => {
+            const figure = sc.getObjectProperty('figure');
+            const figureUid = figure ? figure.getProperty('uid') : undefined;
+            return uid === figureUid;
+        });
+
+        // Remove from figures array
+        this._figures = this._figures.filter(fc => fc.uid !== uid);
+
+        // Remove form list and trigger change event
+        //
+        let index = -1;
+        this._children.forEach((vc: VisualComponent, i: number) => {
+            if (vc instanceof FigureComponent && vc.uid === uid) {
+                index = i;
+            }
+        });
+
+        if (index !== -1) {
+            this._children.splice(index, 1);
+            Events.instance.treeChanged.trigger();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public removeFigures() {
         this._children = this._children.filter((value, index, array) => {
              return !(value instanceof FigureComponent);
         });
+        this._figures = [];
     }
 
     public setStore(store: StoreContainer) {
@@ -189,9 +222,9 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         const figures = this.store.getArrayProperty('figures');
         for (const figureDesc of figures.asArray()) {
             // add figure
+            //const uid = figureDesc.getProperty('uid');
             const figureType = figureDesc.getProperty('type');
             const figureContainer = figureDesc.getObjectProperty('figure');
-            //const uid = figureDesc.getProperty('uid');
 
             this.createFigure(figureType, figureContainer);
         }

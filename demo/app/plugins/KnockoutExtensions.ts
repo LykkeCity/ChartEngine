@@ -1,7 +1,7 @@
 /**
  * Custom knockout bindings 
  */
-export class KnockoutExtenions {
+export class KnockoutExtensions {
     constructor() {
         ko.bindingHandlers.winsize = {
             init: (element, valueAccessor) => {
@@ -28,6 +28,22 @@ export class KnockoutExtenions {
 
                 $('.list-component').listview({ refresh: true, mini: true, icon: '' });
                 $('.collapsible-component').collapsible({ refresh: true, mini: true });
+            }
+        };
+
+        ko.bindingHandlers.popupVisible = {
+            init: (element, valueAccessor) => {
+                const unwrapValue = ko.unwrap(valueAccessor());
+                console.log('popup init: ' + unwrapValue);
+                $(element).draggable({ cursor: 'move' });
+                $(element).popup({ history: false });
+                //$(element).popup( unwrapValue ? 'open' : 'close');
+            },
+            update: (element, valueAccessor) => {
+                const unwrapValue = ko.unwrap(valueAccessor());
+                console.log('popup update: ' + unwrapValue);
+                $('[data-role="popup"]').popup('close');
+                $(element).popup( unwrapValue ? 'open' : 'close');
             }
         };
     }

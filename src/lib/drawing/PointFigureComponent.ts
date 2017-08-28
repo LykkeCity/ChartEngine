@@ -69,8 +69,7 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
         private taxis: ITimeCoordConverter,
         private yaxis: IValueCoordConverter<number>,
         private container?: StoreContainer,
-        pixelMode = false
-        ) {
+        pixelMode = false) {
         super('Point', offset, size, container || new StoreContainer());
 
         this.store = new PointStore(container || new StoreContainer());

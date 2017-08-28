@@ -172,9 +172,9 @@ export class HoverState implements IStateController {
             if (isSelectable(hitComponent)) {
                 // select component
                 hitComponent.setSelected(true);
-                Events.instance.objectSelected.trigger(new ObjectEventArgument(hitComponent));
             }
         }
+        Events.instance.selectionChanged.trigger(new ObjectEventArgument(hitComponent));
     }
 }
 

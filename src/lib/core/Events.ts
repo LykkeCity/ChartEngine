@@ -33,18 +33,13 @@ export class Events {
         return this.inst;
     }
 
-    private _objectSelected = new Event<ObjectEventArgument>();
-    public get objectSelected(): Event<ObjectEventArgument> {
-        return this._objectSelected;
+    private _selectionChanged = new Event<ObjectEventArgument>();
+    public get selectionChanged(): Event<ObjectEventArgument> {
+        return this._selectionChanged;
     }
 
-    private _objectTreeChanged = new Event<EventArgument>();
-    public get objectTreeChanged(): Event<EventArgument> {
-        return this._objectTreeChanged;
-    }
-
-    private _mouseMove = new Event<MouseEventArgument>();
-    public get mouseMove(): Event<MouseEventArgument> {
-        return this._mouseMove;
+    private _treeChanged = new Event<EventArgument>();
+    public get treeChanged(): Event<EventArgument> {
+        return this._treeChanged;
     }
 }
