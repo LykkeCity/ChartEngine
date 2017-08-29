@@ -184,16 +184,8 @@ export class GannFanSettings {
 }
 
 export class DrawGannFanState extends FigureStateBase {
-    private static inst?: DrawGannFanState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawGannFanState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

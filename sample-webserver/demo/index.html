@@ -290,9 +290,6 @@
     <template id="chart-component-template">
         <div class="chart-component" data-bind="visible: visible, style: { width: width() + 'px', height: height() + 'px' }">
 
-            <span data-bind="text: chartUid"></span>
-            <span data-bind="text: popupVM.vmUid"></span>
-
             <div class="chart-toolbar">
                 <table>
                     <tr>
@@ -474,13 +471,8 @@
             <!-- ko with: popupVM -->
             <div data-role="popup" data-dismissible="false" class="popupmenu" data-bind="popupVisible: visible">
                 <div data-role="controlgroup" data-type="horizontal" data-mini="true">
-
-                    <span data-bind="text: $parent.chartUid"></span>
-
                     <div href="#" class="dragpoint"></div>
-                    <!-- <a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-icon-left ui-icon-plus ui-btn-b">Add</a> -->
                     <a href="#" data-bind="click: cmdRemove" class="ui-shadow ui-btn ui-corner-all ui-btn-icon-notext ui-icon-delete">Delete</a>
-                    <!-- <a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-icon-left ui-icon-grid ui-btn-b" onclick="javascript: alert('more cmd')" >More</a> -->
                 </div>
             </div>
             <!-- /ko -->

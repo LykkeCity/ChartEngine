@@ -285,16 +285,8 @@ export class EllipseSettings {
 }
 
 export class DrawEllipseState extends FigureStateBase {
-    private static inst?: DrawEllipseState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawEllipseState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

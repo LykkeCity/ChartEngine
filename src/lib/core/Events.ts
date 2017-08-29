@@ -23,15 +23,7 @@ export class MouseEventArgument extends EventArgument {
 }
 
 export class Events {
-    private static inst?: Events;
-    protected constructor() { }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new Events();
-        }
-        return this.inst;
-    }
+    public constructor() { }
 
     private _selectionChanged = new Event<ObjectEventArgument>();
     public get selectionChanged(): Event<ObjectEventArgument> {

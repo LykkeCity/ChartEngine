@@ -177,16 +177,8 @@ export class FiboLevelSettings {
 }
 
 export class DrawFiboLevelState extends FigureStateBase {
-    private static inst?: DrawFiboLevelState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawFiboLevelState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

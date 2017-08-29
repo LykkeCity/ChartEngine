@@ -97,16 +97,8 @@ export class HorizontalLineFigureComponent extends FigureComponent implements IH
 }
 
 export class DrawHorizontalLineState extends FigureStateBase {
-    private static inst?: DrawHorizontalLineState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawHorizontalLineState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

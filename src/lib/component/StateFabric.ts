@@ -6,24 +6,33 @@
 import { IHashTable } from '../shared/index';
 import { IStateController } from './Interfaces';
 
+export interface IStateControllerCtor {
+    new(): IStateController;
+}
+
 export class StateFabric {
-    private static inst?: StateFabric;
-    private states: IHashTable<IStateController> = {};
 
-    private constructor() { }
+    private static reg: IHashTable<IStateControllerCtor> = {};
+    private instances: IHashTable<IStateController> = {};
 
-    public static get instance(): StateFabric {
-        if (!this.inst) {
-            this.inst = new StateFabric();
+    public static REGISTER(stateId: string, ctor: IStateControllerCtor) {
+        if (!this.reg[stateId]) {
+            this.reg[stateId] = ctor;
+        } else {
+            throw new Error('State constructor is already registered.');
         }
-        return this.inst;
-    }
-
-    public setState(stateId: string, obj: IStateController) {
-        this.states[stateId] = obj;
     }
 
     public getState(stateId: string): IStateController {
-        return this.states[stateId];
+        let instance = this.instances[stateId];
+        if (!instance) {
+            const ctor = StateFabric.reg[stateId];
+            if (ctor) {
+                instance = new ctor();
+            } else {
+                throw new Error(`Specified stateId "${stateId}" is not registered.`);
+            }
+        }
+        return instance;
     }
 }

@@ -240,16 +240,8 @@ export class TrendChannelSettings {
 }
 
 export class DrawTrendChannelState extends FigureStateBase {
-    private static inst?: DrawTrendChannelState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawTrendChannelState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

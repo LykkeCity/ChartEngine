@@ -241,16 +241,8 @@ export class PathSettings {
 }
 
 export class DrawPathState extends FigureStateBase {
-    private static inst?: DrawPathState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawPathState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

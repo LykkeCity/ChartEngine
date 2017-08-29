@@ -95,16 +95,8 @@ export class VerticalLineFigureComponent extends FigureComponent implements IHov
 }
 
 export class DrawVerticalLineState extends FigureStateBase {
-    private static inst?: DrawVerticalLineState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawVerticalLineState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

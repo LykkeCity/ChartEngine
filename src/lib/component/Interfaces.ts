@@ -47,6 +47,9 @@ export interface IChartBoard {
     forEach(delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void }, childrenFirst?: boolean, directOrder?: boolean): void;
     moveX(shift: number): void;
     setCursor(style: string): void;
+
+    // internal methods
+    select(component: VisualComponent|undefined): void;
 }
 
 export interface IChartStack extends ICoordsConverter {

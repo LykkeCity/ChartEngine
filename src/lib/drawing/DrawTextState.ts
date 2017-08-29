@@ -98,16 +98,8 @@ export class TextSettings {
 }
 
 export class DrawTextState extends FigureStateBase {
-    private static inst?: DrawTextState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawTextState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

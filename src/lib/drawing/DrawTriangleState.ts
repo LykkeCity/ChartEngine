@@ -182,16 +182,8 @@ export class TriangleSettings {
 }
 
 export class DrawTriangleState extends FigureStateBase {
-    private static inst?: DrawTriangleState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawTriangleState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

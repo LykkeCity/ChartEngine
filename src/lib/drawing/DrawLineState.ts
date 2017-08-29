@@ -154,16 +154,8 @@ export class LineSettings {
 }
 
 export class DrawLineState extends FigureStateBase {
-    private static inst?: DrawLineState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawLineState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

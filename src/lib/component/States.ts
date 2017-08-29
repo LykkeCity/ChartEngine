@@ -6,15 +6,7 @@ import { IPoint, Point } from '../shared/index';
 import { IChartBoard, IHoverable, isEditable, ISelectable, isHoverable, isSelectable, IStateController } from './Interfaces';
 
 export class HoverState implements IStateController {
-    private static inst?: HoverState;
-    protected constructor() { }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new HoverState();
-        }
-        return this.inst;
-    }
+    public constructor() { }
 
     private hitComponent?: VisualComponent;
     private selectionMode = false;
@@ -30,7 +22,7 @@ export class HoverState implements IStateController {
         }
 
         // If mouse was moved do not select
-        this.selectAndTriggerEvent(this.hitComponent);
+        board.select(this.hitComponent);
     }
 
     public onMouseMove(board: IChartBoard, mouse: IMouse): void {
@@ -88,9 +80,8 @@ export class HoverState implements IStateController {
         // 2. get hit component
         this.hitComponent = this.getHitComponent(board, touch.center);
 
-        // if hit
-        //      select hit
-        this.selectAndTriggerEvent(this.hitComponent);
+        // 3. select component
+        board.select(this.hitComponent);
     }
 
     public onTouchPress(board: IChartBoard, touch: ITouch): void { }
@@ -166,28 +157,10 @@ export class HoverState implements IStateController {
 
         return [selectedComponent, offset];
     }
-
-    private selectAndTriggerEvent(hitComponent?: VisualComponent) {
-        if (hitComponent) {
-            if (isSelectable(hitComponent)) {
-                // select component
-                hitComponent.setSelected(true);
-            }
-        }
-        Events.instance.selectionChanged.trigger(new ObjectEventArgument(hitComponent));
-    }
 }
 
 export class MoveChartState implements IStateController {
-    private static inst?: MoveChartState;
-    protected constructor() { }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new MoveChartState();
-        }
-        return this.inst;
-    }
+    public constructor() { }
 
     private lastMouse = new Point();
     private lastTouch?: Point;

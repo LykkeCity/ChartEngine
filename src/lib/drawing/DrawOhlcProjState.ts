@@ -270,16 +270,8 @@ export class OhlcProjSettings {
 }
 
 export class DrawOhlcProjState extends FigureStateBase {
-    private static inst?: DrawOhlcProjState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawOhlcProjState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

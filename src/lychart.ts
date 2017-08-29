@@ -24,34 +24,33 @@ import * as render from './lib/render';
 import * as shared from './lib/shared';
 import * as utils from './lib/utils';
 
-function register(stateId: string, state: IStateController) {
-    // TODO: should be separate instance for each board
-    StateFabric.instance.setState(stateId, state);
+function register(stateId: string, state: { new(): IStateController }) {
+    StateFabric.REGISTER(stateId, state);
 }
 
 // Register built-in states
-register('hover', HoverState.instance);
-register('movechart', MoveChartState.instance);
+register('hover', HoverState);
+register('movechart', MoveChartState);
 
 // Register built-in drawing tools
-register('curve', drawing.DrawCurveState.instance);
-register('line', drawing.DrawLineState.instance);
-register('hline', drawing.DrawHorizontalLineState.instance);
-register('vline', drawing.DrawVerticalLineState.instance);
-register('rect', drawing.DrawRectState.instance);
-register('triangle', drawing.DrawTriangleState.instance);
-register('path', drawing.DrawPathState.instance);
-register('pitchfork', drawing.DrawPitchforkState.instance);
-register('text', drawing.DrawTextState.instance);
-register('ellipse', drawing.DrawEllipseState.instance);
-register('trendchannel', drawing.DrawTrendChannelState.instance);
-register('daterange', drawing.DrawDateRangeState.instance);
-register('fibofan', drawing.DrawFiboFanState.instance);
-register('fibolevel', drawing.DrawFiboLevelState.instance);
-register('fiboprojection', drawing.DrawFiboProjectionState.instance);
-register('fibotimeprojection', drawing.DrawFiboTimeProjectionState.instance);
-register('gannfan', drawing.DrawGannFanState.instance);
-register('ohlcproj', drawing.DrawOhlcProjState.instance);
+register('curve', drawing.DrawCurveState);
+register('line', drawing.DrawLineState);
+register('hline', drawing.DrawHorizontalLineState);
+register('vline', drawing.DrawVerticalLineState);
+register('rect', drawing.DrawRectState);
+register('triangle', drawing.DrawTriangleState);
+register('path', drawing.DrawPathState);
+register('pitchfork', drawing.DrawPitchforkState);
+register('text', drawing.DrawTextState);
+register('ellipse', drawing.DrawEllipseState);
+register('trendchannel', drawing.DrawTrendChannelState);
+register('daterange', drawing.DrawDateRangeState);
+register('fibofan', drawing.DrawFiboFanState);
+register('fibolevel', drawing.DrawFiboLevelState);
+register('fiboprojection', drawing.DrawFiboProjectionState);
+register('fibotimeprojection', drawing.DrawFiboTimeProjectionState);
+register('gannfan', drawing.DrawGannFanState);
+register('ohlcproj', drawing.DrawOhlcProjState);
 
 // Register drawing figures
 FigureFactory.instance.register(FigureType.curve, drawing.CurveFigureComponent);

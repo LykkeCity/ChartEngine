@@ -222,16 +222,8 @@ export class PitchforkSettings {
 }
 
 export class DrawPitchforkState extends FigureStateBase {
-    private static inst?: DrawPitchforkState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawPitchforkState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

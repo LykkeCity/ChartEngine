@@ -34,6 +34,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     private readonly yAxisComponent: VisualComponent;
     private _precision: number = 0;
     private source?: ISource;
+    private events: Events;
     private store: StoreContainer;
 
     constructor(
@@ -41,6 +42,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         boardArea: BoardArea,
         timeAxis: ITimeAxis,
         yIsPrice: boolean,
+        events: Events,
         store: StoreContainer,
         source?: ISource) {
         super();
@@ -48,6 +50,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this._uid = uid;
         this.boardArea = boardArea;
         this.tAxis = timeAxis;
+        this.events = events;
         this.store = store;
         this.source = source;
         this.area = boardArea.addChart();
@@ -158,7 +161,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         //figureDesc.setProperty('uid', figure.uid);
         figureDesc.setProperty('type', figureType);
 
-        Events.instance.treeChanged.trigger();
+        this.events.treeChanged.trigger();
         return figure;
     }
 
@@ -186,7 +189,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
 
         if (index !== -1) {
             this._children.splice(index, 1);
-            Events.instance.treeChanged.trigger();
+            this.events.treeChanged.trigger();
             return true;
         } else {
             return false;

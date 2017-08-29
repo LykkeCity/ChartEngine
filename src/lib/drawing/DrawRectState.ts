@@ -160,16 +160,8 @@ export class RectSettings {
 }
 
 export class DrawRectState extends FigureStateBase {
-    private static inst?: DrawRectState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawRectState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

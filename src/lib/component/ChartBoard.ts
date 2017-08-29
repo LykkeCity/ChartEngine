@@ -12,7 +12,7 @@ import { RenderLocator } from '../render/index';
 import { IEvent, IHashTable, IPoint, IRange, Point, throttle } from '../shared/index';
 import { DateUtils, IGhostClickSuppressor, TouchUtils, UidUtils } from '../utils/index';
 import { ChartStack } from './ChartStack';
-import { IChartBoard, IChartStack, IDrawing, isStateController, IStateController } from './Interfaces';
+import { IChartBoard, IChartStack, IDrawing, isSelectable, isStateController, IStateController } from './Interfaces';
 import { StateFabric } from './StateFabric';
 import { HoverState, MoveChartState } from './States';
 import { LoadRangeArgument, TimeAxis } from './TimeAxis';
@@ -46,6 +46,8 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private readonly indicatorDescriptions: IndicatorDescription[][] = [];
     private readonly dataSourceRegister = new DataSourceRegister();
 
+    private events = new Events();
+    private stateFabric = new StateFabric();
     private state: IStateController;
     private storageMgr: StorageManager;
     private dataService?: IDataService;
@@ -57,11 +59,11 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
     // Public Events
     public get selectionChanged(): IEvent<ObjectEventArgument> {
-        return Events.instance.selectionChanged;
+        return this.events.selectionChanged;
     }
 
     public get treeChanged(): IEvent<EventArgument> {
-        return Events.instance.treeChanged;
+        return this.events.treeChanged;
     }
 
     // -- End of "Public Events" --
@@ -96,7 +98,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
         // Create main chart area.
         // Create empty store container as the asset pair is not set yet.
-        const chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true, new StoreContainer(), this);
+        const chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true, this.events, new StoreContainer(), this);
         this.chartStacks.push(chartStack);
         this.addChild(chartStack);
 
@@ -127,7 +129,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         $(this.container).on('touchcancel', this.onTouchCancel);
 
         // Go to default state
-        this.state = HoverState.instance;
+        this.state = this.stateFabric.getState('hover');
     }
 
     public get stacks(): IChartStack[] {
@@ -304,7 +306,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         } else {
             index = this.chartStacks.length;
             const stackStorage = this.getStackStorage(this.originalUid, index);
-            chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true, stackStorage);
+            chartStack = new ChartStack(UidUtils.NEWUID(), this.area, this.timeAxis, true, this.events, stackStorage);
             this.chartStacks.push(chartStack);
             this.addChild(chartStack);
         }
@@ -605,7 +607,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         if (isStateController(state)) {
             stateInstance = state;
         } else if (typeof state === 'string') {
-            stateInstance = StateFabric.instance.getState(state);
+            stateInstance = this.stateFabric.getState(state);
         }
 
         if (!stateInstance) {
@@ -618,6 +620,21 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         this.state = stateInstance;
         this.state.activate(this, this.mouse, hitStack, activationParameters);
         this.ignoreNextMove = false;
+    }
+
+    /**
+     * "IChartBoard" implementation
+     */
+
+    public select(component: VisualComponent|undefined): void {
+        if (component) {
+            if (isSelectable(component)) {
+                component.setSelected(true);
+            }
+        }
+
+        // TODO: Pass events to state instances
+        this.events.selectionChanged.trigger(new ObjectEventArgument(component));
     }
 
     /**

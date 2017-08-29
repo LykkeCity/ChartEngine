@@ -205,16 +205,8 @@ export class FiboProjectionSettings {
 }
 
 export class DrawFiboProjectionState extends FigureStateBase {
-    private static inst?: DrawFiboProjectionState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawFiboProjectionState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

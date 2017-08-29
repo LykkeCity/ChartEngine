@@ -172,16 +172,8 @@ export class CurveSettings {
 }
 
 export class DrawCurveState extends FigureStateBase {
-    private static inst?: DrawCurveState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawCurveState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

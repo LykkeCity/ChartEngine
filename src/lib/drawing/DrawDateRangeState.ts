@@ -182,16 +182,8 @@ export class DateRangeSettings {
 }
 
 export class DrawDateRangeState extends FigureStateBase {
-    private static inst?: DrawDateRangeState;
-    private constructor() {
+    public constructor() {
         super();
-    }
-
-    public static get instance() {
-        if (!this.inst) {
-            this.inst = new DrawDateRangeState();
-        }
-        return this.inst;
     }
 
     private board?: IChartBoard;

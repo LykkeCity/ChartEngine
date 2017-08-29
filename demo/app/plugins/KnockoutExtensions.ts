@@ -34,15 +34,20 @@ export class KnockoutExtensions {
         ko.bindingHandlers.popupVisible = {
             init: (element, valueAccessor) => {
                 const unwrapValue = ko.unwrap(valueAccessor());
-                console.log('popup init: ' + unwrapValue);
                 $(element).draggable({ cursor: 'move' });
                 $(element).popup({ history: false });
-                //$(element).popup( unwrapValue ? 'open' : 'close');
             },
             update: (element, valueAccessor) => {
                 const unwrapValue = ko.unwrap(valueAccessor());
-                console.log('popup update: ' + unwrapValue);
-                $('[data-role="popup"]').popup('close');
+
+                // close opened popups
+                $('[data-role="popup"]').each((i, el) => {
+                    const $el = $(el);
+                    if ($el.parent().hasClass('ui-popup-active')) {
+                        $el.popup('close');
+                    }
+                });
+
                 $(element).popup( unwrapValue ? 'open' : 'close');
             }
         };
