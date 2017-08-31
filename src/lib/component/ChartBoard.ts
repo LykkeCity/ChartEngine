@@ -154,14 +154,29 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         }
     }
 
-    public removeObject(uid: string): boolean {
-        const removed = this.chartStacks.some(stack => {
-            return stack.removeFigure(uid);
-        });
-        if (removed) {
-            this.renderLayers(false, true);
-        }
-        return removed;
+    public removeObject(uid: string): void {
+        this.chartStacks.forEach(stack => { stack.removeFigure(uid); });
+        this.renderLayers(false, true);
+    }
+
+    public moveUp(uid: string) {
+        this.chartStacks.forEach(stack => { stack.moveUp(uid); });
+        this.renderLayers(false, true);
+    }
+
+    public moveDown(uid: string) {
+        this.chartStacks.forEach(stack => { stack.moveDown(uid); });
+        this.renderLayers(false, true);
+    }
+
+    public moveTop(uid: string) {
+        this.chartStacks.forEach(stack => { stack.moveTop(uid); });
+        this.renderLayers(false, true);
+    }
+
+    public moveBottom(uid: string) {
+        this.chartStacks.forEach(stack => { stack.moveBottom(uid); });
+        this.renderLayers(false, true);
     }
 
     public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>) {

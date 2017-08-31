@@ -57,7 +57,7 @@ export class ArrayDataStorage<T> implements IDataStorage<T> {
             // Update current timestamp
             this.dataSnapshot.timestamp = this.dataSnapshot.timestamp + 1;
             // Import incoming data to the array
-            this.dataSnapshot.data = ArrayUtils.merge(this.dataSnapshot.data, update, this.comparer, updateFunction);
+            this.dataSnapshot.data = ArrayUtils.MERGE(this.dataSnapshot.data, update, this.comparer, updateFunction);
         }
     }
 

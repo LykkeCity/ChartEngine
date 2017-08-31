@@ -2,13 +2,14 @@
  * ChartStack class.
  */
 import { NumberAxis, PriceAxis } from '../axes/index';
-import { ChartPoint, Events, IAxis, IChartPoint, IConfigurable, ICoordsConverter, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, IVisualComponent, SettingSet, SettingType, StoreContainer, VisualComponent, VisualContext }
+import { ChartPoint, Events, IAxis, IChartPoint, IConfigurable, ICoordsConverter, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, IVisualComponent, SettingSet, SettingType, StoreArray, StoreContainer, VisualComponent, VisualContext }
     from '../core/index';
 import { IDataSource } from '../data/index';
 import { Area, BoardArea, ChartArea, SizeChangedArgument } from '../layout/index';
 import { Candlestick, Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
 import { IPoint, IRange, ISize, Point } from '../shared/index';
+import { ArrayUtils } from '../utils/index';
 import { Chart } from './Chart';
 import { Crosshair } from './Crosshair';
 import { FigureComponent } from './FigureComponent';
@@ -30,12 +31,12 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     private readonly _charts: IChart[] = [];
     private readonly crosshair: Crosshair;
     private readonly grid: Grid;
-    private _figures: FigureComponent[] = [];
     private readonly yAxisComponent: VisualComponent;
     private _precision: number = 0;
     private source?: ISource;
     private events: Events;
     private store: StoreContainer;
+    private figureContainer: FigureContainer;
 
     constructor(
         uid: string,
@@ -86,6 +87,10 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this.grid = new Grid(this.area, {x: 0, y: 0}, this._size, this.tAxis, this.yAxis);
         this.addChild(this.grid);
 
+        this.figureContainer = new FigureContainer(this._offset, this._size, this.area, this.tAxis, this.yAxis,
+                                                   this, this.store.getArrayProperty('figures'), this.source);
+        this.addChild(this.figureContainer);
+
         this.applySettings();
     }
 
@@ -117,7 +122,13 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     }
 
     public get figures(): IFigure[] {
-        return this._figures.slice();
+        return this.figureContainer.children
+            .filter(el => { return (el instanceof FigureComponent); })
+            .map(vc => <FigureComponent>vc);
+    }
+
+    public contains(uid: string): boolean {
+        return this.figureContainer.contains(uid);
     }
 
     public addChart<T>(uid: string, name: string, chartType: string, dataSource: IDataSource<Candlestick>): void {
@@ -151,86 +162,36 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     }
 
     public addFigure(figureType: string): FigureComponent {
-
-        const figures = this.store.getArrayProperty('figures');
-        const figureDesc = figures.addItem();
-        const figureContainer = figureDesc.getObjectProperty('figure');
-
-        const figure = this.createFigure(figureType, figureContainer);
-
-        //figureDesc.setProperty('uid', figure.uid);
-        figureDesc.setProperty('type', figureType);
-
+        const figure =  this.figureContainer.addFigure(figureType);
         this.events.treeChanged.trigger();
         return figure;
     }
 
-    public removeFigure(uid: string): boolean {
-        // Remove from storage
-        //
-        const figures = this.store.getArrayProperty('figures');
-        figures.remove(sc => {
-            const figure = sc.getObjectProperty('figure');
-            const figureUid = figure ? figure.getProperty('uid') : undefined;
-            return uid === figureUid;
-        });
-
-        // Remove from figures array
-        this._figures = this._figures.filter(fc => fc.uid !== uid);
-
-        // Remove form list and trigger change event
-        //
-        let index = -1;
-        this._children.forEach((vc: VisualComponent, i: number) => {
-            if (vc instanceof FigureComponent && vc.uid === uid) {
-                index = i;
-            }
-        });
-
-        if (index !== -1) {
-            this._children.splice(index, 1);
+    public removeFigure(uid: string): void {
+        if (this.figureContainer.removeFigure(uid)) {
             this.events.treeChanged.trigger();
-            return true;
-        } else {
-            return false;
         }
     }
 
-    public removeFigures() {
-        this._children = this._children.filter((value, index, array) => {
-             return !(value instanceof FigureComponent);
-        });
-        this._figures = [];
+    public moveUp(uid: string) {
+        this.figureContainer.moveUp(uid);
+    }
+
+    public moveDown(uid: string) {
+        this.figureContainer.moveDown(uid);
+    }
+
+    public moveTop(uid: string) {
+        this.figureContainer.moveTop(uid);
+    }
+
+    public moveBottom(uid: string) {
+        this.figureContainer.moveBottom(uid);
     }
 
     public setStore(store: StoreContainer) {
         this.store = store;
-
-        this.reloadFigures();
-    }
-
-    private createFigure(figureType: string, container: StoreContainer): FigureComponent {
-        const figure = FigureFactory.instance
-            .instantiate(figureType, this.area, { x: 0, y: 0 }, this.size, this, this.tAxis, this.yAxis, container, this.source);
-
-        this._figures.push(figure);
-        this.addChild(figure); // to the end
-
-        return figure;
-    }
-
-    private reloadFigures() {
-        this.removeFigures();
-
-        const figures = this.store.getArrayProperty('figures');
-        for (const figureDesc of figures.asArray()) {
-            // add figure
-            //const uid = figureDesc.getProperty('uid');
-            const figureType = figureDesc.getProperty('type');
-            const figureContainer = figureDesc.getObjectProperty('figure');
-
-            this.createFigure(figureType, figureContainer);
-        }
+        this.figureContainer.setStore(store.getArrayProperty('figures'));
     }
 
     public precision(): number {
@@ -367,6 +328,126 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this._precision = 0;
         for (const chart of this._charts) {
             this._precision = Math.max(this._precision, chart.precision);
+        }
+    }
+}
+
+/**
+ * Auxillary class for storing and managing figures inside chart stack.
+ */
+class FigureContainer extends VisualComponent {
+    constructor(
+        offset: IPoint, size: ISize,
+        private area: ChartArea,
+        private tAxis: ITimeAxis,
+        private yAxis: IAxis<number>,
+        private chartSettings: IChartingSettings,
+        private store: StoreArray,
+        private source?: ISource
+    ) {
+        super(offset, size);
+    }
+
+    public contains(uid: string): boolean {
+        return this._children.some(vc => {
+            return (vc instanceof FigureComponent && vc.uid === uid);
+        });
+    }
+
+    public addFigure(figureType: string): FigureComponent {
+
+        const figures = this.store;
+        const figureDesc = figures.addItem();
+        const figureContainer = figureDesc.getObjectProperty('figure');
+
+        const figure = this.createFigure(figureType, figureContainer);
+        figureDesc.setProperty('type', figureType);
+
+        return figure;
+    }
+
+    public removeFigure(uid: string): boolean {
+        // Remove from storage
+        //
+        const figures = this.store;
+        figures.remove(sc => {
+            return uid === sc.getProperty('figure.uid');
+        });
+
+        // Remove form list and trigger change event
+        //
+        let index = -1;
+        this._children.forEach((vc: VisualComponent, i: number) => {
+            if (vc instanceof FigureComponent && vc.uid === uid) {
+                index = i;
+            }
+        });
+
+        if (index !== -1) {
+            this._children.splice(index, 1);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public moveUp(uid: string) {
+        const i = this.store.indexOf(el => { return uid === el.getProperty('figure.uid'); });
+        if (i !== -1) {
+            this.store.shift(i, 1);
+            ArrayUtils.SHIFT(this._children, i, 1);
+        }
+    }
+
+    public moveDown(uid: string) {
+        const i = this.store.indexOf(el => { return uid === el.getProperty('figure.uid'); });
+        if (i !== -1) {
+            this.store.shift(i, -1);
+            ArrayUtils.SHIFT(this._children, i, -1);
+        }
+    }
+
+    public moveTop(uid: string) {
+        const i = this.store.indexOf(el => { return uid === el.getProperty('figure.uid'); });
+        if (i !== -1) {
+            this.store.shift(i, Infinity);
+            ArrayUtils.SHIFT(this._children, i, Infinity);
+        }
+    }
+
+    public moveBottom(uid: string) {
+        const i = this.store.indexOf(el => { return uid === el.getProperty('figure.uid'); });
+        if (i !== -1) {
+            this.store.shift(i, -Infinity);
+            ArrayUtils.SHIFT(this._children, i, -Infinity);
+        }
+    }
+
+    private createFigure(figureType: string, container: StoreContainer): FigureComponent {
+        const figure = FigureFactory.instance
+            .instantiate(figureType, this.area, { x: 0, y: 0 }, this.size, this.chartSettings, this.tAxis, this.yAxis, container, this.source);
+        this.addChild(figure); // to the end
+        return figure;
+    }
+
+    public setStore(store: StoreArray) {
+        this.store = store;
+        this.reloadFigures();
+    }
+
+    private reloadFigures() {
+        // remove figures
+        this._children = this._children.filter((value, index, array) => {
+            return !(value instanceof FigureComponent);
+        });
+
+        const figures = this.store;
+        for (const figureDesc of figures.asArray()) {
+            // add figure
+            const figureType = figureDesc.getProperty('type');
+            const figureContainer = figureDesc.getObjectProperty('figure');
+
+            this.createFigure(figureType, figureContainer);
         }
     }
 }

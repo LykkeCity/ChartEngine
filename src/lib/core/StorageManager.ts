@@ -2,7 +2,7 @@
  * Storage classes.
  */
 import { Event } from '../shared/index';
-import { JsonUtils } from '../utils/index';
+import { ArrayUtils, JsonUtils } from '../utils/index';
 import { IStorage } from './Interfaces';
 
 /**
@@ -69,8 +69,26 @@ export class StoreContainer {
         this.root = root;
     }
 
+    /**
+     * Gets property's value
+     * @param propertyName Can be composite path ("one.two.three")
+     */
     public getProperty(propertyName: string): any {
-        return (<any>this.obj)[propertyName];
+
+        if (propertyName) {
+            // Break path into object names
+            const parts = propertyName.split('.');
+
+            let source = this.obj;
+            for (let i = 0; i < (parts.length - 1); i += 1) {
+                source = (<any>source)[parts[i]];
+                if (!source) {
+                    return undefined;
+                }
+            }
+
+            return (<any>source)[parts[parts.length - 1]];
+        }
     }
 
     public setProperty(propertyName: string, value: any) {
@@ -138,7 +156,19 @@ export class StoreArray {
         return container;
     }
 
-    public remove(predicate: (sc: StoreContainer) => boolean) {
+    public indexOf(predicate: (sc: StoreContainer) => boolean): number {
+        let index = -1;
+        this.containers.some((sc: StoreContainer, i: number) => {
+            if (predicate(sc)) {
+                index = i;
+                return true;
+            }
+            return false;
+        });
+        return index;
+    }
+
+    public remove(predicate: (sc: StoreContainer) => boolean): void {
         const removeIndexes: number[] = [];
         this.containers = this.containers.filter((sc: StoreContainer, i: number) => {
             const result = predicate(sc);
@@ -162,7 +192,18 @@ export class StoreArray {
         this.root.setChanged();
     }
 
+    public shift(index: number, shift: number) {
+        if (index >= 0 && index < this.array.length) {
+            ArrayUtils.SHIFT(this.array, index, shift);
+            ArrayUtils.SHIFT(this.containers, index, shift);
+        }
+    }
+
     public asArray(): StoreContainer[] {
         return this.containers;
+    }
+
+    public get length(): number {
+        return this.array.length;
     }
 }

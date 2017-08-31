@@ -469,10 +469,12 @@
             </div>
 
             <!-- ko with: popupVM -->
-            <div data-role="popup" data-dismissible="false" class="popupmenu" data-bind="popupVisible: visible">
-                <div data-role="controlgroup" data-type="horizontal" data-mini="true">
+            <div data-role="popup" data-dismissible="false" class="popupmenu" data-bind="popupVisible: visible" data-corners="false" data-mini="true">
+                <div data-role="controlgroup" data-type="horizontal" data-corners="false" data-mini="true">
                     <div href="#" class="dragpoint"></div>
-                    <a href="#" data-bind="click: cmdRemove" class="ui-shadow ui-btn ui-corner-all ui-btn-icon-notext ui-icon-delete">Delete</a>
+                    <a href="#" data-bind="click: cmdMoveUp" class="ui-shadow ui-btn ui-btn-icon-notext ui-icon-arrow-u">Up</a>
+                    <a href="#" data-bind="click: cmdMoveDown" class="ui-shadow ui-btn ui-btn-icon-notext ui-icon-arrow-d">Down</a>
+                    <a href="#" data-bind="click: cmdRemove" class="ui-shadow ui-btn ui-btn-icon-notext ui-icon-delete">Remove</a>
                 </div>
             </div>
             <!-- /ko -->

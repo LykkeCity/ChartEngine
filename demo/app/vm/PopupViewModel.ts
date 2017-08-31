@@ -26,6 +26,18 @@ export class PopupViewModel {
             console.log('PopupViewModel ctor: ' + rand);
     }
 
+    public cmdMoveUp(): void {
+        if (this.obj) {
+            this.board.moveUp(this.obj.uid);
+        }
+    }
+
+    public cmdMoveDown(): void {
+        if (this.obj) {
+            this.board.moveDown(this.obj.uid);
+        }
+    }
+
     public cmdRemove(): void {
         if (this.obj) {
             this.board.removeObject(this.obj.uid);
