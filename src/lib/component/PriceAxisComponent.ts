@@ -2,7 +2,7 @@
  * PriceAxisComponent class.
  */
 import { PriceAxis } from '../axes/index';
-import { IVisualComponent, VisualComponent, VisualContext } from '../core/index';
+import { VisualComponent, VisualContext } from '../core/index';
 import { ChartArea, SizeChangedArgument, YArea } from '../layout/index';
 import { IAxesRender, IRenderLocator } from '../render/index';
 import { IPoint, ISize, Point } from '../shared/index';
@@ -31,7 +31,7 @@ export class PriceAxisComponent extends VisualComponent {
         this.addChild(priceMarker);
     }
 
-    public handeMouse(relX: number, relY: number) {
+    public handleMouse(relX: number, relY: number) {
         if (this.mouse) {
             this.mouse.x = relX;
             this.mouse.y = relY;
@@ -39,7 +39,7 @@ export class PriceAxisComponent extends VisualComponent {
             this.mouse = new Point(relX, relY);
         }
 
-        super.handeMouse(relX, relY);
+        super.handleMouse(relX, relY);
     }
 
     protected onresize = (arg: SizeChangedArgument) => {

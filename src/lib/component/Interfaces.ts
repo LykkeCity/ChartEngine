@@ -1,17 +1,23 @@
 /**
  * 
  */
-import { ChartPoint, IAxis, ICoordsConverter, IMouse, ISource, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, VisualComponent, VisualContext }
+import { ChartPoint, Command, EventArgument, IAxis, ICommand, ICoordsConverter, IMouse, ISource, IStateful, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, VisualComponent, VisualContext }
     from '../core/index';
 import { Area, ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IChartRender, IRenderLocator, RenderLocator } from '../render/index';
-import { IHashTable, IPoint, IRange, ISize } from '../shared/index';
+import { Event, IEvent, IHashTable, IPoint, IRange, ISize } from '../shared/index';
 import { FigureComponent } from './FigureComponent';
 
 export interface IDrawing {
     start(figureId: string): void;
     cancel(): void;
+}
+
+export interface IHistory {
+    length: number;
+    undo(): void;
+    historyChanged: IEvent<EventArgument>;
 }
 
 export interface ISelectable {
@@ -50,13 +56,16 @@ export interface IChartBoard {
 
     // internal methods
     select(component: VisualComponent|undefined): void;
+    push2history(cmd: ICommand): void;
+    // accessible for board states
+    treeChangedEvt: Event<EventArgument>;
 }
 
-export interface IChartStack extends ICoordsConverter {
+export interface IChartStack extends ICoordsConverter, IStateful {
     uid: string;
     offset: IPoint;
     charts: IChart[];
-    figures: IFigure[];
+    figures: FigureComponent[];
     addFigure(figureType: string) : FigureComponent;
 }
 
@@ -66,11 +75,6 @@ export interface IChart {
     precision: number;
     getValuesRange(range: IRange<Uid>): IRange<number>;
     render(context: VisualContext, renderLocator: IRenderLocator): void;
-}
-
-export interface IFigure {
-    uid: string;
-    name: string;
 }
 
 export interface IStateController {
@@ -96,5 +100,5 @@ export function isStateController(obj: any): obj is IStateController {
 }
 
 export interface IChartingSettings {
-    precision(): number;
+    readonly precision: number;
 }

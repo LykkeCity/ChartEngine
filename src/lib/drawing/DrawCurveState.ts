@@ -160,9 +160,6 @@ export class CurveFigureComponent extends FigureComponent implements IHoverable,
     public setSettings(value: SettingSet): void {
         this.settings.color = value.getValueOrDefault<string>('line.color', this.settings.color);
         this.settings.width = value.getValueOrDefault<number>('line.width', this.settings.width);
-
-        // rerender
-        //this.context.render();
     }
 }
 

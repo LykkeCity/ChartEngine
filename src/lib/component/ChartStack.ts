@@ -2,7 +2,7 @@
  * ChartStack class.
  */
 import { NumberAxis, PriceAxis } from '../axes/index';
-import { ChartPoint, Events, IAxis, IChartPoint, IConfigurable, ICoordsConverter, ISource, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, IVisualComponent, SettingSet, SettingType, StoreArray, StoreContainer, VisualComponent, VisualContext }
+import { ChartPoint, Events, IAxis, IChartPoint, IConfigurable, ICoordsConverter, ISource, IStateful, ITimeAxis, ITimeCoordConverter, IValueCoordConverter, SettingSet, SettingType, StoreArray, StoreContainer, VisualComponent, VisualContext }
     from '../core/index';
 import { IDataSource } from '../data/index';
 import { Area, BoardArea, ChartArea, SizeChangedArgument } from '../layout/index';
@@ -15,14 +15,13 @@ import { Crosshair } from './Crosshair';
 import { FigureComponent } from './FigureComponent';
 import { FigureFactory } from './FigureFactory';
 import { Grid } from './Grid';
-import { IChart, IChartingSettings, IChartStack, IFigure } from './Interfaces';
+import { IChart, IChartingSettings, IChartStack } from './Interfaces';
 import { NumberAxisComponent } from './NumberAxisComponent';
 import { PriceAxisComponent } from './PriceAxisComponent';
 import { QuicktipBuilder } from './Quicktip';
 
 export class ChartStack extends VisualComponent implements IChartStack, ICoordsConverter, IConfigurable, IChartingSettings {
 
-    private readonly _uid: string;
     private readonly boardArea: BoardArea;
     private readonly area: ChartArea;
     private readonly qtBuilder: QuicktipBuilder;
@@ -38,6 +37,10 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     private store: StoreContainer;
     private figureContainer: FigureContainer;
 
+    public get precision(): number {
+        return this._precision;
+    }
+
     constructor(
         uid: string,
         boardArea: BoardArea,
@@ -46,9 +49,8 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         events: Events,
         store: StoreContainer,
         source?: ISource) {
-        super();
+        super(undefined, undefined, uid);
 
-        this._uid = uid;
         this.boardArea = boardArea;
         this.tAxis = timeAxis;
         this.events = events;
@@ -94,12 +96,8 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this.applySettings();
     }
 
-    public get uid(): string {
-        return this._uid;
-    }
-
     private getAxisSize(size: ISize) {
-        return { width: size.width , height: size.height > 20 ? size.height - 20 : size.height };
+        return { width: size.width, height: size.height > 20 ? size.height - 20 : size.height };
     }
 
     /**
@@ -121,7 +119,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         return this._charts.slice();
     }
 
-    public get figures(): IFigure[] {
+    public get figures(): FigureComponent[] {
         return this.figureContainer.children
             .filter(el => { return (el instanceof FigureComponent); })
             .map(vc => <FigureComponent>vc);
@@ -162,15 +160,11 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
     }
 
     public addFigure(figureType: string): FigureComponent {
-        const figure =  this.figureContainer.addFigure(figureType);
-        this.events.treeChanged.trigger();
-        return figure;
+        return this.figureContainer.addFigure(figureType);
     }
 
     public removeFigure(uid: string): void {
-        if (this.figureContainer.removeFigure(uid)) {
-            this.events.treeChanged.trigger();
-        }
+        this.figureContainer.removeFigure(uid);
     }
 
     public moveUp(uid: string) {
@@ -189,13 +183,18 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         this.figureContainer.moveBottom(uid);
     }
 
+    public getState(): string {
+        return this.store.serialize();
+    }
+
+    public restore(state: string) {
+        this.store.deserialize(state);
+        this.figureContainer.setStore(this.store.getArrayProperty('figures'));
+    }
+
     public setStore(store: StoreContainer) {
         this.store = store;
         this.figureContainer.setStore(store.getArrayProperty('figures'));
-    }
-
-    public precision(): number {
-        return this._precision;
     }
 
     // TODO: Rename
@@ -251,7 +250,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
                 // TODO: Make DataSource.DefaultYRange or take last known data:
                 const yRange = { start: Number.MAX_VALUE, end: Number.MIN_VALUE };
                 for (const chart of this._charts) {
-                    const valuesRange = chart.getValuesRange(this.tAxis.range); //this.tAxis.range, this.tAxis.interval);
+                    const valuesRange = chart.getValuesRange(this.tAxis.range);
 
                     if (valuesRange.end > yRange.end) {
                         yRange.end = valuesRange.end;

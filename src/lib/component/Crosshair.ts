@@ -1,7 +1,7 @@
 /**
  * Crosshair class.
  */
-import { Events, IAxis, IMouse, ITimeAxis, IVisualComponent, MouseEventArgument, VisualComponent, VisualContext } from '../core/index';
+import { Events, IAxis, IMouse, ITimeAxis, MouseEventArgument, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IPoint, ISize, Point } from '../shared/index';
@@ -18,7 +18,7 @@ export class Crosshair extends VisualComponent {
         this.axis = axis;
     }
 
-    public handeMouse(relX: number, relY: number) {
+    public handleMouse(relX: number, relY: number) {
         if (this.mouse) {
             this.mouse.x = relX;
             this.mouse.y = relY;
@@ -26,7 +26,7 @@ export class Crosshair extends VisualComponent {
             this.mouse = new Point(relX, relY);
         }
 
-        super.handeMouse(relX, relY);
+        super.handleMouse(relX, relY);
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {

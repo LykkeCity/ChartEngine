@@ -35,8 +35,9 @@ export class StorageManager {
                     this._root.changed.off(this.onChanged);
                 }
                 // initialize new container
-                const obj = JSON.parse(serialized, JsonUtils.DATEPARSER); // Parsing dates as Date()
-                this._root = new StoreContainer(obj);
+                this._root = new StoreContainer();
+                this._root.deserialize(serialized);
+
                 // subscribe
                 this._root.changed.on(this.onChanged);
             }
@@ -45,8 +46,7 @@ export class StorageManager {
 
     private save() {
         if (this.storage) {
-            const obj = this._root.serialize();
-            const serialized = JSON.stringify(obj);
+            const serialized = this._root.serialize();
             this.storage.setItem('__chartboard_storage__', serialized);
         }
     }
@@ -115,8 +115,17 @@ export class StoreContainer {
         return new StoreArray(o, this.root || this);
     }
 
-    public serialize(): object {
-        return this.obj;
+    public deserialize(source: string): void {
+        const sourceObj = JSON.parse(source, JsonUtils.DATEPARSER); // Parsing dates as Date()
+
+        // Attach each property
+        for (const prop of Object.keys(sourceObj)) {
+            (<any>this.obj)[prop] = sourceObj[prop];
+        }
+    }
+
+    public serialize(): string {
+        return JSON.stringify(this.obj);
     }
 
     public setChanged() {

@@ -1,7 +1,7 @@
 /**
  * ChartPopup class.
  */
-import { IAxis, ITimeAxis, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
+import { IAxis, ITimeAxis, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';

@@ -1,37 +1,20 @@
 /**
- * Figures
+ * Class FigureComponent
  */
-import { IVisualComponent, StoreContainer, VisualComponent } from '../core/index';
+import { StoreContainer, VisualComponent } from '../core/index';
 import { IPoint, ISize, Point } from '../shared/index';
 import { UidUtils } from '../utils/index';
-import { IFigure, IStateController } from './Interfaces';
+import { IStateController } from './Interfaces';
 
-export abstract class FigureComponent extends VisualComponent implements IFigure {
+export abstract class FigureComponent extends VisualComponent {
 
     protected isHovered = false;
     protected isSelected = false;
-    protected readonly _uid: string;
-    protected readonly _name: string;
 
     public constructor(name: string, offset: IPoint, size: ISize, container: StoreContainer) {
-        super(offset, size);
-        const uid = container ? container.getProperty('uid') : undefined;
+        super(offset, size, (container && container.getProperty('uid')) ? container.getProperty('uid') : UidUtils.NEWUID(), name);
 
-        if (uid) {
-            this._uid = uid;
-        } else {
-            this._uid = UidUtils.NEWUID();
-            container.setProperty('uid', this._uid);
-        }
-        this._name = name;
-    }
-
-    public get uid(): string {
-        return this._uid;
-    }
-
-    public get name(): string {
-        return this._name;
+        container.setProperty('uid', this._uid);
     }
 
     public abstract getEditState(): IStateController;

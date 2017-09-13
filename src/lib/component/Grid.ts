@@ -1,7 +1,7 @@
 /**
  * Grid class.
  */
-import { IAxis, ITimeAxis, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
+import { IAxis, ITimeAxis, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { ISize, IPoint } from '../shared/index';

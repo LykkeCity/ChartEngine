@@ -2,12 +2,12 @@
  * 
  */
 export class CObject {
-    private readonly _uid: string;
-    private _name: string;
+    protected readonly _uid: string;
+    protected _name: string;
 
-    constructor(uid: string, name: string) {
+    constructor(uid: string, name?: string) {
         this._uid = uid;
-        this._name = name;
+        this._name = name || '';
     }
 
     public get uid(): string {

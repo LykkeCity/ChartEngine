@@ -5,6 +5,7 @@ import * as lychart from '../../../src/lychart';
 import ChartBoard = lychart.ChartBoard;
 import IEvent = lychart.shared.IEvent;
 import Event = lychart.shared.Event;
+import CObject = lychart.core.CObject;
 import SettingSet = lychart.core.SettingSet;
 import SettingType = lychart.core.SettingType;
 import VisualComponent = lychart.core.VisualComponent;
@@ -13,12 +14,12 @@ export class PropsEvent extends Event<undefined> {
 }
 
 export class PropsViewModel {
-    public readonly propsClosingEvent = new PropsEvent();
-    public readonly propsAppliedEvent = new PropsEvent();
+    public readonly closingEvt = new PropsEvent();
+    public readonly appliedEvt = new PropsEvent();
 
     public title = ko.observable('');
 
-    private obj: any;
+    private obj: CObject;
     private settingName: string;
 
     constructor(
@@ -27,20 +28,20 @@ export class PropsViewModel {
     }
 
     public cmdApply() {
-        if (this.obj && typeof this.obj.setSettings === 'function') {
+        if (this.obj) {
             const settings = this.collectSettings();
-            this.obj.setSettings(settings);
+            this.board.setObjectSettings(this.obj.uid, settings);
         }
-        this.propsAppliedEvent.trigger();
+        this.appliedEvt.trigger();
     }
 
     public cmdCancel() {
-        this.propsClosingEvent.trigger();
+        this.closingEvt.trigger();
     }
 
-    public rebuild(obj: any): void {
+    public rebuild(obj: CObject): void {
         if (!obj) {
-            throw new Error('Object is not specified');
+            throw new Error('Object uid is not specified');
         }
         this.obj = obj;
 
@@ -50,9 +51,8 @@ export class PropsViewModel {
         // clear controls
         $(this.container).empty();
 
-        // load settings
-        if (typeof obj.getSettings === 'function') {
-            const settings = <SettingSet>obj.getSettings();
+        const settings = this.board.getObjectSettings(obj.uid);
+        if (settings) {
             this.settingName = settings.name;
             this.iterate(settings, '', this.title());
         } else {

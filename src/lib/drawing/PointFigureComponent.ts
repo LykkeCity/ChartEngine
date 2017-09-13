@@ -3,7 +3,7 @@
  */
 import { FigureComponent, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberMarker, TimeMarker }
     from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, StoreContainer, VisualContext }
+import { ChartPoint, Command, Constants, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, StoreContainer, VisualContext }
     from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
@@ -69,7 +69,7 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
         private taxis: ITimeCoordConverter,
         private yaxis: IValueCoordConverter<number>,
         private container?: StoreContainer,
-        pixelMode = false) {
+        pixelMode: boolean = false) {
         super('Point', offset, size, container || new StoreContainer());
 
         this.store = new PointStore(container || new StoreContainer());
@@ -206,23 +206,45 @@ class EditPointState extends FigureEditStateBase {
     }
 
     private figure?: PointFigureComponent;
+    private undo?: () => void;
+    private isChanged = false;
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
         super.activate(board, mouse, stack, activationParameters);
 
-        if (activationParameters && activationParameters['component']) {
+        if (stack && activationParameters && activationParameters['component']) {
             this.figure = <PointFigureComponent>activationParameters['component'];
+
+            //save state
+            const state = stack.getState();
+            this.undo = () => { stack.restore(state); };
         } else {
             throw new Error('Editable component is not specified for edit.');
         }
     }
 
     protected shift(dx: number, dy: number): boolean {
+        if (dx || dy) {
+            this.isChanged = true;
+        }
         return this.figure ? this.figure.shift(dx, dy) : false;
     }
 
     protected exit(board: IChartBoard): void {
+        // add command to history
+        if (this.isChanged && this.undo) {
+            board.push2history(
+                new Command(
+                    () => {
+                        // empty execute
+                    },
+                    this.undo
+                ));
+        }
+
         this.figure = undefined;
+        this.undo = undefined;
+        this.isChanged = false;
         super.exit(board);
     }
 }

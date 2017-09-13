@@ -1,7 +1,7 @@
 /**
  * Chart class.
  */
-import { Events, IAxis, IConfigurable, IQuicktip, ITimeAxis, IVisualComponent, MouseEventArgument, SettingSet, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { Events, IAxis, IConfigurable, IQuicktip, ITimeAxis, MouseEventArgument, SettingSet, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { IDataSource } from '../data/index';
 import { ChartArea } from '../layout/index';
 import { Candlestick, Uid } from '../model/index';
@@ -11,11 +11,8 @@ import { ChartPopup } from './ChartPopup';
 import { IChart, IHoverable } from './Interfaces';
 
 export class Chart extends VisualComponent implements IChart, IHoverable, IConfigurable {
-    private readonly _uid: string;
-    private readonly _name: string;
     private readonly area: ChartArea;
     private readonly tAxis: ITimeAxis;
-    //private readonly popup: ChartPopup<Candlestick>;
     private readonly renderer: IChartRender<Candlestick>;
     private isMouseOver = false;
 
@@ -30,10 +27,8 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         private readonly dataSource: IDataSource<Candlestick>,
         private readonly yAxis: IAxis<number>,
         private readonly qtip: IQuicktip) {
-        super(offset, size);
+        super(offset, size, uid, name);
 
-        this._uid = uid;
-        this._name = name;
         this.area = chartArea;
         this.tAxis = tAxis;
         // this.popup = new ChartPopup<T>(chartType, this.area, { x: 0, y: 0 }, size, dataSource, timeAxis, yAxis);
@@ -44,14 +39,6 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         this.renderer = <IChartRender<Candlestick>>RenderLocator.Instance.getChartRender(Candlestick, this.chartType);
     }
 
-    public get uid(): string {
-        return this._uid;
-    }
-
-    public get name(): string {
-        return this._name;
-    }
-
     public get precision(): number {
         return this.dataSource.precision;
     }
@@ -60,7 +47,7 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         return this.dataSource.getValuesRange(range);
     }
 
-    public handeMouse(relX: number, relY: number) {
+    public handleMouse(relX: number, relY: number) {
 
         const iterator = this.dataSource.getIterator();
 
@@ -75,7 +62,7 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
             this.qtip.addTextBlock('value', text);
         }
 
-        super.handeMouse(relX, relY);
+        super.handleMouse(relX, relY);
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {

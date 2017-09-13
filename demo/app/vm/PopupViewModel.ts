@@ -13,9 +13,10 @@ import VisualComponent = lychart.core.VisualComponent;
  * View model for popup dialog.
  */
 export class PopupViewModel {
+    public readonly executedEvt = new Event();
+
     public visible = ko.observable(false);
     public vmUid = ko.observable();
-
     private obj: any;
 
     constructor(
@@ -29,12 +30,14 @@ export class PopupViewModel {
     public cmdMoveUp(): void {
         if (this.obj) {
             this.board.moveUp(this.obj.uid);
+            this.executedEvt.trigger();
         }
     }
 
     public cmdMoveDown(): void {
         if (this.obj) {
             this.board.moveDown(this.obj.uid);
+            this.executedEvt.trigger();
         }
     }
 
@@ -42,6 +45,7 @@ export class PopupViewModel {
         if (this.obj) {
             this.board.removeObject(this.obj.uid);
             this.visible(false);
+            this.executedEvt.trigger();
         }
     }
 

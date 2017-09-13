@@ -3,16 +3,16 @@
  * 
  * @classdesc Facade for the chart library.
  */
-import { ChartType, EventArgument, Events, IDataService,  ISource, IQuicktip, IQuicktipBuilder, IStorage, ITouch, Mouse, MouseEventArgument, ObjectEventArgument, StorageManager, StoreContainer, TimeInterval, VisualComponent, VisualContext } from '../core/index';
+import { ChartType, Command, EventArgument, Events, ICommand, IDataService, ISource, IQuicktip, IQuicktipBuilder, isConfigurable, isStateful, IStorage, ITouch, Mouse, MouseEventArgument, ObjectEventArgument, SettingSet, StorageManager, StoreContainer, TimeInterval, VisualComponent, VisualContext } from '../core/index';
 import { DataChangedArgument, DataSourceFactory, DataSourceRegister, IDataSource, IndicatorDataSource } from '../data/index';
 import { IndicatorFabric } from '../indicator/index';
 import { BoardArea } from '../layout/index';
 import { Candlestick, Uid } from '../model/index';
 import { RenderLocator } from '../render/index';
-import { IEvent, IHashTable, IPoint, IRange, Point, throttle } from '../shared/index';
+import { Event, IEvent, IHashTable, IPoint, IRange, Point, throttle } from '../shared/index';
 import { DateUtils, IGhostClickSuppressor, TouchUtils, UidUtils } from '../utils/index';
 import { ChartStack } from './ChartStack';
-import { IChartBoard, IChartStack, IDrawing, isSelectable, isStateController, IStateController } from './Interfaces';
+import { IChartBoard, IChartStack, IDrawing, IHistory, isSelectable, isStateController, IStateController } from './Interfaces';
 import { StateFabric } from './StateFabric';
 import { HoverState, MoveChartState } from './States';
 import { LoadRangeArgument, TimeAxis } from './TimeAxis';
@@ -30,7 +30,7 @@ class IndicatorDescription {
     }
 }
 
-export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard, ISource {
+export class ChartBoard extends VisualComponent implements IChartBoard, IDrawing, IHistory, ISource {
 
     private readonly area: BoardArea;
     private readonly chartStacks: ChartStack[] = [];
@@ -47,6 +47,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
     private readonly dataSourceRegister = new DataSourceRegister();
 
     private events = new Events();
+    private commands = new CommandHistory();
     private stateFabric = new StateFabric();
     private state: IStateController;
     private storageMgr: StorageManager;
@@ -66,7 +67,16 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         return this.events.treeChanged;
     }
 
+    public get historyChanged(): IEvent<EventArgument> {
+        return this.events.historyChanged;
+    }
+
     // -- End of "Public Events" --
+
+    // TODO: Make internal, accessible only to States.
+    public get treeChangedEvt(): Event<EventArgument> {
+        return this.events.treeChanged;
+    }
 
     constructor(
         private readonly container: HTMLElement,
@@ -154,28 +164,140 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
         }
     }
 
+    public getObjectSettings(uid: string): SettingSet|undefined {
+        const obj = this.getObjectById(uid);
+        if (obj && obj.uid && obj.uid === uid && isConfigurable(obj)) {
+            return obj.getSettings();
+        }
+    }
+
+    public setObjectSettings(uid: string, settings: SettingSet): void {
+        const obj = this.getObjectById(uid);
+        if (obj && obj.uid && obj.uid === uid && isConfigurable(obj)) {
+            if (isStateful(obj)) {
+                let state: string;
+                this.push2history(
+                    new Command(
+                        () => {
+                            state = obj.getState();
+                            obj.setSettings(settings);
+                        },
+                        () => {
+                            if (state) {
+                                obj.restore(state);
+                            }
+                        }
+                    )
+                    .execute()
+                );
+            } else {
+                obj.setSettings(settings);
+            }
+        }
+    }
+
     public removeObject(uid: string): void {
-        this.chartStacks.forEach(stack => { stack.removeFigure(uid); });
+        const stack = this.chartStacks.filter(s => s.contains(uid))[0];
+        if (stack) {
+            let state: string;
+            this.push2history(
+                new Command(
+                    () => { // do
+                        state = stack.getState();
+                        stack.removeFigure(uid);
+                    },
+                    () => { // undo
+                        if (state) {
+                            stack.restore(state);
+                        }
+                    }
+                )
+                .execute()
+            );
+        }
+
+        this.events.treeChanged.trigger();
+
         this.renderLayers(false, true);
     }
 
     public moveUp(uid: string) {
-        this.chartStacks.forEach(stack => { stack.moveUp(uid); });
+        const stack = this.chartStacks.filter(s => s.contains(uid))[0];
+        if (stack) {
+            let state: string;
+            this.push2history(
+                new Command(
+                    () => { // do
+                        state = stack.getState();
+                        stack.moveUp(uid);
+                    },
+                    () => { // undo
+                        if (state) { stack.restore(state); }
+                    }
+                )
+                .execute()
+            );
+        }
         this.renderLayers(false, true);
     }
 
     public moveDown(uid: string) {
-        this.chartStacks.forEach(stack => { stack.moveDown(uid); });
+        const stack = this.chartStacks.filter(s => s.contains(uid))[0];
+        if (stack) {
+            let state: string;
+            this.push2history(
+                new Command(
+                    () => { // do
+                        state = stack.getState();
+                        stack.moveDown(uid);
+                    },
+                    () => { // undo
+                        if (state) { stack.restore(state); }
+                    }
+                )
+                .execute()
+            );
+        }
         this.renderLayers(false, true);
     }
 
     public moveTop(uid: string) {
-        this.chartStacks.forEach(stack => { stack.moveTop(uid); });
+        const stack = this.chartStacks.filter(s => s.contains(uid))[0];
+        if (stack) {
+            let state: string;
+            this.push2history(
+                new Command(
+                    () => { // do
+                        state = stack.getState();
+                        stack.moveTop(uid);
+                    },
+                    () => { // undo
+                        if (state) { stack.restore(state); }
+                    }
+                )
+                .execute()
+            );
+        }
         this.renderLayers(false, true);
     }
 
     public moveBottom(uid: string) {
-        this.chartStacks.forEach(stack => { stack.moveBottom(uid); });
+        const stack = this.chartStacks.filter(s => s.contains(uid))[0];
+        if (stack) {
+            let state: string;
+            this.push2history(
+                new Command(
+                    () => { // do
+                        state = stack.getState();
+                        stack.moveBottom(uid);
+                    },
+                    () => { // undo
+                        if (state) { stack.restore(state); }
+                    }
+                )
+                .execute()
+            );
+        }
         this.renderLayers(false, true);
     }
 
@@ -492,7 +614,7 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
 
         this.state.onMouseMove(this, this.mouse);
 
-        super.handeMouse(this.mouse.pos.x - this.offset.x, this.mouse.pos.y - this.offset.y);
+        super.handleMouse(this.mouse.pos.x - this.offset.x, this.mouse.pos.y - this.offset.y);
 
         //Events.instance.mouseMove.trigger(new MouseEventArgument(this.mouse));
 
@@ -676,5 +798,46 @@ export class ChartBoard extends VisualComponent implements IDrawing, IChartBoard
             this.ghostClickSuppressor.destroy();
         }
         this.isDestroyed = true;
+    }
+
+    public get history(): IHistory {
+        return this;
+    }
+
+    /**
+     * "IHistory" implementation
+     */
+
+    public get length(): number {
+        return this.commands.length;
+    }
+
+    public push2history(cmd: ICommand): void {
+        this.commands.push(cmd);
+        this.events.historyChanged.trigger();
+    }
+
+    public undo(): void {
+        const cmd = this.commands.pop();
+        if (cmd) {
+            cmd.undo();
+            this.events.historyChanged.trigger();
+        }
+    }
+}
+
+class CommandHistory {
+    private commands: ICommand[] = [];
+
+    public get length(): number {
+        return this.commands.length;
+    }
+
+    public push(cmd: ICommand): void {
+        this.commands.push(cmd);
+    }
+
+    public pop(): ICommand|undefined {
+        return this.commands.pop();
     }
 }

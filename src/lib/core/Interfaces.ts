@@ -129,6 +129,22 @@ export interface IConfigurable {
     setSettings(settings: SettingSet): void;
 }
 
-export interface IVisualComponent {
-    //getGlobalOffset(): IPoint;
+export function isConfigurable(obj: any): obj is IConfigurable {
+    return (<IConfigurable>obj).setSettings !== undefined;
+}
+
+export interface IStateful {
+    getState(): string;
+    restore(state: string): void;
+}
+
+export function isStateful(obj: any): obj is IStateful {
+    return (<IStateful>obj).getState !== undefined;
+}
+
+export type Action = () => void;
+
+export interface ICommand {
+    execute(): ICommand;
+    undo(): void;
 }

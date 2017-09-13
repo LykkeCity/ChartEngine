@@ -3,10 +3,11 @@
  */
 import { IRenderLocator } from '../render/index';
 import { IPoint, ISize, Point, Size } from '../shared/index';
-import { IVisualComponent } from './Interfaces';
+import { UidUtils } from '../utils/index';
+import { CObject } from './CObject';
 import { VisualContext } from './VisualContext';
 
-export abstract class VisualComponent implements IVisualComponent {
+export abstract class VisualComponent extends CObject {
     protected _offset: Point;
     protected _size: Size;
     protected _children: VisualComponent[] = [];
@@ -36,7 +37,8 @@ export abstract class VisualComponent implements IVisualComponent {
         this._visible = value;
     }
 
-    constructor(offset?: IPoint, size?: ISize) {
+    constructor(offset?: IPoint, size?: ISize, uid?: string, name?: string) {
+        super(uid || UidUtils.NEWUID(), name);
         this._offset = offset ? new Point(offset.x, offset.y) : new Point(0, 0);
         this._size = size ? new Size(size.width, size.height) : new Size(0, 0);
     }
@@ -46,13 +48,13 @@ export abstract class VisualComponent implements IVisualComponent {
     }
 
     public removeChild(child: VisualComponent) {
-        this._children = this._children.filter((value) => value !== child);
+        this._children = this._children.filter(value => value !== child);
     }
 
-    public handeMouse(relX: number, relY: number) {
+    public handleMouse(relX: number, relY: number) {
         // Default behavior: just passing message to children
         for (const child of this._children) {
-            child.handeMouse(relX - child.offset.x, relY - child.offset.y);
+            child.handleMouse(relX - child.offset.x, relY - child.offset.y);
         }
     }
 
@@ -65,7 +67,7 @@ export abstract class VisualComponent implements IVisualComponent {
 
     public resize(w: number, h: number): void {
         // Default behavior: set size and pass message to children
-        this._size = { width: w, height: h};
+        this._size = { width: w, height: h };
 
         for (const child of this._children) {
             child.resize(w, h);
@@ -78,17 +80,6 @@ export abstract class VisualComponent implements IVisualComponent {
         this.forEachAggregator(delegate, childrenFirst, directOrder, new Point(0, 0));
     }
 
-    // public getGlobalOffset(): IPoint {
-    //     //if (!this.globalOffset) {
-    //         if (this.parent) {
-    //             this.globalOffset = this._offset.add(this.parent.getGlobalOffset());
-    //         } else {
-    //             this.globalOffset = new Point(this._offset.x, this._offset.y);
-    //         }
-    //     //}
-    //     return this.globalOffset;
-    // }
-
     private forEachAggregator(
         delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void },
         childrenFirst: boolean,
@@ -96,7 +87,7 @@ export abstract class VisualComponent implements IVisualComponent {
         initialOffset: Point): boolean {
 
         // 1. Execute for this component
-
+        //
         const offset = new Point(initialOffset.x + this.offset.x,
                                  initialOffset.y + this.offset.y);
 
@@ -105,6 +96,7 @@ export abstract class VisualComponent implements IVisualComponent {
         }
 
         // 2. Iterating through children in direct or reverse order
+        //
         let index = directOrder ? 0 : this._children.length - 1;
         while ((directOrder && index < this._children.length)
                || (!directOrder && index >= 0)) {

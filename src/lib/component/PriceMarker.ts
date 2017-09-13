@@ -2,7 +2,7 @@
  * PriceMarker class.
  */
 import { PriceAxis } from '../axes/index';
-import { IVisualComponent, VisualComponent, VisualContext } from '../core/index';
+import { VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IMarkRender, IRenderLocator } from '../render/index';
 import { IPoint, ISize } from '../shared/index';
@@ -24,7 +24,7 @@ export class PriceMarker extends VisualComponent {
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
-        if (!context.renderFront)  {
+        if (!context.renderFront) {
             // only render on front
             return ;
         }
@@ -33,7 +33,7 @@ export class PriceMarker extends VisualComponent {
         if (value) {
             const render = <IMarkRender<number>>renderLocator.getMarkRender('number');
             const y = this.axis.toX(value);
-            render.render(this.area.frontCanvas, value, { x: 0, y: y }, this.size, this.settings.precision());
+            render.render(this.area.frontCanvas, value, { x: 0, y: y }, this.size, this.settings.precision);
         }
     }
 }

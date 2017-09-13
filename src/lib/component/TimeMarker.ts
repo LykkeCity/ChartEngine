@@ -1,7 +1,7 @@
 /**
  * TimeMarker class.
  */
-import { IAxis, ITimeAxis, ITimeCoordConverter, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
+import { IAxis, ITimeAxis, ITimeCoordConverter, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';

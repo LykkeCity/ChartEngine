@@ -2,7 +2,7 @@
  * NumberMarker class.
  */
 import { NumberAxis } from '../axes/index';
-import { IValueCoordConverter, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
+import { IValueCoordConverter, VisualComponent, VisualContext } from '../core/index';
 import { Area } from '../layout/index';
 import { IMarkRender, IRenderLocator } from '../render/index';
 import { IPoint, ISize, Point } from '../shared/index';
@@ -33,7 +33,7 @@ export class NumberMarker extends VisualComponent {
         if (value) {
             const render = <IMarkRender<number>>renderLocator.getMarkRender('number');
             const y = this.yaxis.toX(value);
-            render.render(this.area.frontCanvas, value, { x: 0, y: y }, this.size, this.settings.precision());
+            render.render(this.area.frontCanvas, value, { x: 0, y: y }, this.size, this.settings.precision);
         }
     }
 }

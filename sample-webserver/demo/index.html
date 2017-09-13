@@ -392,6 +392,11 @@
                                 <a data-bind="click: $parent.cmdSetCurrentChart($data)" href="#popupMenu" data-rel="popup" data-transition="slideup" class="ui-btn ui-shadow ui-btn-inline ui-icon-carat-d ui-btn-icon-right ui-btn-a">Figures</a>
                             </fieldset>
                         </td>
+                        <td>
+                            <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
+                                <button class="ui-btn ui-btn-icon-notext ui-icon-back ui-btn-inline ui-mini" data-bind="click: cmdUndo, disable: undoDisabled">Undo</button>
+                            </fieldset>
+                        </td>
                     </tr>
                 </table>
             </div> <!-- chart-toolbar -->

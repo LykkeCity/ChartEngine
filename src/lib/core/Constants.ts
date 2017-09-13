@@ -22,4 +22,6 @@ export class Constants {
     public static get FIBO_PERCENTAGE(): ReadonlyArray<number> {
         return this._fiboPercantage;
     }
+
+    public static readonly DEFAULT_FORECOLOR = '#FF0000';
 }

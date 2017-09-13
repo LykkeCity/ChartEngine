@@ -2,7 +2,7 @@
  * Classes for drawing lines.
  */
 import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
+import { ChartPoint, Command, Constants, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, IStateful, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, IPoint, ISize, Point } from '../shared/index';
@@ -11,12 +11,12 @@ import { FigureEditStateBase } from './FigureEditStateBase';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-export class LineFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
-    private settings = new LineSettings();
+export class LineFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable, IStateful {
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
     private timeRegion: TimeRegionMarker;
     private valueRegion: NumberRegionMarker;
+    private store: SettingStore;
 
     public get pointA(): IChartPoint {
         return this.pa.point;
@@ -41,9 +41,11 @@ export class LineFigureComponent extends FigureComponent implements IHoverable, 
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
         private yaxis: IValueCoordConverter<number>,
-        container: StoreContainer
+        private container: StoreContainer
         ) {
         super('Trend Line', offset, size, container);
+
+        this.store = new SettingStore(container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -104,8 +106,8 @@ export class LineFigureComponent extends FigureComponent implements IHoverable, 
         if (a && b) {
             const canvas = this.area.frontCanvas;
 
-            canvas.setStrokeStyle(this.settings.color);
-            canvas.lineWidth = this.settings.width;
+            canvas.setStrokeStyle(this.store.color);
+            canvas.lineWidth = this.store.width;
             canvas.beginPath();
             canvas.moveTo(a.x, a.y);
             canvas.lineTo(b.x, b.y);
@@ -126,12 +128,12 @@ export class LineFigureComponent extends FigureComponent implements IHoverable, 
             settings: [
                 {
                     name: 'color',
-                    value: this.settings.color.toString(),
+                    value: this.store.color.toString(),
                     settingType: SettingType.color,
                     displayName: 'Color'
                 }, {
                     name: 'width',
-                    value: this.settings.width.toString(),
+                    value: this.store.width.toString(),
                     settingType: SettingType.numeric,
                     displayName: 'Width'
                 }
@@ -140,17 +142,17 @@ export class LineFigureComponent extends FigureComponent implements IHoverable, 
     }
 
     public setSettings(value: SettingSet): void {
-        this.settings.color = value.getValueOrDefault<string>('line.color', this.settings.color);
-        this.settings.width = value.getValueOrDefault<number>('line.width', this.settings.width);
-
-        // rerender
-        //this.context.render();
+        this.store.color = value.getValueOrDefault<string>('line.color', this.store.color);
+        this.store.width = value.getValueOrDefault<number>('line.width', this.store.width);
     }
-}
 
-export class LineSettings {
-    public color = '#FF0000';
-    public width = 1;
+    public getState(): string {
+        return this.container.serialize();
+    }
+
+    public restore(state: string): void {
+        this.container.deserialize(state);
+    }
 }
 
 export class DrawLineState extends FigureStateBase {
@@ -182,9 +184,30 @@ export class DrawLineState extends FigureStateBase {
         const coordY = this.stack.yToValue(point.y - this.board.offset.y - this.stack.offset.y);
 
         if (this.count === 0) {
-            this.figure = <LineFigureComponent>this.stack.addFigure(FigureType.line);
-            this.figure.pointA = { uid: coordX, v: coordY };
-            this.figure.pointB = { uid: coordX, v: coordY };
+            const stack = this.stack;
+            let state: string;
+            let figure: LineFigureComponent|undefined;
+            this.board.push2history(
+                new Command(
+                    () => { // do
+                        state = stack.getState();
+                        figure = <LineFigureComponent>stack.addFigure(FigureType.line);
+                    },
+                    () => { // undo
+                        if (state) {
+                            stack.restore(state);
+                        }
+                    }
+                )
+                .execute());
+
+            this.board.treeChangedEvt.trigger();
+
+            if (figure) {
+                this.figure = figure;
+                this.figure.pointA = { uid: coordX, v: coordY };
+                this.figure.pointB = { uid: coordX, v: coordY };
+            }
         } else if (this.count === 1 && this.figure) {
             this.figure.pointB = { uid: coordX, v: coordY };
         }
@@ -230,23 +253,69 @@ class EditLineState extends FigureEditStateBase {
     }
 
     private figure?: LineFigureComponent;
+    private undo?: () => void;
+    private isChanged = false;
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
         super.activate(board, mouse, stack, activationParameters);
 
-        if (activationParameters && activationParameters['component']) {
+        if (stack && activationParameters && activationParameters['component']) {
             this.figure = <LineFigureComponent>activationParameters['component'];
+
+            // save state
+            const state = stack.getState();
+            this.undo = () => { stack.restore(state); };
         } else {
             throw new Error('Editable component is not specified for edit.');
         }
     }
 
     protected shift(dx: number, dy: number): boolean {
+        if (dx || dy) {
+            this.isChanged = true;
+        }
         return this.figure ? this.figure.shift(dx, dy) : false;
     }
 
     protected exit(board: IChartBoard): void {
+        // add command to history
+        if (this.isChanged && this.undo) {
+            board.push2history(
+                new Command(
+                    () => {
+                        // empty execute
+                    },
+                    this.undo
+                ));
+        }
+
         this.figure = undefined;
+        this.undo = undefined;
+        this.isChanged = false;
         super.exit(board);
+    }
+}
+
+class SettingStore {
+
+    public get color(): string {
+        return this.container.getProperty('color') || Constants.DEFAULT_FORECOLOR;
+    }
+
+    public set color(value: string) {
+        this.container.setProperty('color', value);
+    }
+
+    public get width(): number {
+        return this.container.getProperty('width') || 1;
+    }
+
+    public set width(value: number) {
+        this.container.setProperty('width', value);
+    }
+
+    constructor(
+        private container: StoreContainer
+    ) {
     }
 }

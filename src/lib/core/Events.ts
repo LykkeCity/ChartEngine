@@ -2,6 +2,7 @@
  * 
  */
 import { Event } from '../shared/index';
+import { CObject } from './CObject';
 import { IMouse } from './Interfaces';
 
 export class EventArgument {
@@ -10,7 +11,7 @@ export class EventArgument {
 
 export class ObjectEventArgument extends EventArgument {
     constructor(
-        public obj: any) {
+        public obj?: CObject) {
         super();
     }
 }
@@ -33,5 +34,10 @@ export class Events {
     private _treeChanged = new Event<EventArgument>();
     public get treeChanged(): Event<EventArgument> {
         return this._treeChanged;
+    }
+
+    private _historyChanged = new Event<EventArgument>();
+    public get historyChanged(): Event<EventArgument> {
+        return this._historyChanged;
     }
 }

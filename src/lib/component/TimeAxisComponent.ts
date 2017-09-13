@@ -1,7 +1,7 @@
 /**
  * TimeAxisComponent class.
  */
-import { IAxis, ITimeAxis, IVisualComponent, VisualComponent, VisualContext } from '../core/index';
+import { IAxis, ITimeAxis, VisualComponent, VisualContext } from '../core/index';
 import { BoardArea, SizeChangedArgument, XArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IAxesRender, IRenderLocator, ITimeAxisRender } from '../render/index';
@@ -36,7 +36,7 @@ export class TimeAxisComponent extends VisualComponent {
         this.marker.resize(arg.size.width, arg.size.height);
     }
 
-    public handeMouse(relX: number, relY: number) {
+    public handleMouse(relX: number, relY: number) {
         if (this.mouse) {
             this.mouse.x = relX;
             this.mouse.y = relY;
@@ -44,7 +44,7 @@ export class TimeAxisComponent extends VisualComponent {
             this.mouse = new Point(relX, relY);
         }
 
-        super.handeMouse(relX, relY);
+        super.handleMouse(relX, relY);
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {

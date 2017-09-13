@@ -6,7 +6,7 @@ import { ChartBoard } from './ChartBoard';
 import { ChartStack } from './ChartStack';
 import { FigureComponent } from './FigureComponent';
 import { FigureFactory, FigureType } from './FigureFactory';
-import { IChart, IChartBoard, IChartingSettings, IChartStack, IEditable, IFigure, IHoverable, ISelectable, IStateController }
+import { IChart, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController }
     from './Interfaces';
 import { isEditable, isHoverable, isSelectable, isStateController } from './Interfaces';
 import { NumberAxisComponent } from './NumberAxisComponent';
@@ -23,7 +23,6 @@ export {
     Chart,
     ChartBoard,
     ChartStack,
-    IFigure,
     FigureComponent,
     FigureFactory,
     FigureType,

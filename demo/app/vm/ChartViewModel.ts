@@ -47,6 +47,7 @@ export class ChartViewModel {
     public panelHeight = ko.observable(0);
 
     public chartUid = ko.observable(Math.random());
+    public undoDisabled = ko.observable(true);
 
     constructor(params: any, node: HTMLElement, assets: Asset[], dataService: DataService) {
         this.assets(assets);
@@ -68,6 +69,7 @@ export class ChartViewModel {
             this.$chartContainer[0], offset.left, offset.top, 200, 200, lychart.core.TimeInterval.min, new Storage(), this.dataService);
         this.board.selectionChanged.on(this.board_selectionChanged);
         this.board.treeChanged.on(this.board_treeChanged);
+        this.board.historyChanged.on(this.board_historyChanged);
         console.log('cvm: chart board created.');
 
         // Init tree vm
@@ -78,11 +80,12 @@ export class ChartViewModel {
         // Init props vm
         //
         this.propsVM = new PropsViewModel($('.properties', this.node)[0], this.board);
-        this.propsVM.propsClosingEvent.on(this.props_closing);
-        this.propsVM.propsAppliedEvent.on(this.props_applied);
+        this.propsVM.closingEvt.on(this.props_closing);
+        this.propsVM.appliedEvt.on(this.props_applied);
 
         // Init popup vm
         this.popupVM = new PopupViewModel($('.popupmenu', this.node)[0], this.board);
+        this.popupVM.executedEvt.on(this.popup_executed);
     }
 
     public afterLoad() {
@@ -109,6 +112,12 @@ export class ChartViewModel {
         this.resizeChartContainer();
 
         this.board.render();
+    }
+
+    public cmdUndo() {
+        this.board.undo();
+        this.board.render();
+        this.updateView();
     }
 
     public init(w: number, h: number, visible: boolean): boolean {
@@ -187,10 +196,16 @@ export class ChartViewModel {
 
     private props_closing = () => {
         this.editPropertiesMode(false);
+        this.updateView();
     }
 
     private props_applied = () => {
         this.board.render();
+        this.updateView();
+    }
+
+    private popup_executed = () => {
+        this.updateView();
     }
 
     private board_selectionChanged = (arg: lychart.core.ObjectEventArgument) => {
@@ -203,6 +218,11 @@ export class ChartViewModel {
 
     private board_treeChanged = (arg: lychart.core.EventArgument) => {
         this.treeVM.update();
+        this.updateView();
+    }
+
+    private board_historyChanged = (arg: lychart.core.EventArgument) => {
+        this.updateView();
     }
 
     private changeIndicator = (uid: string, indicatorType: string, index: number, state: boolean) => {
@@ -270,6 +290,10 @@ export class ChartViewModel {
 
     private resetChart(): boolean {
         return this.setChart(this.selectedAsset(), str2interval(this.selectedInterval()));
+    }
+
+    private updateView(): void {
+        this.undoDisabled(this.board ? this.board.history.length === 0 : true);
     }
 }
 
