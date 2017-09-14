@@ -2,7 +2,7 @@
  * Classes for drawing path.
  */
 import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreArray, StoreContainer, VisualContext } from '../core/index';
+import { ChartPoint, Command, Constants, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreArray, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
@@ -13,7 +13,7 @@ import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
 export class PathFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
-    private settings = new PathSettings();
+    private store: SettingStore;
     private p: PointFigureComponent[] = [];
     private timeRegion: TimeRegionMarker;
     private valueRegion: NumberRegionMarker;
@@ -30,6 +30,8 @@ export class PathFigureComponent extends FigureComponent implements IHoverable, 
         container: StoreContainer
         ) {
         super('Path', offset, size, container);
+
+        this.store = new SettingStore(container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, chartSettings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -179,8 +181,8 @@ export class PathFigureComponent extends FigureComponent implements IHoverable, 
         }
 
         const canvas = this.area.frontCanvas;
-        canvas.setStrokeStyle(this.settings.color);
-        canvas.lineWidth = this.settings.width;
+        canvas.setStrokeStyle(this.store.color);
+        canvas.lineWidth = this.store.width;
         canvas.beginPath();
 
         let prev: IPoint|undefined = undefined;
@@ -213,12 +215,12 @@ export class PathFigureComponent extends FigureComponent implements IHoverable, 
             settings: [
                 {
                     name: 'color',
-                    value: this.settings.color.toString(),
+                    value: this.store.color.toString(),
                     settingType: SettingType.color,
                     displayName: 'Color'
                 }, {
                     name: 'width',
-                    value: this.settings.width.toString(),
+                    value: this.store.width.toString(),
                     settingType: SettingType.numeric,
                     displayName: 'Width'
                 }
@@ -227,17 +229,9 @@ export class PathFigureComponent extends FigureComponent implements IHoverable, 
     }
 
     public setSettings(value: SettingSet): void {
-        this.settings.color = value.getValueOrDefault<string>('line.color', this.settings.color);
-        this.settings.width = value.getValueOrDefault<number>('line.width', this.settings.width);
-
-        // rerender
-        //this.context.render();
+        this.store.color = value.getValueOrDefault<string>('line.color', this.store.color);
+        this.store.width = value.getValueOrDefault<number>('line.width', this.store.width);
     }
-}
-
-export class PathSettings {
-    public color = '#FF0000';
-    public width = 1;
 }
 
 export class DrawPathState extends FigureStateBase {
@@ -273,10 +267,30 @@ export class DrawPathState extends FigureStateBase {
         }
 
         if (this.count === 0) {
-            this.figure = <PathFigureComponent>this.stack.addFigure(FigureType.path);
+            const stack = this.stack;
+            let state: string;
+            let figure: PathFigureComponent|undefined;
+            this.board.push2history(
+                new Command(
+                    () => { // do
+                        state = stack.getState();
+                        figure = <PathFigureComponent>stack.addFigure(FigureType.path);
+                    },
+                    () => { // undo
+                        if (state) {
+                            stack.restore(state);
+                        }
+                    }
+                )
+                .execute());
 
-            this.figure.addPoint(coordX, coordY);
-            this.firstXY = new Point(relX, relY);
+            if (figure) {
+                this.figure = figure;
+                this.figure.addPoint(coordX, coordY);
+                this.firstXY = new Point(relX, relY);
+            }
+
+            this.board.treeChangedEvt.trigger();
         } else {
             if (this.figure) {
                 this.figure.addPoint(coordX, coordY);
@@ -341,23 +355,72 @@ class EditPathState extends FigureEditStateBase {
     }
 
     private figure?: PathFigureComponent;
+    private undo?: () => void;
+    private isChanged = false;
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
         super.activate(board, mouse, stack, activationParameters);
 
-        if (activationParameters && activationParameters['component']) {
+        if (stack && activationParameters && activationParameters['component']) {
             this.figure = <PathFigureComponent>activationParameters['component'];
+
+            // save state
+            const state = stack.getState();
+            this.undo = () => { stack.restore(state); };
         } else {
             throw new Error('Editable component is not specified for edit.');
         }
     }
 
     protected shift(dx: number, dy: number): boolean {
+        if (dx || dy) {
+            this.isChanged = true;
+        }
         return this.figure ? this.figure.shift(dx, dy) : false;
     }
 
     protected exit(board: IChartBoard): void {
+        // add command to history
+        if (this.isChanged && this.undo) {
+            board.push2history(
+                new Command(
+                    () => {
+                        // empty execute
+                    },
+                    this.undo
+                ));
+        }
+
         this.figure = undefined;
+        this.undo = undefined;
+        this.isChanged = false;
         super.exit(board);
+    }
+}
+
+class SettingStore {
+
+    public get color(): string {
+        return this.container.getProperty('color') || Constants.DEFAULT_FORECOLOR;
+    }
+
+    public set color(value: string) {
+        this.container.setProperty('color', value);
+    }
+
+    public get width(): number {
+        return this.container.getProperty('width') || 1;
+    }
+
+    public set width(value: number) {
+        this.container.setProperty('width', value);
+    }
+
+    constructor(
+        private container: StoreContainer
+    ) {
+        // write initial values
+        this.width = this.width;
+        this.color = this.color;
     }
 }

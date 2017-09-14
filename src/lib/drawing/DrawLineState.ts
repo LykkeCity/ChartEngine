@@ -11,7 +11,7 @@ import { FigureEditStateBase } from './FigureEditStateBase';
 import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
-export class LineFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable, IStateful {
+export class LineFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
     private timeRegion: TimeRegionMarker;
@@ -41,7 +41,7 @@ export class LineFigureComponent extends FigureComponent implements IHoverable, 
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
         private yaxis: IValueCoordConverter<number>,
-        private container: StoreContainer
+        container: StoreContainer
         ) {
         super('Trend Line', offset, size, container);
 
@@ -145,14 +145,6 @@ export class LineFigureComponent extends FigureComponent implements IHoverable, 
         this.store.color = value.getValueOrDefault<string>('line.color', this.store.color);
         this.store.width = value.getValueOrDefault<number>('line.width', this.store.width);
     }
-
-    public getState(): string {
-        return this.container.serialize();
-    }
-
-    public restore(state: string): void {
-        this.container.deserialize(state);
-    }
 }
 
 export class DrawLineState extends FigureStateBase {
@@ -201,13 +193,13 @@ export class DrawLineState extends FigureStateBase {
                 )
                 .execute());
 
-            this.board.treeChangedEvt.trigger();
-
             if (figure) {
                 this.figure = figure;
                 this.figure.pointA = { uid: coordX, v: coordY };
                 this.figure.pointB = { uid: coordX, v: coordY };
             }
+
+            this.board.treeChangedEvt.trigger();
         } else if (this.count === 1 && this.figure) {
             this.figure.pointB = { uid: coordX, v: coordY };
         }
@@ -317,5 +309,8 @@ class SettingStore {
     constructor(
         private container: StoreContainer
     ) {
+        // write initial values
+        this.width = this.width;
+        this.color = this.color;
     }
 }

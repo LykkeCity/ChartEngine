@@ -2,7 +2,7 @@
  * Classes for drawing triangle.
  */
 import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, ISelectable, IStateController, NumberRegionMarker, TimeRegionMarker } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
+import { ChartPoint, Command, Constants, IAxis, IChartPoint, IConfigurable, IMouse, ISetting, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, SettingSet, SettingType, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { Uid } from '../model/index';
 import { IRenderLocator } from '../render/index';
@@ -13,7 +13,7 @@ import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
 export class TriangleFigureComponent extends FigureComponent implements IHoverable, IEditable, IConfigurable, ISelectable {
-    private settings = new TriangleSettings();
+    private store: SettingStore;
     private pa: PointFigureComponent;
     private pb: PointFigureComponent;
     private pc: PointFigureComponent;
@@ -54,6 +54,8 @@ export class TriangleFigureComponent extends FigureComponent implements IHoverab
         container: StoreContainer
         ) {
         super('Triangle', offset, size, container);
+
+        this.store = new SettingStore(container);
 
         this.timeRegion = new TimeRegionMarker(this.area.getXArea(), this.offset, this.size, taxis, settings, this.getTimeRange);
         this.addChild(this.timeRegion);
@@ -127,8 +129,8 @@ export class TriangleFigureComponent extends FigureComponent implements IHoverab
         if (a && b) {
             const canvas = this.area.frontCanvas;
 
-            canvas.setStrokeStyle(this.settings.color);
-            canvas.lineWidth = this.settings.width;
+            canvas.setStrokeStyle(this.store.color);
+            canvas.lineWidth = this.store.width;
             canvas.beginPath();
             canvas.moveTo(a.x, a.y);
             canvas.lineTo(b.x, b.y);
@@ -154,12 +156,12 @@ export class TriangleFigureComponent extends FigureComponent implements IHoverab
             settings: [
                 {
                     name: 'color',
-                    value: this.settings.color.toString(),
+                    value: this.store.color.toString(),
                     settingType: SettingType.color,
                     displayName: 'Color'
                 }, {
                     name: 'width',
-                    value: this.settings.width.toString(),
+                    value: this.store.width.toString(),
                     settingType: SettingType.numeric,
                     displayName: 'Width'
                 }
@@ -168,17 +170,9 @@ export class TriangleFigureComponent extends FigureComponent implements IHoverab
     }
 
     public setSettings(value: SettingSet): void {
-        this.settings.color = value.getValueOrDefault<string>('line.color', this.settings.color);
-        this.settings.width = value.getValueOrDefault<number>('line.width', this.settings.width);
-
-        // rerender
-        //this.context.render();
+        this.store.color = value.getValueOrDefault<string>('line.color', this.store.color);
+        this.store.width = value.getValueOrDefault<number>('line.width', this.store.width);
     }
-}
-
-export class TriangleSettings {
-    public color = '#FF0000';
-    public width = 1;
 }
 
 export class DrawTriangleState extends FigureStateBase {
@@ -211,9 +205,30 @@ export class DrawTriangleState extends FigureStateBase {
         const coordY = this.stack.yToValue(point.y - this.board.offset.y - this.stack.offset.y);
 
         if (this.count === 0) {
-            this.figure = <TriangleFigureComponent>this.stack.addFigure(FigureType.triangle);
-            this.figure.pointA = { uid: coordX, v: coordY };
-            this.figure.pointB = { uid: coordX, v: coordY };
+            const stack = this.stack;
+            let state: string;
+            let figure: TriangleFigureComponent|undefined;
+            this.board.push2history(
+                new Command(
+                    () => { // do
+                        state = stack.getState();
+                        figure = <TriangleFigureComponent>stack.addFigure(FigureType.triangle);
+                    },
+                    () => { // undo
+                        if (state) {
+                            stack.restore(state);
+                        }
+                    }
+                )
+                .execute());
+
+            if (figure) {
+                this.figure = figure;
+                this.figure.pointA = { uid: coordX, v: coordY };
+                this.figure.pointB = { uid: coordX, v: coordY };
+            }
+
+            this.board.treeChangedEvt.trigger();
         } else if (this.count === 1 && this.figure) {
             this.figure.pointB = { uid: coordX, v: coordY };
         } else if (this.count === 2 && this.figure) {
@@ -263,23 +278,72 @@ class EditTriangleState extends FigureEditStateBase {
     }
 
     private figure?: TriangleFigureComponent;
+    private undo?: () => void;
+    private isChanged = false;
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
         super.activate(board, mouse, stack, activationParameters);
 
-        if (activationParameters && activationParameters['component']) {
+        if (stack && activationParameters && activationParameters['component']) {
             this.figure = <TriangleFigureComponent>activationParameters['component'];
+
+            // save state
+            const state = stack.getState();
+            this.undo = () => { stack.restore(state); };
         } else {
             throw new Error('Editable component is not specified for edit.');
         }
     }
 
     protected shift(dx: number, dy: number): boolean {
+        if (dx || dy) {
+            this.isChanged = true;
+        }
         return this.figure ? this.figure.shift(dx, dy) : false;
     }
 
     protected exit(board: IChartBoard): void {
+        // add command to history
+        if (this.isChanged && this.undo) {
+            board.push2history(
+                new Command(
+                    () => {
+                        // empty execute
+                    },
+                    this.undo
+                ));
+        }
+
         this.figure = undefined;
+        this.undo = undefined;
+        this.isChanged = false;
         super.exit(board);
+    }
+}
+
+class SettingStore {
+
+    public get color(): string {
+        return this.container.getProperty('color') || Constants.DEFAULT_FORECOLOR;
+    }
+
+    public set color(value: string) {
+        this.container.setProperty('color', value);
+    }
+
+    public get width(): number {
+        return this.container.getProperty('width') || 1;
+    }
+
+    public set width(value: number) {
+        this.container.setProperty('width', value);
+    }
+
+    constructor(
+        private container: StoreContainer
+    ) {
+        // write initial values
+        this.width = this.width;
+        this.color = this.color;
     }
 }

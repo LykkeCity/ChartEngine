@@ -3,7 +3,7 @@
  */
 import { CanvasTextAlign } from '../canvas/index';
 import { FigureComponent, FigureType, IChartBoard, IChartingSettings, IChartStack, IEditable, IHoverable, IStateController } from '../component/index';
-import { ChartPoint, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, StoreContainer, VisualContext } from '../core/index';
+import { ChartPoint, Command, Constants, IAxis, IChartPoint, ICoordsConverter, IMouse, ITimeAxis, ITimeCoordConverter, ITouch, IValueCoordConverter, Mouse, StoreContainer, VisualContext } from '../core/index';
 import { ChartArea } from '../layout/index';
 import { IRenderLocator } from '../render/index';
 import { IHashTable, IPoint, IRect, ISize, Point } from '../shared/index';
@@ -13,7 +13,7 @@ import { FigureStateBase } from './FigureStateBase';
 import { PointFigureComponent } from './PointFigureComponent';
 
 export class TextFigureComponent extends FigureComponent implements IHoverable, IEditable {
-    private settings = new TextSettings();
+    private store: SettingStore;
     private p: PointFigureComponent;
     private rect: IRect|undefined;
 
@@ -35,6 +35,8 @@ export class TextFigureComponent extends FigureComponent implements IHoverable, 
         container: StoreContainer
         ) {
         super('Text', offset, size, container);
+
+        this.store = new SettingStore(container);
 
         this.p = new PointFigureComponent(area, offset, size, settings, taxis, yaxis);
         this.p.visible = false;
@@ -77,8 +79,8 @@ export class TextFigureComponent extends FigureComponent implements IHoverable, 
                 canvas.font = '15pt Arial';
                 canvas.setTextAlign(CanvasTextAlign.Center);
                 canvas.setFillStyle('#FF0000');
-                const metrics = canvas.measureText(this.settings.text);
-                canvas.fillText(this.settings.text, x, y);
+                const metrics = canvas.measureText(this.store.text);
+                canvas.fillText(this.store.text, x, y);
 
                 this.rect = { x: x, y: y, w: metrics.width, h: 15 }; // Height in px is equal to font size in pts
             }
@@ -90,11 +92,6 @@ export class TextFigureComponent extends FigureComponent implements IHoverable, 
     public getEditState(): IStateController {
         return EditTextState.instance;
     }
-}
-
-export class TextSettings {
-    public color = '#FF0000';
-    public text = 'Text';
 }
 
 export class DrawTextState extends FigureStateBase {
@@ -116,12 +113,32 @@ export class DrawTextState extends FigureStateBase {
             return;
         }
 
-        this.figure = <TextFigureComponent>this.stack.addFigure(FigureType.text);
-
         const coordX = this.stack.xToValue(point.x - this.board.offset.x - this.stack.offset.x);
         const coordY = this.stack.yToValue(point.y - this.board.offset.y - this.stack.offset.y);
 
-        this.figure.point = { uid: coordX, v: coordY };
+        const stack = this.stack;
+        let state: string;
+        let figure: TextFigureComponent|undefined;
+        this.board.push2history(
+            new Command(
+                () => { // do
+                    state = stack.getState();
+                    figure = <TextFigureComponent>stack.addFigure(FigureType.text);
+                },
+                () => { // undo
+                    if (state) {
+                        stack.restore(state);
+                    }
+                }
+            )
+            .execute());
+
+        if (figure) {
+            this.figure = figure;
+            this.figure.point = { uid: coordX, v: coordY };
+        }
+
+        this.board.treeChangedEvt.trigger();
 
         this.exit();
     }
@@ -151,23 +168,72 @@ class EditTextState extends FigureEditStateBase {
     }
 
     private figure?: TextFigureComponent;
+    private undo?: () => void;
+    private isChanged = false;
 
     public activate(board: IChartBoard, mouse: IMouse, stack?: IChartStack, activationParameters?: IHashTable<any>): void {
         super.activate(board, mouse, stack, activationParameters);
 
-        if (activationParameters && activationParameters['component']) {
+        if (stack && activationParameters && activationParameters['component']) {
             this.figure = <TextFigureComponent>activationParameters['component'];
+
+            // save state
+            const state = stack.getState();
+            this.undo = () => { stack.restore(state); };
         } else {
             throw new Error('Editable component is not specified for edit.');
         }
     }
 
     protected shift(dx: number, dy: number): boolean {
+        if (dx || dy) {
+            this.isChanged = true;
+        }
         return this.figure ? this.figure.shift(dx, dy) : false;
     }
 
     protected exit(board: IChartBoard): void {
+        // add command to history
+        if (this.isChanged && this.undo) {
+            board.push2history(
+                new Command(
+                    () => {
+                        // empty execute
+                    },
+                    this.undo
+                ));
+        }
+
         this.figure = undefined;
+        this.undo = undefined;
+        this.isChanged = false;
         super.exit(board);
+    }
+}
+
+class SettingStore {
+
+    public get color(): string {
+        return this.container.getProperty('color') || Constants.DEFAULT_FORECOLOR;
+    }
+
+    public set color(value: string) {
+        this.container.setProperty('color', value);
+    }
+
+    public get text(): string {
+        return this.container.getProperty('text') || '';
+    }
+
+    public set text(value: string) {
+        this.container.setProperty('text', value);
+    }
+
+    constructor(
+        private container: StoreContainer
+    ) {
+        // write initial values
+        this.text = this.text;
+        this.color = this.color;
     }
 }

@@ -68,7 +68,7 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
         settings: IChartingSettings,
         private taxis: ITimeCoordConverter,
         private yaxis: IValueCoordConverter<number>,
-        private container?: StoreContainer,
+        container?: StoreContainer,
         pixelMode: boolean = false) {
         super('Point', offset, size, container || new StoreContainer());
 

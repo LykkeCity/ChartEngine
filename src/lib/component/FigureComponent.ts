@@ -1,17 +1,21 @@
 /**
  * Class FigureComponent
  */
-import { StoreContainer, VisualComponent } from '../core/index';
+import { IStateful, StoreContainer, VisualComponent } from '../core/index';
 import { IPoint, ISize, Point } from '../shared/index';
 import { UidUtils } from '../utils/index';
 import { IStateController } from './Interfaces';
 
-export abstract class FigureComponent extends VisualComponent {
+export abstract class FigureComponent extends VisualComponent implements IStateful {
 
     protected isHovered = false;
     protected isSelected = false;
 
-    public constructor(name: string, offset: IPoint, size: ISize, container: StoreContainer) {
+    public constructor(
+        name: string,
+        offset: IPoint,
+        size: ISize,
+        protected container: StoreContainer) {
         super(offset, size, (container && container.getProperty('uid')) ? container.getProperty('uid') : UidUtils.NEWUID(), name);
 
         container.setProperty('uid', this._uid);
@@ -39,5 +43,17 @@ export abstract class FigureComponent extends VisualComponent {
                 vc.setSelected(selected);
             }
         }
+    }
+
+    /**
+     * "IStateful" implementation
+     */
+
+    public getState(): string {
+        return this.container.serialize();
+    }
+
+    public restore(state: string): void {
+        this.container.deserialize(state);
     }
 }
