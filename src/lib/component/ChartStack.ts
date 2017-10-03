@@ -278,7 +278,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
         const h = this.area.size.height;
 
         // Instead of default resize using custom resizing
-        this._size = { width: w, height: h};
+        this._size = { width: w, height: h };
 
         const axisSize = this.getAxisSize(this._size);
         (<any>this.yAxis).length = axisSize.height;

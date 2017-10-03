@@ -86,7 +86,32 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         this.w = value;
     }
 
-	//ondatachanged - не нужен. не надо менять frameStart и count. Но нужно dispose добавить.
+    /**
+     * Determines if specified uid is located inside visible range
+     * @param uid
+     */
+    public isVisible(uid: Uid): boolean {
+        if (this.frameStart.compare(uid) > 0) {
+            return false;
+        }
+
+        const frameEnd = this.shiftBy(this.tempIter, this.N, this.frameStart);
+        return frameEnd.compare(uid) >= 0;
+    }
+
+    /**
+     * Moves visible range so that the specified uid gets into that range.
+     * @param uid
+     */
+    public moveTo(uid: Uid): void {
+        if (this.frameStart.compare(uid) > 0) {
+            if (this.tempIter && this.tempIter.goWhile(item => item.uid.compare(uid) <= 0)) {
+                this.frameStart = this.tempIter.current.uid;
+            }
+        } else if (this.frameStart.compare(uid) < 0) {
+            this.frameStart = this.shiftBy(this.tempIter, -this.N, uid);
+        }
+    }
 
     public setDataSource(dataSource: IDataSource<Candlestick>) {
         // frameStart and count remain the same.
@@ -164,7 +189,7 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
 
     /**
      * Should search most nearest Uid to the specified Uid, as interval can be changed
-     * @param uid 
+     * @param uid
      */
     public toX(uid: Uid): number | undefined {
 
@@ -179,9 +204,7 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
     }
 
     public toValue(x: number): Uid | undefined {
-        const wi = this.w / this.N;
-        const index = Math.floor((x - this.g) / wi);
-
+        const index = this.x2index(x);
         return this.shiftBy(this.tempIter, index, this.frameStart);
     }
 
@@ -191,7 +214,6 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
             return;
         }
 
-        //let gnext = this.g + (direction > 0 ? 1 : -1);
         let gnext = this.g + direction;
 
         const wi = this.w / this.N;
@@ -263,6 +285,11 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         return this.shiftBy(this.tempIter, amount, uid);
     }
 
+    /**
+     * Determines distance (amount of intervals) b/w specified Uids.
+     * @param uidFrom 
+     * @param uidTo 
+     */
     private getDistance(uidFrom: Uid, uidTo: Uid): number|undefined {
         let counter = 0;
 
@@ -301,7 +328,7 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
     }
 
     /**
-     * Basically searches Uid at "shift" from current. Also adds fake values if needed
+     * Searches Uid at "shift" distance from current. Adds fake values if needed.
      * @param iterator 
      * @param shift Can be positive and negative
      * @param curPosition 
@@ -325,15 +352,12 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
                 : iterator.goWhile(item => item.uid.compare(cur) < 0);
         }
 
-        //let remains: number = shift; // - counter;
-
         if (iterator && found) {
 
             // Define distance b/w frame start and first found item
             const diff = DateUtils.diffIntervals(cur.t, iterator.current.uid.t, this.interval); // diff is positive
 
-            if ((shift > 0 && diff > shift) || (shift < 0 && -diff < shift)
-            ) {
+            if ((shift > 0 && diff > shift) || (shift < 0 && -diff < shift)) {
                 cur.t = DateUtils.addInterval(cur.t, this._interval, shift);
                 cur.n = 0;
                 return cur;
@@ -382,8 +406,21 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         return { f: f, uid: newPosition };
     }
 
+    /**
+     * Converts index of interval to x coordinate
+     * @param index Interval's index
+     */
     private index2x(index: number): number {
         const wi = this.w / this.N;
         return (wi * index) + (wi / 2) + this.g;
+    }
+
+    /**
+     * Converts x coordinate to interval's index
+     * @param x Coordinate
+     */
+    private x2index(x: number): number {
+        const wi = this.w / this.N;
+        return Math.floor((x - this.g) / wi);
     }
 }

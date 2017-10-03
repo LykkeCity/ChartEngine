@@ -49,6 +49,9 @@ export class ChartViewModel {
     public chartUid = ko.observable(Math.random());
     public undoDisabled = ko.observable(true);
 
+    private readonly autoupdatePeriod = 10; // In seconds
+    private autoupdateTimer?: number;
+
     constructor(params: any, node: HTMLElement, assets: Asset[], dataService: DataService) {
         this.assets(assets);
         this.node = node;
@@ -86,6 +89,9 @@ export class ChartViewModel {
         // Init popup vm
         this.popupVM = new PopupViewModel($('.popupmenu', this.node)[0], this.board);
         this.popupVM.executedEvt.on(this.popup_executed);
+
+        // Set up auto update timer
+        this.autoupdateTimer = setTimeout(this.autoUpdate, this.autoupdatePeriod * 1000);
     }
 
     public afterLoad() {
@@ -121,18 +127,12 @@ export class ChartViewModel {
     }
 
     public init(w: number, h: number, visible: boolean): boolean {
-        console.log('cvm: initializing...');
         this.width(w);
         this.height(h);
         this.visible(visible);
 
         const initialized = this.resetChart();
         this.treeVM.update();
-        if (initialized) {
-            console.log('Initialized');
-        } else {
-            console.log('Not initialized');
-        }
         return initialized;
     }
 
@@ -294,6 +294,26 @@ export class ChartViewModel {
 
     private updateView(): void {
         this.undoDisabled(this.board ? this.board.history.length === 0 : true);
+    }
+
+    /**
+     * Timer event handler. Updates chart.
+     */
+    private autoUpdate = () => {
+        console.log('auto update');
+
+        const interval = str2interval(this.selectedInterval());
+        const end = new Date();
+        const start = DateUtils.addInterval(end, interval, -10);
+
+        this.dataService
+            .getCandles(this.selectedAsset(), start, end, interval)
+            .then(data => { this.dataSource.merge(data); });
+
+        this.board.render();
+
+        // schedule next autoupdate
+        this.autoupdateTimer = setTimeout(this.autoUpdate, this.autoupdatePeriod * 1000);
     }
 }
 

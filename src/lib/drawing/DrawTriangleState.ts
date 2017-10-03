@@ -138,7 +138,6 @@ export class TriangleFigureComponent extends FigureComponent implements IHoverab
                 canvas.lineTo(c.x, c.y);
                 canvas.lineTo(a.x, a.y);
             }
-            //canvas.closePath();
             canvas.stroke();
         }
 

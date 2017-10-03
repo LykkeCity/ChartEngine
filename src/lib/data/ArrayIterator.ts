@@ -24,6 +24,7 @@ export class ArrayIterator<T> implements IDataIterator<T> {
 
     /**
      * Starts from the beginning of data.
+     * If item is found returns true, if not - false.
      */
     public goTo(predicate: (item: T) => boolean): boolean {
         this.reset();
@@ -37,8 +38,8 @@ export class ArrayIterator<T> implements IDataIterator<T> {
     }
 
     /**
-     * Moves iterator while condition is met. Stays on the last element that satisfy condition.
-     * Starts from beginning.
+     * Moves iterator while condition is met. Stays on the last element that satisfies condition.
+     * Starts from the beginning.
      * @param predicate 
      */
     public goWhile(predicate: (item: T) => boolean): boolean {

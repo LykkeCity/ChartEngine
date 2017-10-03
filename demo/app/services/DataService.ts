@@ -73,10 +73,20 @@ export class DataService {
     public getCandle(asset: string, date: Date, interval: lychart.core.TimeInterval): Promise<Candlestick> {
         return new Promise<Candlestick>(resolve => {
             this.readData(asset, date, DateUtils.addInterval(date, interval), interval)
-            .then((response: any) => { return DataService.resolveData(response); })
-            .then((resolved: lychart.data.IResponse<lychart.model.Candlestick>) => {
-                resolve(resolved.data.length > 0 ? resolved.data[0] : undefined);
-            });
+                .then((response: any) => { return DataService.resolveData(response); })
+                .then((resolved: lychart.data.IResponse<lychart.model.Candlestick>) => {
+                    resolve(resolved.data.length > 0 ? resolved.data[0] : undefined);
+                });
+        });
+    }
+
+    public getCandles(asset: string, dateFrom: Date, dateTo: Date, interval: lychart.core.TimeInterval): Promise<Candlestick[]> {
+        return new Promise<Candlestick[]>(resolve => {
+            this.readData(asset, dateFrom, dateTo, interval)
+                .then((response: any) => { return DataService.resolveData(response); })
+                .then((resolved: lychart.data.IResponse<lychart.model.Candlestick>) => {
+                    resolve(resolved.data);
+                });
         });
     }
 

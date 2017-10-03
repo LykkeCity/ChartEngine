@@ -73,7 +73,7 @@ export class ChartController implements lychart.core.IDataService {
         this.tree.update();
 
         // Set up auto update timer
-        // this.autoupdateTimer = setTimeout(this.autoUpdate, this.autoupdatePeriod * 1000);
+        this.autoupdateTimer = setTimeout(this.autoUpdate, this.autoupdatePeriod * 1000);
     }
 
     private changeIndicator = (uid: string, indicatorType: string, index: number, state: boolean) => {
@@ -160,6 +160,7 @@ export class ChartController implements lychart.core.IDataService {
      * Timer event handler. Updates chart.
      */
     private autoUpdate = () => {
+
         // Updating last candle (time period is one interval)
         const end = new Date();
         const start = new Date(end.getTime() - this.selectedInterval);

@@ -161,11 +161,10 @@ export class HttpDataSource extends DataSource {
             // Update data
             //
             const lastBefore = this.dataStorage.last !== undefined ? this.dataStorage.last.uid : undefined;
-            this.merge(response.data);
+            this.dataStorage.merge(response.data);
             const lastAfter = this.dataStorage.last !== undefined ? this.dataStorage.last.uid : undefined;
 
-            // TODO: Remove conversion
-            const uidFirst = response.data[0].uid; // first (new Date(response.startDateTime));
+            const uidFirst = response.data[0].uid;
             const uidLast = response.data[response.data.length - 1].uid; // last
             const count = response.data.length;
             const arg = new DataChangedArgument(uidFirst, uidLast, count);
@@ -227,7 +226,22 @@ export class HttpDataSource extends DataSource {
     }
 
     public merge(data: Candlestick[]) {
-        this.dataStorage.merge(data);
+
+        if (data && data.length > 0) {
+            const lastBefore = this.dataStorage.last !== undefined ? this.dataStorage.last.uid : undefined;
+            this.dataStorage.merge(data);
+            const lastAfter = this.dataStorage.last !== undefined ? this.dataStorage.last.uid : undefined;
+
+            const uidFirst = data[0].uid;
+            const uidLast = data[data.length - 1].uid; // last
+            const count = data.length;
+            const arg = new DataChangedArgument(uidFirst, uidLast, count);
+            arg.lastUidBefore = lastBefore;
+            arg.lastUidAfter = lastAfter;
+
+            // Notify subscribers:
+            this.dateChangedEvent.trigger(arg);
+        }
     }
 
     protected timeIntervalToString(interval: TimeInterval): string {
@@ -321,7 +335,7 @@ export class HttpRequestManager {
         for (const req of filteredRanges) {
 
             const queuedPromise = new Promise((resolved, rejected) => {
-                this.queue.push({ resolve: resolved, range: req});
+                this.queue.push({ resolve: resolved, range: req });
             });
 
             const promise = new Promise((resolved, rejected) => {
@@ -333,7 +347,7 @@ export class HttpRequestManager {
 
                     request
                     .then(this.resolver)
-                    .then((resp: IResponse<Candlestick>) => {  self.onSucceeded(resp); resolved(resp); })
+                    .then((resp: IResponse<Candlestick>) => { self.onSucceeded(resp); resolved(resp); })
                     .fail((jqXhr: JQueryXHR, textStatus: string, errorThrown: string) => { self.onFailed(jqXhr, textStatus, errorThrown); rejected(errorThrown); });
                 });
             });
@@ -370,7 +384,7 @@ export class HttpRequestManager {
 
     private onSucceeded = (response: IResponse<Candlestick>) => {
 		// If no errors append range
-        this.total.append({start: response.dateFrom, end: response.dateTo});
+        this.total.append({ start: response.dateFrom, end: response.dateTo });
     }
 
     private onFailed = (jqXhr: JQueryXHR, textStatus: string, errorThrown: string) => {
@@ -451,7 +465,7 @@ export class CompositeRange {
                     // Remove Re, go to insert E, stay on current point
 
                     prev.next = cur.next;
-                    if (cur.next) { cur.next.prev = prev;  }
+                    if (cur.next) { cur.next.prev = prev; }
                     cur = prev;
 
                     handledS = true;
@@ -485,7 +499,7 @@ export class CompositeRange {
                     // Remove Rs and finish
 
                     prev.next = cur.next;
-                    if (cur.next) { cur.next.prev = prev;  }
+                    if (cur.next) { cur.next.prev = prev; }
 
                     handledE = true;
                     break;
@@ -493,7 +507,7 @@ export class CompositeRange {
                     // Remove Rs and continue
 
                     prev.next = cur.next;
-                    if (cur.next) { cur.next.prev = prev;  }
+                    if (cur.next) { cur.next.prev = prev; }
                     cur = prev;
                 }
             } else {
@@ -506,13 +520,8 @@ export class CompositeRange {
                     // Remove Re and continue
 
                     prev.next = cur.next;
-                    if (cur.next) { cur.next.prev = prev;  }
+                    if (cur.next) { cur.next.prev = prev; }
                     cur = prev;
-
-                    // if (cur.next === undefined) {
-                    //     insert E;
-                    // }
-                    // handledE = false;
                 }
             }
         }

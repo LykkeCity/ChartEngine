@@ -546,15 +546,12 @@ export class ChartBoard extends VisualComponent implements IChartBoard, IDrawing
     }
 
     private onDataChanged = (arg: DataChangedArgument) => {
+        if (arg.lastUidBefore && arg.lastUidAfter
+            && this.timeAxis.isVisible(arg.lastUidBefore)
+            && !this.timeAxis.isVisible(arg.lastUidAfter)) {
 
-        // Check if need to automove time range
-        // if (arg.lastDateBefore && arg.lastDateAfter
-        //     && this.frame.contains(arg.lastDateBefore)
-        //     && !this.frame.contains(arg.lastDateAfter)) {
-
-        //     //this.frame.moveTo(arg.lastDateAfter);
-        // }
-        //this.frame.automove(arg);
+            this.timeAxis.moveTo(arg.lastUidAfter);
+        }
 
         this.render();
     }

@@ -49,7 +49,7 @@ export function isEditable(obj: any): obj is IEditable {
 
 export interface IChartBoard {
     offset: IPoint;
-    changeState(state: string | IStateController, activationParameters?: IHashTable<any>): void;
+    changeState(state: string|IStateController, activationParameters?: IHashTable<any>): void;
     forEach(delegate: {(component: VisualComponent, aggregatedOffset: IPoint): void }, childrenFirst?: boolean, directOrder?: boolean): void;
     moveX(shift: number): void;
     setCursor(style: string): void;
@@ -66,7 +66,7 @@ export interface IChartStack extends ICoordsConverter, IStateful {
     offset: IPoint;
     charts: IChart[];
     figures: FigureComponent[];
-    addFigure(figureType: string) : FigureComponent;
+    addFigure(figureType: string): FigureComponent;
 }
 
 export interface IChart {

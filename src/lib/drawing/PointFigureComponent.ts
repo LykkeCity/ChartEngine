@@ -187,6 +187,7 @@ export class PointFigureComponent extends FigureComponent implements IHoverable,
     public getCreateState(): IStateController {
         throw new Error('Operation is not supported');
     }
+
     public getEditState(): IStateController {
         return EditPointState.instance;
     }

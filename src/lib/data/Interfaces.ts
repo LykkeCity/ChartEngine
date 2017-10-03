@@ -66,11 +66,17 @@ export interface IDataIterator<T> {
 
     /**
      * Starts search from the beginning of data.
+     * If item is found returns true, if not - false.
      */
     goTo(predicate: (item: T) => boolean): boolean;
 
     goToLast(): boolean;
 
+    /**
+     * Moves iterator while condition is met. Stays on the last element that satisfies condition.
+     * Starts from the beginning.
+     * @param predicate 
+     */
     goWhile(predicate: (item: T) => boolean): boolean;
 
     /**
