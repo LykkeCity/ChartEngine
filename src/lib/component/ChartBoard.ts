@@ -601,11 +601,14 @@ export class ChartBoard extends VisualComponent implements IChartBoard, IDrawing
     }
 
     private onMouseMove = (event: any) => {
+
         // handle chrome behavior: click = down + move + up
         if (this.ignoreNextMove) {
             this.ignoreNextMove = false;
             return;
         }
+
+        //console.log('mouse move');
 
         [this.mouse.pos.x, this.mouse.pos.y] = [event.pageX, event.pageY];
 
@@ -634,6 +637,7 @@ export class ChartBoard extends VisualComponent implements IChartBoard, IDrawing
     }
 
     private onMouseUp = (event: any) => {
+        //console.log('mouse up');
         this.ignoreNextMove = true;
         this.mouse.isDown = false;
         this.state.onMouseUp(this, this.mouse);
@@ -641,6 +645,7 @@ export class ChartBoard extends VisualComponent implements IChartBoard, IDrawing
     }
 
     private onMouseDown = (event: any) => {
+        //console.log('mouse down');
         this.mouse.isDown = true;
         const hitStack = this.getHitStack(this.mouse.pos);
         this.state.onMouseDown(this, this.mouse, hitStack);
@@ -753,7 +758,7 @@ export class ChartBoard extends VisualComponent implements IChartBoard, IDrawing
         this.state.deactivate(this, this.mouse);
         this.state = stateInstance;
         this.state.activate(this, this.mouse, hitStack, activationParameters);
-        this.ignoreNextMove = false;
+        //this.ignoreNextMove = false;
     }
 
     /**

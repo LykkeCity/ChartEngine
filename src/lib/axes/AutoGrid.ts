@@ -169,7 +169,6 @@ export class TimeAutoGrid implements Iterator<TimeBar> {
         return selectedScale;
     }
 
-
     public get current(): TimeBar {
         return this.time.current;
     }

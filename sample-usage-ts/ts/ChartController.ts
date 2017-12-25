@@ -183,7 +183,7 @@ export class ChartController implements lychart.core.IDataService {
     }
 
     private getSelectedTimeInterval(): lychart.core.TimeInterval {
-        const timeinterval: keyof typeof lychart.core.TimeInterval  = $('.timeinterval option:selected', this.container).val();
+        const timeinterval: keyof typeof lychart.core.TimeInterval = $('.timeinterval option:selected', this.container).val();
         return lychart.core.TimeInterval[timeinterval];
     }
 

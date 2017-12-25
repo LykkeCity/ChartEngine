@@ -562,7 +562,7 @@ export class CompositeRange {
         let mode = true; // start, end
 
         let S = range.start.getTime();
-        let E = range.end.getTime();
+        const E = range.end.getTime();
 
         let prev = this.start;
         let cur = this.start;

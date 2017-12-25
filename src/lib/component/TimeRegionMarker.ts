@@ -22,6 +22,7 @@ export class TimeRegionMarker extends VisualComponent {
         this.taxis = taxis;
         this.settings = settings;
         this.getter = getter;
+        this.visible = false;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {

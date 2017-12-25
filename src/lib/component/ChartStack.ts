@@ -139,6 +139,7 @@ export class ChartStack extends VisualComponent implements IChartStack, ICoordsC
                                    this.tAxis,
                                    new Point(0, 0),
                                    this.size,
+                                   this,
                                    dataSource, this.yAxis,
                                    qtip);
         this._charts.push(newChart);

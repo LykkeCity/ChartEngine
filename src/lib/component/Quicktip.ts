@@ -10,12 +10,13 @@ export class QuicktipBuilder implements IQuicktipBuilder {
 
     constructor(container: HTMLElement) {
         this.container = container;
+        this.container.classList.add('cb-quicktips');
     }
 
     public addQuicktip(uid: string): IQuicktip {
 
         const div = document.createElement('div');
-        //div.style.setProperty('data-uid', 'uid');
+        div.classList.add('cb-quicktip');
         this.container.appendChild(div);
 
         const qt = new Quicktip(div);
@@ -45,8 +46,7 @@ export class Quicktip implements IQuicktip {
     public addTextBlock(uid: string, text: string): void {
         const div = document.createElement('div');
         div.setAttribute('data-uid', uid);
-        div.style.setProperty('display', 'inline');
-        div.style.setProperty('margin-right', '5px');
+        div.classList.add('cb-quicktip-block');
         div.innerText = text;
         this._container.appendChild(div);
     }

@@ -41,7 +41,7 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
      * Width of the frame in pixels
      */
     private w: number;
-    private g: number = 0;
+    private preciseShift: number = 0;
     private _interval: TimeInterval;
 
     constructor(interval: TimeInterval, initialDate: Date, N: number, width: number) {
@@ -141,6 +141,10 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         }
     }
 
+    public get count(): number {
+        return this.N;
+    }
+
     public get current(): TimeBar {
         if (this.iteratorPointer === undefined) {
             throw new Error('Iterator is not initialized.');
@@ -148,9 +152,7 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         return { uid: this.iteratorPointer, x: this.index2x(this.iteratorCounter) };
     }
 
-    public get count(): number {
-        return this.N;
-    }
+    private found: boolean;
 
     public reset(): void {
         // go to frameStart
@@ -159,22 +161,17 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         this.found = false;
     }
 
-    private found: boolean;
-
     public moveNext(): boolean {
         if (this.iteratorPointer === undefined) {
             this.iteratorPointer = new Uid(this.frameStart.t, this.frameStart.n);
             this.iteratorCounter = 0;
 
-            const time = this.iteratorPointer.t.getTime();
-            const n = this.iteratorPointer.n;
-            if (this.iter) {
-                this.found = this.iter.goTo(item => { return item.uid.t.getTime() === time && item.uid.n === n; });
-            } else {
-                this.found = false;
-            }
+            this.found = this.iter
+                        ? this.iter.goTo(item => { return item.uid.compare(<Uid>this.iteratorPointer) === 0; })
+                        : false;
+
             return true;
-        } else if (this.iteratorCounter < (this.N - 1)) {
+        } else if (this.iteratorCounter < (this.N)) {
 
             const res = this.shiftNext(this.iter, this.found, this.iteratorPointer);
             this.found = res.f;
@@ -214,27 +211,24 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
             return;
         }
 
-        let gnext = this.g + direction;
+        const targetShift = this.preciseShift + direction;
 
-        const wi = this.w / this.N;
-        const count = Math.floor(gnext / wi);
-        gnext = gnext - (count * wi);
+        const barWidth = this.w / this.N;
+        const barCount = Math.floor(targetShift / barWidth);
 
-        if (count !== 0) {
-            direction = count;
-            if (this.dataSource) {
-                this.load(this.frameStart, direction > 0 ? (direction + 2 * this.N) : (direction - this.N));
-            }
+        if (barCount !== 0) {
+            // load additional data if needed
+            if (this.dataSource) { this.load(this.frameStart, barCount > 0 ? (barCount + 2 * this.N) : (barCount - this.N)); }
 
-            this.frameStart = this.shiftBy(this.tempIter, -direction, this.frameStart);
+            this.frameStart = this.shiftBy(this.tempIter, -barCount, this.frameStart);
         }
 
-        this.g = gnext;
+        this.preciseShift = targetShift - (barCount * barWidth);
     }
 
     public scale(direction: number) {
 
-        this.g = 0;
+        this.preciseShift = 0;
 
         let newN = this.N;
         if (direction > 0) {                // zooming in
@@ -412,7 +406,7 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
      */
     private index2x(index: number): number {
         const wi = this.w / this.N;
-        return (wi * index) + (wi / 2) + this.g;
+        return (wi * index) + (wi / 2) + this.preciseShift - wi;
     }
 
     /**
@@ -421,6 +415,6 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
      */
     private x2index(x: number): number {
         const wi = this.w / this.N;
-        return Math.floor((x - this.g) / wi);
+        return Math.floor((x - this.preciseShift + wi) / wi);
     }
 }

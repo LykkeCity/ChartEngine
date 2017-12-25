@@ -21,6 +21,7 @@ export class NumberRegionMarker extends VisualComponent {
         this.yaxis = yaxis;
         this.settings = settings;
         this.getter = getter;
+        this.visible = false;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {

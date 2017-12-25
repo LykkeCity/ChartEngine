@@ -21,12 +21,13 @@ export class NumberMarker extends VisualComponent {
         this.yaxis = yaxis;
         this.settings = settings;
         this.getter = getter;
+        this.visible = false;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
-        if (!context.renderFront || !this.visible)  {
+        if (!context.renderFront || !this.visible) {
             // only render on front
-            return ;
+            return;
         }
 
         const value = this.getter(context, this.size);

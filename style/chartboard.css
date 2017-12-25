@@ -1,0 +1,9 @@
+.cb-quicktip {
+    text-shadow: 0 0;
+    color: #555555;
+}
+
+.cb-quicktip-block {
+    display: inline;
+    margin-right: 5px;
+}

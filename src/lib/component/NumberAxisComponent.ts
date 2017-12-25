@@ -27,8 +27,9 @@ export class NumberAxisComponent extends VisualComponent {
         this.area = chartArea.getYArea();
         this.area.sizeChanged.on(this.onresize);
 
-        const priceMarker = new NumberMarker(this.area, {x: 0, y: 0}, size, numberAxis, settings, this.getMarkPos);
-        this.addChild(priceMarker);
+        const marker = new NumberMarker(this.area, {x: 0, y: 0}, size, numberAxis, settings, this.getMarkPos);
+        marker.visible = true;
+        this.addChild(marker);
     }
 
     public handleMouse(relX: number, relY: number) {

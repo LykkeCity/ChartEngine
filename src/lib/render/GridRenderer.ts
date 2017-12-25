@@ -13,7 +13,7 @@ export class GridRenderer {
     public render(canvas: ICanvas, frame: IRect, xAxis: ITimeAxis, yAxis: IAxis<number>): void {
 
         canvas.beginPath();
-        canvas.setStrokeStyle('#EAEAEA');
+        canvas.setStrokeStyle('#e6e6e6');
         canvas.lineWidth = 1;
 
         // Vertical lines

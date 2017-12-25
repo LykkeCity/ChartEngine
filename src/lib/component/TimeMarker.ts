@@ -18,12 +18,13 @@ export class TimeMarker extends VisualComponent {
         this.area = area;
         this.taxis = taxis;
         this.getter = getter;
+        this.visible = false;
     }
 
     public render(context: VisualContext, renderLocator: IRenderLocator) {
-        if (!context.renderFront || !this.visible)  {
+        if (!context.renderFront || !this.visible) {
             // only render on front
-            return ;
+            return;
         }
 
         const uid = this.getter(context, this.size);

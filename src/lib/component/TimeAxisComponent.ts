@@ -28,6 +28,7 @@ export class TimeAxisComponent extends VisualComponent {
         this._size = this.area.size;
 
         this.marker = new TimeMarker(this.area, this.offset, this.size, timeAxis, this.getMarkPos);
+        this.marker.visible = true;
         this.addChild(this.marker);
     }
 

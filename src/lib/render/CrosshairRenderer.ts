@@ -9,7 +9,7 @@ export class CrosshairRenderer {
 
         // Draw crosshair
         //
-        canvas.setStrokeStyle('black');
+        canvas.setStrokeStyle('#989898');
         const curDash = canvas.getLineDash();
         canvas.setLineDash([5, 5]);
         canvas.lineWidth = 1;

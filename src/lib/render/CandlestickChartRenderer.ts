@@ -4,7 +4,7 @@
  * @classdesc Renders specified data in a form of candlestick chart.
  */
 import { CanvasTextBaseLine, ICanvas } from '../canvas/index';
-import { IAxis, ITimeAxis, SettingSet, SettingType } from '../core/index';
+import { Constants, IAxis, ITimeAxis, SettingSet, SettingType } from '../core/index';
 import { IDataIterator } from '../data/index';
 import { Candlestick } from '../model/index';
 import { IPoint, IRect } from '../shared/index';
@@ -40,9 +40,11 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         canvas.lineTo(frame.x + frame.w - 1, frame.y);
         canvas.stroke();
 
-        const colorDown = this.settings.colorDown;
         const colorUp = this.settings.colorUp;
-        const colorBorder = this.settings.colorBorder;
+        const colorDown = this.settings.colorDown;
+        const colorUpBorder = this.settings.colorUpBorder;
+        const colorDownBorder = this.settings.colorDownBorder;
+        const colorShadow = this.settings.colorShadow;
 
         const candleW = this.calculateBodyWidth(timeAxis, frame.w);
 
@@ -53,7 +55,7 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         //
         if (candleW > 2) {
             canvas.beginPath();
-            canvas.setStrokeStyle(colorBorder);
+            canvas.setStrokeStyle(colorShadow);
             RenderUtils.iterate(timeAxis, dataIterator, (candle, x) => {
                 this.renderShadows(canvas, timeAxis, yAxis, candle, frame, candleW, x);
             });
@@ -61,12 +63,14 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
 
             // up bodies
             canvas.setFillStyle(colorUp);
+            canvas.setStrokeStyle(colorUpBorder);
             RenderUtils.iterate(timeAxis, dataIterator, (candle, x) => {
                 this.renderBody(canvas, timeAxis, yAxis, candle, frame, candleW, x, true);
             });
 
             // down bodies
             canvas.setFillStyle(colorDown);
+            canvas.setStrokeStyle(colorDownBorder);
             RenderUtils.iterate(timeAxis, dataIterator, (candle, x) => {
                 this.renderBody(canvas, timeAxis, yAxis, candle, frame, candleW, x, false);
             });
@@ -155,6 +159,7 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
 
         if ((up && candle.c > candle.o) || (!up && candle.c <= candle.o)) {
             canvas.fillRect(body.x, body.y, body.w, body.h);
+            canvas.strokeRect(body.x, body.y, body.w, body.h);
         }
     }
 
@@ -217,11 +222,18 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
             value: this.settings.colorDown.toString()
         }));
 
-        settings.setSetting('colorBorder', new SettingSet({
-            name: 'colorBorder',
-            displayName: 'Border color',
+        settings.setSetting('colorUpBorder', new SettingSet({
+            name: 'colorUpBorder',
+            displayName: 'Border rising color',
             settingType: SettingType.color,
-            value: this.settings.colorBorder.toString()
+            value: this.settings.colorUpBorder.toString()
+        }));
+
+        settings.setSetting('colorDownBorder', new SettingSet({
+            name: 'colorDownBorder',
+            displayName: 'Border falling color',
+            settingType: SettingType.color,
+            value: this.settings.colorDownBorder.toString()
         }));
 
         return settings;
@@ -234,13 +246,18 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
         const colorDown = value.getSetting('visual.colorDown');
         this.settings.colorDown = (colorDown && colorDown.value) ? colorDown.value : this.settings.colorDown;
 
-        const colorBorder = value.getSetting('visual.colorBorder');
-        this.settings.colorBorder = (colorBorder && colorBorder.value) ? colorBorder.value : this.settings.colorBorder;
+        const colorUpBorder = value.getSetting('visual.colorUpBorder');
+        this.settings.colorUpBorder = (colorUpBorder && colorUpBorder.value) ? colorUpBorder.value : this.settings.colorUpBorder;
+
+        const colorDownBorder = value.getSetting('visual.colorDownBorder');
+        this.settings.colorDownBorder = (colorDownBorder && colorDownBorder.value) ? colorDownBorder.value : this.settings.colorDownBorder;
     }
 }
 
 class CandleRenderSettings {
-    public colorUp =  '#59E459';
-    public colorDown = '#F03A3D';
-    public colorBorder = '#333333';
+    public colorUp = Constants.COLOR.UP;
+    public colorDown = Constants.COLOR.DOWN;
+    public colorUpBorder = Constants.COLOR.BORDERUP;
+    public colorDownBorder = Constants.COLOR.BORDERDOWN;
+    public colorShadow = Constants.COLOR.SHADOW;
 }

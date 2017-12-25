@@ -1,6 +1,17 @@
 /**
  * Core constants.
  */
+
+export class Colors {
+    public readonly UP = '#56A05F';
+    public readonly DOWN = '#D3393B';
+    public readonly BORDERUP = '#225437';
+    public readonly BORDERDOWN = '#5B1A13';
+    public readonly SHADOW = '#737375';
+
+    public readonly FORE = '#FF0000';
+}
+
 export class Constants {
 
     private static _fiboPercantage: ReadonlyArray<number> = [
@@ -24,4 +35,6 @@ export class Constants {
     }
 
     public static readonly DEFAULT_FORECOLOR = '#FF0000';
+
+    public static readonly COLOR = new Colors();
 }

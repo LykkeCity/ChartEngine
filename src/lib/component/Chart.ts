@@ -8,11 +8,13 @@ import { Candlestick, Uid } from '../model/index';
 import { IChartRender, IRenderLocator, RenderLocator } from '../render/index';
 import { IPoint, IRange, ISize, Point } from '../shared/index';
 import { ChartPopup } from './ChartPopup';
-import { IChart, IHoverable } from './Interfaces';
+import { IChart, IChartingSettings, IHoverable } from './Interfaces';
+import { NumberMarker } from './NumberMarker';
 
 export class Chart extends VisualComponent implements IChart, IHoverable, IConfigurable {
     private readonly area: ChartArea;
     private readonly tAxis: ITimeAxis;
+    private readonly marker: NumberMarker;
     private readonly renderer: IChartRender<Candlestick>;
     private isMouseOver = false;
 
@@ -24,6 +26,7 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
         tAxis: ITimeAxis,
         offset: Point,
         size: ISize,
+        settings: IChartingSettings,
         private readonly dataSource: IDataSource<Candlestick>,
         private readonly yAxis: IAxis<number>,
         private readonly qtip: IQuicktip) {
@@ -31,16 +34,22 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
 
         this.area = chartArea;
         this.tAxis = tAxis;
-        // this.popup = new ChartPopup<T>(chartType, this.area, { x: 0, y: 0 }, size, dataSource, timeAxis, yAxis);
-        // this.addChild(this.popup);
 
-        //this.qtip.addTextBlock('title', 'CHART ' + uid);
+        this.marker = new NumberMarker(this.area.getYArea(), this.offset, this.size, yAxis, settings, this.getValue);
+        this.marker.visible = true;
+        this.addChild(this.marker);
 
         this.renderer = <IChartRender<Candlestick>>RenderLocator.Instance.getChartRender(Candlestick, this.chartType);
     }
 
     public get precision(): number {
         return this.dataSource.precision;
+    }
+
+    private getValue = (ctx: VisualContext, size: ISize) => {
+        // toY(number) 
+        const candle = this.dataSource.getLastCandle();
+        return candle ? candle.c : undefined;
     }
 
     public getValuesRange(range: IRange<Uid>): IRange<number> {
@@ -78,41 +87,10 @@ export class Chart extends VisualComponent implements IChart, IHoverable, IConfi
     }
 
     public isHit(p: IPoint): boolean {
-
-        // if (mouseX > 0 && mouseX < this.size.width
-        //     && mouseY > 0 && mouseY < this.size.height) {
-
-        //     const renderLocator = RenderLocator.Instance;
-        //     // 1. Get approximate range
-        //     // 2. Get data in that range            
-        //     // 3. Test hit area
-        //     //
-        //     const indexRange = this.frame.getIndexesRange(mouseX - 10, mouseX + 10);
-        //     if (indexRange && indexRange.start && indexRange.end) {
-        //         const data = this.frame.getDataBetween(this._uid, indexRange.start, indexRange.end);
-        //         //const dataIterator = this.dataSource.getData(dateRange, this.timeAxis.interval);
-        //         const dataRender = <IChartRender<Candlestick>>renderLocator.getChartRender(Candlestick, this.chartType);
-        //         const item = dataRender.testHitArea(
-        //             { x: mouseX, y: mouseY },
-        //             data,
-        //             {x: 0, y: 0, w: this.size.width, h: this.size.height },
-        //             this.frame.xAxis,
-        //             this.yAxis);
-
-        //         if (item) {
-        //             // TODO: uncomment
-        //             //this.popup.item = item;
-        //             return true;
-        //         }
-        //     }
-        // }
         return this.isMouseOver;
     }
 
-    public setHovered(visible: boolean): void {
-        // TODO: uncomment
-        //this.popup.visible = visible;
-    }
+    public setHovered(visible: boolean): void { }
 
     public getSettings(): SettingSet {
         const merged = new SettingSet('chartsettings');
