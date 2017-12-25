@@ -45,6 +45,8 @@ module.exports = {
                 return getUtcDate(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate());
             case 'Month': 
                 return getUtcDate(date.getUTCFullYear(), date.getUTCMonth(), 1);
+            case 'Year': 
+                return getUtcDate(date.getUTCFullYear(), 0, 1);                
             default:
                 throw new Error("Not expected period " + period);
         }
