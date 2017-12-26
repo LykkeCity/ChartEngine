@@ -123,4 +123,15 @@ export class RenderUtils {
             default: throw new Error(`Unexpected line pattern: ${pattern}`);
         }
     }
+
+    public static COMPUTE_RECT_HEIGHT(y1: number, y2: number): number {
+
+        // Round before calculating height.
+        // Y coords are inclusive, so adding 1.
+        return Math.abs(this.round(y1) - this.round(y2)) + 1;
+    }
+
+    private static round(n: number): number {
+        return (0.5 + n) | 0;
+    }
 }

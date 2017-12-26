@@ -121,7 +121,7 @@ module.exports = {
             }
 
             if (cur.getTime() >= dateFrom.getTime() && cur.getTime() <= dateTo.getTime()) {
-                if (cur.getDay() !== 6 && cur.getDay() !== 0) { // Do not generate for Saturday and Sunday
+                if (cur.getUTCDay() !== 6 && cur.getUTCDay() !== 0) { // Do not generate for Saturday and Sunday
                     list.push(c);
                 }
             }

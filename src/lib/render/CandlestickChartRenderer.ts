@@ -182,7 +182,7 @@ export class CandlestickChartRenderer implements IChartRender<Candlestick>  {
     private calculateBody(x: number, yAxis: IAxis<number>, o: number, c: number, candleW: number): IRect {
         const ocMin = yAxis.toX(Math.max(o, c)); // Inverted Y
         const ocMax = yAxis.toX(Math.min(o, c));
-        return { x: x - Math.floor(candleW / 2), y: ocMin, w: candleW, h: ocMax - ocMin };
+        return { x: x - Math.floor(candleW / 2), y: ocMin, w: candleW, h: RenderUtils.COMPUTE_RECT_HEIGHT(ocMin, ocMax) };
     }
 
     private calculateBodyWidth(timeAxis: ITimeAxis, frameWidth: number): number {
