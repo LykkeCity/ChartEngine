@@ -3,7 +3,7 @@
  */
 import { TimeAutoGrid } from '../axes/index';
 import { IAxis, ITimeAxis, TimeBar, TimeInterval } from '../core/index';
-import { IDataIterator, IDataSource } from '../data/index';
+import { ExtendedTimeLine, IBasicIterator, IDataIterator, IDataSource } from '../data/index';
 import { Candlestick, Uid } from '../model/index';
 import { Event, IEvent, IRange, Iterator } from '../shared/index';
 import { DateUtils } from '../utils/index';
@@ -22,8 +22,9 @@ export class LoadRangeArgument {
 export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
 
     private dataSource: IDataSource<Candlestick> | undefined;
-    private iter: IDataIterator<Candlestick> | undefined;
-    private tempIter: IDataIterator<Candlestick> | undefined;
+    private extTimeLine: ExtendedTimeLine | undefined;
+    private extTimeLineIterator: IBasicIterator<Uid> | undefined;
+    //private tempIter: IDataIterator<Candlestick> | undefined;
     private readonly loadRangeEvent = new LoadRangeEvent();
     /**
      * Start of the current frame.
@@ -34,7 +35,6 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
      */
     private N: number;
 
-    private iteratorPointer: Uid | undefined;
     private iteratorCounter: number = 0;
 
     /**
@@ -91,12 +91,8 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
      * @param uid
      */
     public isVisible(uid: Uid): boolean {
-        if (this.frameStart.compare(uid) > 0) {
-            return false;
-        }
-
-        const frameEnd = this.shiftBy(this.tempIter, this.N, this.frameStart);
-        return frameEnd.compare(uid) >= 0;
+        const range = this.range;
+        return range.start.compare(uid) <= 0 && range.end.compare(uid) >= 0;
     }
 
     /**
@@ -104,12 +100,12 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
      * @param uid
      */
     public moveTo(uid: Uid): void {
+        this.validateInstance();
+
         if (this.frameStart.compare(uid) > 0) {
-            if (this.tempIter && this.tempIter.goWhile(item => item.uid.compare(uid) <= 0)) {
-                this.frameStart = this.tempIter.current.uid;
-            }
+            this.frameStart = new Uid(uid.t, uid.n);
         } else if (this.frameStart.compare(uid) < 0) {
-            this.frameStart = this.shiftBy(this.tempIter, -this.N, uid);
+            this.frameStart = this.extTimeLine!.getByDistance(uid, -this.N, this._interval);
         }
     }
 
@@ -119,8 +115,7 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         this.frameStart.n = 0;
 
         this.dataSource = dataSource;
-        this.iter = dataSource.getIterator();
-        this.tempIter = dataSource.getIterator();
+        this.extTimeLine = new ExtendedTimeLine(dataSource);
 
         // load 3 screens
         this.load(this.frameStart, 2 * this.N);
@@ -145,43 +140,37 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         return this.N;
     }
 
-    public get current(): TimeBar {
-        if (this.iteratorPointer === undefined) {
-            throw new Error('Iterator is not initialized.');
-        }
-        return { uid: this.iteratorPointer, x: this.index2x(this.iteratorCounter) };
+    public reset(): void {
+        this.validateInstance();
+        this.extTimeLineIterator = this.extTimeLine!.getIterator(this.frameStart, this._interval);
+        this.iteratorCounter = 0;
     }
 
-    private found: boolean;
+    public get current(): TimeBar {
+        if (!this.extTimeLineIterator) {
+            throw new Error('Iterator is not initialized');
+        }
 
-    public reset(): void {
-        // go to frameStart
-        this.iteratorPointer = undefined;
-        this.iteratorCounter = -1;
-        this.found = false;
+        if (this.iteratorCounter === 0) {
+            throw new Error('Current item is undefined');
+        }
+
+        return { uid: this.extTimeLineIterator.current, x: this.index2x(this.iteratorCounter) };
     }
 
     public moveNext(): boolean {
-        if (this.iteratorPointer === undefined) {
-            this.iteratorPointer = new Uid(this.frameStart.t, this.frameStart.n);
-            this.iteratorCounter = 0;
-
-            this.found = this.iter
-                        ? this.iter.goTo(item => { return item.uid.compare(<Uid>this.iteratorPointer) === 0; })
-                        : false;
-
-            return true;
-        } else if (this.iteratorCounter < (this.N)) {
-
-            const res = this.shiftNext(this.iter, this.found, this.iteratorPointer);
-            this.found = res.f;
-            this.iteratorPointer = res.uid;
-
-            this.iteratorCounter += 1;
-            return true;
-        } else {
-            return false;
+        if (!this.extTimeLineIterator) {
+            throw new Error('Iterator is not initialized');
         }
+
+        let res = false;
+        if (this.iteratorCounter < this.N) {
+            res = this.extTimeLineIterator.moveNext();
+            if (res) {
+                this.iteratorCounter += 1;
+            }
+        }
+        return res;
     }
 
     /**
@@ -189,6 +178,7 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
      * @param uid
      */
     public toX(uid: Uid): number | undefined {
+        this.validateInstance();
 
         // ensure that require uid is loaded
         if (this.dataSource) {
@@ -196,16 +186,19 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         }
 
 		// Compute distance b/w frame start и uid
-        const dist = this.getDistance(this.frameStart, uid);
+        const dist = this.extTimeLine!.getDistance(this.frameStart, uid, this._interval);
         return dist !== undefined ? this.index2x(dist) : undefined;
     }
 
     public toValue(x: number): Uid | undefined {
+        this.validateInstance();
+
         const index = this.x2index(x);
-        return this.shiftBy(this.tempIter, index, this.frameStart);
+        return this.extTimeLine!.getByDistance(this.frameStart, index, this._interval);
     }
 
     public move(direction: number) {
+        this.validateInstance();
 
         if (!direction || direction === 0) {
             return;
@@ -220,13 +213,14 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
             // load additional data if needed
             if (this.dataSource) { this.load(this.frameStart, barCount > 0 ? (barCount + 2 * this.N) : (barCount - this.N)); }
 
-            this.frameStart = this.shiftBy(this.tempIter, -barCount, this.frameStart);
+            this.frameStart = this.extTimeLine!.getByDistance(this.frameStart, -barCount, this._interval);
         }
 
         this.preciseShift = targetShift - (barCount * barWidth);
     }
 
     public scale(direction: number) {
+        this.validateInstance();
 
         this.preciseShift = 0;
 
@@ -241,7 +235,7 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
         }
 
         if (newN >= 1 && newN <= 2000) {
-            this.frameStart = this.shiftBy(this.tempIter, this.N - newN, this.frameStart);
+            this.frameStart = this.extTimeLine!.getByDistance(this.frameStart, this.N - newN, this._interval);
             this.N = newN;
         }
     }
@@ -250,12 +244,11 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
      * Visible range
      */
     public get range(): IRange<Uid> {
-        const start = new Uid();
-        start.t = this.frameStart.t;
-        start.n = this.frameStart.n;
-        const end = this.shiftBy(this.tempIter, this.N, this.frameStart);
-
-        return { start: start, end: end };
+        this.validateInstance();
+        return {
+            start: new Uid(this.frameStart.t, this.frameStart.n),
+            end: this.extTimeLine!.getByDistance(this.frameStart, this.N, this._interval)
+         };
     }
 
     public lock(uid: Uid): void {
@@ -272,132 +265,13 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
     }
 
     public dist(uidFrom: Uid, uidTo: Uid): number|undefined {
-        return this.getDistance(uidFrom, uidTo);
+        this.validateInstance();
+        return this.extTimeLine!.getDistance(uidFrom, uidTo, this._interval);
     }
 
     public add(uid: Uid, amount: number): Uid|undefined {
-        return this.shiftBy(this.tempIter, amount, uid);
-    }
-
-    /**
-     * Determines distance (amount of intervals) b/w specified Uids.
-     * @param uidFrom 
-     * @param uidTo 
-     */
-    private getDistance(uidFrom: Uid, uidTo: Uid): number|undefined {
-        let counter = 0;
-
-        let curUid = uidFrom.compare(uidTo) <= 0 ? uidFrom : uidTo;
-        const lastUid = uidFrom.compare(uidTo) <= 0 ? uidTo : uidFrom;
-
-        const curTime = curUid.t.getTime();
-        const lastTime = lastUid.t.getTime();
-
-        const fo = this.tempIter ? this.tempIter.goTo(item => item.uid.compare(curUid) > 0) : false;
-
-        if (fo && this.tempIter && this.tempIter.current.uid.compare(lastUid) < 0) {
-
-            counter = DateUtils.diffIntervals(curUid.t, this.tempIter.current.uid.t, this.interval);
-
-            let outOfRange = false;
-            while (this.tempIter.moveNext()) {
-                curUid = this.tempIter.current.uid;
-
-                if (curUid.compare(lastUid) > 0) {
-                    outOfRange = true;
-                    break;
-                }
-                counter += 1;
-            }
-
-            if (!outOfRange) {
-                counter += DateUtils.diffIntervals(curUid.t, lastUid.t, this.interval);
-            }
-        } else {
-            counter = DateUtils.diffIntervals(curUid.t, lastUid.t, this.interval);
-        }
-
-		// Compute coordinate by index
-        return (uidFrom.t < uidTo.t) ? counter : -counter;
-    }
-
-    /**
-     * Searches Uid at "shift" distance from current. Adds fake values if needed.
-     * @param iterator 
-     * @param shift Can be positive and negative
-     * @param curPosition 
-     */
-    private shiftBy(iterator: IDataIterator<Candlestick> | undefined, shift: number, curPosition: Uid): Uid {
-
-        const cur = new Uid();
-        cur.t = curPosition.t;
-        cur.n = curPosition.n;
-
-        if (shift === 0) {
-            return cur;
-        }
-
-        // 1. Find first candle before or after current position
-        //
-        let found = false;
-        if (iterator) {
-            found = (shift > 0)
-                ? iterator.goTo(item => item.uid.compare(cur) > 0)
-                : iterator.goWhile(item => item.uid.compare(cur) < 0);
-        }
-
-        if (iterator && found) {
-
-            // Define distance b/w frame start and first found item
-            const diff = DateUtils.diffIntervals(cur.t, iterator.current.uid.t, this.interval); // diff is positive
-
-            if ((shift > 0 && diff > shift) || (shift < 0 && -diff < shift)) {
-                cur.t = DateUtils.addInterval(cur.t, this._interval, shift);
-                cur.n = 0;
-                return cur;
-            }
-
-            shift = shift - ((shift > 0) ? diff : -diff);
-
-            // Shift over the data items
-            const actualMoved = iterator.moveTimes(shift);
-            cur.t = iterator.current.uid.t;
-            cur.n = iterator.current.uid.n;
-            shift = shift - actualMoved;
-        }
-
-        if (shift !== 0) {
-            cur.t = DateUtils.addInterval(cur.t, this._interval, shift);
-            cur.n = 0;
-        }
-
-        return cur;
-    }
-
-    private shiftNext(iterator: IDataIterator<Candlestick>|undefined, found: boolean, curPosition: Uid): {f: boolean, uid: Uid} {
-
-        const newPosition: Uid = new Uid();
-        let f: boolean = found;
-
-        if (found) {
-            f = (iterator !== undefined) ? iterator.moveNext() : false;
-            if (f && iterator !== undefined) {
-                const cur = iterator.current;
-                newPosition.t = cur.uid.t;
-                newPosition.n = cur.uid.n;
-            } else {
-                // generate fake
-                // do not try to move
-                newPosition.t = DateUtils.addInterval(curPosition.t, this._interval);
-                newPosition.n = 0;
-            }
-        } else {
-            // generate fake time
-            // try move pointer
-            newPosition.t = DateUtils.addInterval(curPosition.t, this._interval);
-            newPosition.n = 0;
-        }
-        return { f: f, uid: newPosition };
+        this.validateInstance();
+        return this.extTimeLine!.getByDistance(uid, amount, this._interval);
     }
 
     /**
@@ -416,5 +290,11 @@ export class TimeAxis implements ITimeAxis, Iterator<TimeBar> {
     private x2index(x: number): number {
         const wi = this.w / this.N;
         return Math.floor((x - this.preciseShift + wi) / wi);
+    }
+
+    private validateInstance(): void {
+        if (!this.extTimeLine) {
+            throw new Error('Data source is not initialized');
+        }
     }
 }

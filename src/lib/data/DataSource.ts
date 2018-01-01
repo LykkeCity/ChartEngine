@@ -121,7 +121,7 @@ export abstract class DataSource implements IDataSource<Candlestick> {
             } while (iterator.moveNext() && iterator.current.uid.compare(end) <= 0);
         }
 
-        return uid !== undefined ? new Candlestick(uid.t, c, o, hh, ll): undefined;
+        return uid !== undefined ? new Candlestick(uid.t, c, o, hh, ll) : undefined;
     }
 
     public getLastCandle(): Candlestick|undefined {

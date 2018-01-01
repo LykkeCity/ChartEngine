@@ -59,10 +59,30 @@ export interface IDataSource<T> extends IDisposable, IConfigurable {
     getLastCandle(): Candlestick|undefined;
 }
 
-export interface IDataIterator<T> {
+export interface IBasicIterator<T> {
     current: T;
+
+    /**
+     * Moves pointer on 1 item forward.
+     * Returns false if can not move.
+     */
+    moveNext(): boolean;
+    reset(): void;
+}
+
+/**
+ * Data Iterator interface.
+ * 
+ * go* methods reset iterator to the start.
+ * move* methods continue from current position. 
+ */
+export interface IDataIterator<T> extends IBasicIterator<T> {
+    //current: T;
     previous: T|undefined;
+    first: T|undefined;
     last: T|undefined;
+
+    getCount(): number;
 
     /**
      * Starts search from the beginning of data.
@@ -84,25 +104,12 @@ export interface IDataIterator<T> {
      * Returns count of moves done. Or -1 if could not find element.
      */
     moveTo(predicate: (item: T) => boolean): number;
-    //moveTo(uid: Uid): number;
 
-    //reset(): void;
-    /**
-     * Moves pointer on 1 item forward.
-     * Returns false if can not move.
-     */
-    moveNext(): boolean;
     /**
      * Moves pointer on 1 item backwards.
      * Returns false if can not move.
      */
     movePrev(): boolean;
-
-    // /**
-    //  * Moves pointer forward n times.
-    //  * Returns actual count of moves done.
-    //  */
-    // moveNextTimes(n: number): number;
 
     /**
      * Moves pointer forward/backward n times.
@@ -115,14 +122,7 @@ export interface IDataIterator<T> {
      * Iterats till @func returns "true" and begginning of storage is not reached.
      * @param func 
      */
-    somebackward(func: (item: T, counter: number) => boolean): void;
-
-    //find(predicate: (item: T) => boolean): T | undefined;
-
-    /**
-     * Positive or 0.
-     */
-    //count(): number;    
+    movePrevWhile(func: (item: T, counter: number) => boolean): void;
 }
 
 export interface IDataReaderDelegate {
@@ -155,11 +155,6 @@ export interface IDataStorage<T> {
     last: T | undefined;
     isEmpty: boolean;
     clear() : void;
-    // contains(predicate: (item: T) => boolean): boolean;
-    // containsCount(predicate: (item: T) => boolean, count: number): boolean;
-    // filter(filter?: (item: T) => boolean): IDataIterator<T>;
-    // findLast(predicate: (item: T) => boolean): T | undefined;
-    //getIterator(predicate: (item: T) => boolean, count: number): IDataIterator<T>;
     merge(update: T[]): void;
 }
 

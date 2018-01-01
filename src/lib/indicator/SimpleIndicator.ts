@@ -244,7 +244,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
             lead = iterLead.goToLast();
 
             let counter = 0;
-            iterLead.somebackward(item => {
+            iterLead.movePrevWhile(item => {
                 counter += 1;
                 return item.isFake;
             });
@@ -332,7 +332,7 @@ export abstract class SimpleIndicator<T extends CandlestickExt> extends Indicato
         } else if (shift > 0) {
             if (iter.goToLast()) {
                 let moved = 0;
-                iter.somebackward((item, counter) => {
+                iter.movePrevWhile((item, counter) => {
                     moved = counter;
                     return item.isFake;
                 });

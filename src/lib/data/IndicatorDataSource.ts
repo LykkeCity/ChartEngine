@@ -94,7 +94,7 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
         }
 
         const array: number[] = [];
-        iterator.somebackward((item, counter) => {
+        iterator.movePrevWhile((item, counter) => {
             if (counter > N) { return false; }
             if (counter > 0) {
                 const val = accessor(item);
@@ -112,7 +112,7 @@ export abstract class IndicatorDataSource<C extends Candlestick> extends DataSou
         N: number): T[] {
 
         const array: T[] = [];
-        iterator.somebackward((item, counter) => {
+        iterator.movePrevWhile((item, counter) => {
             if (counter > N) { return false; }
             if (counter > 0) {
                 array.push(item);

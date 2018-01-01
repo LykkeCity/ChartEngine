@@ -166,7 +166,7 @@ export class TimeAutoGrid implements Iterator<TimeBar> {
                 break;
             }
         }
-        return selectedScale;
+        return selectedScale !== 0 ? selectedScale : TimeInterval.month;
     }
 
     public get current(): TimeBar {

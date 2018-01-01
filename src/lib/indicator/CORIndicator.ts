@@ -96,7 +96,7 @@ export class CORIndicator extends IndicatorDataSource<CORCandlestick> {
             //--------------------------------------------------
             const prev: Candlestick[] = [];
             const prevCompare: Candlestick[] = [];
-            sourceIter.somebackward((item, counter) => {
+            sourceIter.movePrevWhile((item, counter) => {
                 if (counter > N) { return false; }
                 if (counter > 0) {
                     prev.push(item);

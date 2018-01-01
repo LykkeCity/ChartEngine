@@ -54,14 +54,14 @@ describe('ArrayUtils tests', () => {
     it('Empty merge', () => {
         const array1 = [];
         const array2 = [];
-        const res = utils.ArrayUtils.merge(array1, array2, (n1, n2) => n1 - n2);
+        const res = utils.ArrayUtils.MERGE(array1, array2, (n1, n2) => n1 - n2);
         expect(res.length).toEqual(0);
     });
 
     it('Basic merge', () => {
         const array1 = [1, 2, 3];
         const array2 = [1.5, 2.5];
-        const res = utils.ArrayUtils.merge(array1, array2, (n1, n2) => n1 - n2);
+        const res = utils.ArrayUtils.MERGE(array1, array2, (n1, n2) => n1 - n2);
 
         expect(res.length).toEqual(5);
         expect(res[0]).toEqual(1);
@@ -79,7 +79,7 @@ describe('ArrayUtils tests', () => {
             new Point(new Date(2017, 0, 5), 1.0, 2.0)
         ];
 
-        const res = utils.ArrayUtils.merge(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
+        const res = utils.ArrayUtils.MERGE(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
 
         expect(res.length).toEqual(5);
         expect(res).toNotContainUndefined();
@@ -97,7 +97,7 @@ describe('ArrayUtils tests', () => {
             new Point(new Date(2017, 0, 4), 2.0, 3.0)
         ];
 
-        const res = utils.ArrayUtils.merge(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
+        const res = utils.ArrayUtils.MERGE(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
 
         expect(res.length).toEqual(4);
         expect(res).toNotContainUndefined();
@@ -117,7 +117,7 @@ describe('ArrayUtils tests', () => {
             new Point(new Date(2017, 0, 2), 3.0, 4.0)
         ];
 
-        const res = utils.ArrayUtils.merge(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
+        const res = utils.ArrayUtils.MERGE(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
 
         expect(res.length).toEqual(4);
         expect(res).toNotContainUndefined();
@@ -137,7 +137,7 @@ describe('ArrayUtils tests', () => {
             new Point(new Date(2017, 0, 3), 3.0, 4.0)
         ];
 
-        const res = utils.ArrayUtils.merge(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
+        const res = utils.ArrayUtils.MERGE(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
 
         expect(res.length).toEqual(4);
         expect(res).toNotContainUndefined();
@@ -157,7 +157,7 @@ describe('ArrayUtils tests', () => {
             new Point(new Date(2017, 0, 2), 3.0, 4.0)
         ];
 
-        const res = utils.ArrayUtils.merge(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
+        const res = utils.ArrayUtils.MERGE(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
 
         expect(res.length).toEqual(5);
         expect(res).toNotContainUndefined();
@@ -177,7 +177,7 @@ describe('ArrayUtils tests', () => {
             new Point(new Date(2017, 0, 6), 3.0, 4.0)
         ];
 
-        const res = utils.ArrayUtils.merge(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
+        const res = utils.ArrayUtils.MERGE(array1, array2, (item1, item2) => { return item1.date.getTime() - item2.date.getTime(); });
 
         expect(res.length).toEqual(5);
         expect(res).toNotContainUndefined();

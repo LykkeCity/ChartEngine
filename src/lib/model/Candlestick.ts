@@ -87,8 +87,9 @@ export class Candlestick implements ITimeValue, IUidValue {
         this.uid.t = d;
     }
 
-    constructor(date: Date, c?: number, o?: number, h?: number, l?: number) {
+    constructor(date: Date, c?: number, o?: number, h?: number, l?: number, n?: number) {
         this.uid.t = date;
+        this.uid.n = n || 0;
         this.c = c;
         this.o = o;
         this.h = h;

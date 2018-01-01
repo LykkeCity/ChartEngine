@@ -10,11 +10,13 @@ import { DataSourceConfig } from './DataSourceConfig';
 import { DataSourceFactory } from './DataSourceFactory';
 import { DataSourceRegister, IDataSourceRegister } from './DataSourceRegister';
 import { DataType } from './DataType';
-import { CompositeRange, HttpDataSource } from './HttpDataSource';
+import { ExtendedTimeLine } from './ExtendedTimeLine';
 import { HeikinAshiDataSource } from './HeikinAshiDataSource';
+import { CompositeRange, HttpDataSource } from './HttpDataSource';
 import { HttpDataSourceConfig } from './HttpDataSourceConfig';
 import { IndicatorDataSource } from './IndicatorDataSource';
 import {
+    IBasicIterator,
     IContext,
     IDataIterator,
     IDataReaderDelegate,
@@ -27,6 +29,8 @@ export {
     ArrayIterator,
     ArrayDataSource,
     ArrayDataStorage,
+    IBasicIterator,
+    ExtendedTimeLine,
     CompositeRange,
     DataSourceFactory,
     DataSourceRegister,

@@ -1,5 +1,5 @@
 /**
- * 
+ * ArrayIterator class
  */
 import { IDataIterator, IDataSnapshot } from './Interfaces';
 
@@ -76,30 +76,13 @@ export class ArrayIterator<T> implements IDataIterator<T> {
         return -1;
     }
 
-    // public find(predicate: (item: T) => boolean): T | undefined {
-    //     // Should not change state
+    public getCount(): number {
+        this.checkTimestamp();
 
-    //     let index = -1;
-    //     while (index < this.dataSnapshot.data.length) {
-    //         index = this.skipFilteredForward(index);
-    //         if (index < this.dataSnapshot.data.length && predicate(this.dataSnapshot.data[index])) {
-    //             return this.dataSnapshot.data[index];
-    //         }
-    //     }
-    // }
+        if (this.filter) { throw new Error('Not implemented.'); }
 
-    // public count(): number {
-    //     // Should not change state
-    //     let count = 0;
-    //     let index = -1;
-    //     while (index < this.dataSnapshot.data.length) {
-    //         index = this.skipFilteredForward(index);
-    //         if (index < this.dataSnapshot.data.length) {
-    //             count += 1;
-    //         }
-    //     }
-    //     return count;
-    // }
+        return this.dataSnapshot.data.length;
+    }
 
     private skipFilteredForward(index: number): number {
 
@@ -144,7 +127,6 @@ export class ArrayIterator<T> implements IDataIterator<T> {
      * Current can not become undefined.
      */
     public moveTimes(n: number): number {
-
         this.checkTimestamp();
 
         if (this.dataSnapshot.data.length === 0 || n === 0) {
@@ -225,7 +207,7 @@ export class ArrayIterator<T> implements IDataIterator<T> {
      * ]
      * @param func 
      */
-    public somebackward(func: (item: T, counter: number) => boolean) {
+    public movePrevWhile(func: (item: T, counter: number) => boolean) {
         this.checkTimestamp();
 
         if (this.currentIndex < 0 || this.currentIndex >= this.dataSnapshot.data.length) {
@@ -247,7 +229,6 @@ export class ArrayIterator<T> implements IDataIterator<T> {
     }
 
     public goToLast(): boolean {
-
         if (this.filter) { throw new Error('Not implemented.'); }
 
         this.reset();
@@ -257,6 +238,15 @@ export class ArrayIterator<T> implements IDataIterator<T> {
             return true;
         }
         return false;
+    }
+
+    public get first(): T|undefined {
+        if (this.filter) { throw new Error('Not implemented.'); }
+
+        this.checkTimestamp();
+        if (this.dataSnapshot.data.length > 0) {
+            return this.dataSnapshot.data[0];
+        }
     }
 
     public get last(): T|undefined {
@@ -279,8 +269,7 @@ export class ArrayIterator<T> implements IDataIterator<T> {
 
     private checkTimestamp() : void {
         if (this.dataSnapshot.timestamp !== this.timestamp) {
-            // TODO: Check behavior
-            throw new Error('Data iterator is expired.');
+            // ignore
         }
     }
 }
