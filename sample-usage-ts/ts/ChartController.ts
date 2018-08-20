@@ -56,9 +56,9 @@ export class ChartController implements lychart.core.IDataService {
         $('.add-compare', container).click(this.onAddCompare);
 
         // figures
-        $('.menu-figures', container).menu({ select: this.onAddFigure });
+        (<any>$('.menu-figures', container)).menu({ select: this.onAddFigure });
 
-        const $sel = $('#sel-indicators').select2({ theme: 'classic' });
+        const $sel = (<any>$('#sel-indicators')).select2({ theme: 'classic' });
         $sel.on('change', this.onIndicatorsChange);
 
         $('.assetpair', this.container).change(this.updateChart);

@@ -13,10 +13,10 @@
   "author": "pegilo",
   "license": "MIT",
   "devDependencies": {
+    "@types/hammerjs": "^2.0.34",
     "@types/jasmine": "^2.5.41",
     "@types/jquery": "^2.0.39",
     "@types/knockout": "^3.4.43",
-    "@types/hammerjs": "^2.0.34",
     "browserify-shim": "^3.8.12",
     "del": "^2.2.2",
     "gulp": "^3.9.1",
@@ -45,14 +45,15 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
+    "hammerjs": "^2.0.8",
     "jquery": "^1.12.4",
-    "hammerjs": "^2.0.8"
+    "wretch": "^1.4.1"
   },
   "browserify": {
     "transform": [
       "browserify-shim"
     ]
-  },  
+  },
   "browserify-shim": {
     "jquery": "global:$"
   }

@@ -289,7 +289,7 @@ export class HttpRequestManager {
         this.total.clear();
     }
 
-    public makeRequest(range: IRange<Date>, interval: TimeInterval, force: boolean = false): Promise<IResponse<ITimeValue>>[] {
+    public makeRequest(range: IRange<Date>, interval: TimeInterval, force: boolean = false): Promise<any>[] {
 
         let ranges = [range];
         if (!force) {

@@ -40,7 +40,7 @@ export class AppViewModel {
 
     public cmdAddFigure(figureName: string) {
         // close popup
-        $('#popupMenu').popup('close');
+        (<any>$('#popupMenu')).popup('close');
 
         // start drawing
         if (this.selectedChart) {

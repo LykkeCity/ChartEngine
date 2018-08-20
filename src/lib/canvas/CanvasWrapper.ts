@@ -79,7 +79,7 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.lineTo(this.round(x) + this.adj, this.round(y) + this.adj);
     }
 
-    public fill(fillRule?: string) {
+    public fill(fillRule?: any) {
         this.ctx.fill(fillRule);
     }
 
@@ -114,7 +114,7 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.fillText(s, this.round(x), this.round(y));
     }
 
-    public drawImage(canvas: HTMLCanvasElement, offsetX: number, offsetY: number, width?: number, height?: number): void {
+    public drawImage(canvas: HTMLCanvasElement, offsetX: number, offsetY: number, width?: any, height?: any): void {
         this.ctx.drawImage(canvas, offsetX, offsetY, width, height);
     }
 
@@ -169,7 +169,7 @@ export class CanvasWrapper implements ICanvas {
         this.ctx.restore();
     }
 
-    public clip(fillRule?: string) {
+    public clip(fillRule?: any) {
         this.ctx.clip(fillRule);
     }
 

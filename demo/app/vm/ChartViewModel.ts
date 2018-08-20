@@ -69,7 +69,7 @@ export class ChartViewModel {
         //
         const offset = this.$chartContainer.offset();
         this.board = new ChartBoard(
-            this.$chartContainer[0], offset.left, offset.top, 200, 200, lychart.core.TimeInterval.min, new Storage(), this.dataService);
+            this.$chartContainer[0], offset!.left, offset!.top, 200, 200, lychart.core.TimeInterval.min, new Storage(), this.dataService);
         this.board.selectionChanged.on(this.board_selectionChanged);
         this.board.treeChanged.on(this.board_treeChanged);
         this.board.historyChanged.on(this.board_historyChanged);
@@ -253,7 +253,7 @@ export class ChartViewModel {
         this.board.resize(chartW, chartH);
 
         const offset = this.$chartContainer.offset();
-        this.board.offset = new lychart.shared.Point(offset.left, offset.top);
+        this.board.offset = new lychart.shared.Point(offset!.left, offset!.top);
 
         // resize panel
         this.panelHeight(chartH - 2);
@@ -264,8 +264,7 @@ export class ChartViewModel {
      * @param assetPairId
      * @param timeInterval 
      */
-    private setChart(assetPairId: string, timeInterval: lychart.core.TimeInterval): boolean {
-
+    private setChart(assetPairId: string = 'BTCCHF', timeInterval: lychart.core.TimeInterval): boolean {
         if (!assetPairId || !timeInterval) {
             return false;
         }

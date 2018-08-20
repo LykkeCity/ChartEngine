@@ -26,16 +26,16 @@ export class KnockoutExtensions {
             update: (element, valueAccessor) => {
                 ko.utils.unwrapObservable(valueAccessor());  //grab dependency
 
-                $('.list-component').listview({ refresh: true, mini: true, icon: '' });
-                $('.collapsible-component').collapsible({ refresh: true, mini: true });
+                (<any>$('.list-component')).listview({ refresh: true, mini: true, icon: '' });
+                (<any>$('.collapsible-component')).collapsible({ refresh: true, mini: true });
             }
         };
 
         ko.bindingHandlers.popupVisible = {
             init: (element, valueAccessor) => {
                 const unwrapValue = ko.unwrap(valueAccessor());
-                $(element).draggable({ cursor: 'move' });
-                $(element).popup({ history: false });
+                (<any>$(element)).draggable({ cursor: 'move' });
+                (<any>$(element)).popup({ history: false });
             },
             update: (element, valueAccessor) => {
                 const unwrapValue = ko.unwrap(valueAccessor());
@@ -44,11 +44,11 @@ export class KnockoutExtensions {
                 $('[data-role="popup"]').each((i, el) => {
                     const $el = $(el);
                     if ($el.parent().hasClass('ui-popup-active')) {
-                        $el.popup('close');
+                        (<any>$el).popup('close');
                     }
                 });
 
-                $(element).popup( unwrapValue ? 'open' : 'close');
+                (<any>$(element)).popup( unwrapValue ? 'open' : 'close');
             }
         };
     }
